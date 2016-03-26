@@ -8,58 +8,16 @@
 #include <stdbool.h>
 #include <stddef.h>
 #include <stdint.h>
+#include <SPI.h>
 
 
 
 //Testing
 //
 //////////////////////////////////////////////Debug Flags
-const int RED_COMMS_DEBUG =               0;
 const int ECHO_SERIAL_MONITOR_DEBUG =     1;
 const int DELAY_SERIAL_MILLIS_DEBUG =     100;
-
-
-
-//Hardware
-//
-// Todo Mike and Cameron sign off
-//
-//////////////////////////////////////////////RoveBoard
-// Tiva1294C RoveBoard Specs
-const float VCC                 = 3.3;       //volts
-const float ADC_MAX             = 4096;      //bits
-const float ADC_MIN             = 0;         //bits
-
-float adc_reading = 0;
-
-
-const int ESTOP_CNTRL_P6_0    = 2;
-const int ESTOP_P5_5          = 30;
-
-
-
-//Platform
-//////////////////////////////////////////////Energia
-// Energia libraries used by RoveWare itself
-#include <SPI.h>
-#include <Ethernet.h>
-#include <EthernetUdp.h>
-
-//////////////////////////////////////////////Roveware
-#include "RoveEthernet.h"
-#include "RoveComm.h"
-
-// RED udp device id by fourth octet
-const int BMS_BOARD_IP_DEVICE_ID   = 51;
-
-// RED can toggle the bus by bool
-const uint16_t NO_ROVECOMM_MESSAGE   = 0;
-const uint16_t BUS_5V_ON_OFF         = 207;
-
-//Rovecomm :: RED packet :: data_id and data_value with number of data bytes size
-uint16_t data_id       = 0;
-size_t   data_size     = 0; 
-uint16_t data_value    = 0;
+const int POWERBOARD_SERIAL_DEBUG   =     0;
 
 
 
@@ -69,79 +27,85 @@ uint16_t data_value    = 0;
 //
 // Todo: Connor/Reed Edit
 //
-
 //digital
-int digitalDebounce(int bouncing_pin);
-const int DIGITAL_DEBOUNCE_TIME_MICROS = 250;
-const int DIGITAL_TRY_COUNT = 250; 
+const int ESTOP_DELAY_MILLIS  = 250; 
+volatile int digital_reading  = HIGH;
 
 //analog
-int analogDebounce(int bouncing_pin);
-const int ANALOG_ACCEPTABLE_DRIFT = 250;
-const int ANALOG_DEBOUNCE_TIME_MICROS = 250;
-const int ANALOG_TRY_COUNT = 250;
-
-//error
-const int PIN_TOO_NOISY = -1;
+const int AUTO_KILL_THRESHHOLD_AMPS = 19;
+const int ANALOG_DEBOUNCE_TIME_MILLIS = 10;
 
 
 
-//Begin
+//Hardware
 //
 // Todo Mike and Cameron sign off
 //
-//////////////////////////////////////////////Powerboard Begin
+//////////////////////////////////////////////RoveBoard
+// Pins
+const int ESTOP_CNTRL_P6_0    = 2;
+const int ESTOP_P5_5          = 30;
+const int MIKE_TODO           = 30;
+
+// Tiva1294C RoveBoard Specs
+const float VCC                 = 3.3;       //volts
+const float ADC_MAX             = 4096;      //bits
+const float ADC_MIN             = 0;         //bits
+
+//////////////////////////////////////////////Sensor
+// ??? IC Sensor Specs 
+const float SENSOR_SENSITIVITY   = 0.125;    //volts/amp
+const float SENSOR_SCALE         = 0.1;      //volts/amp
+const float SENSOR_BIAS          = VCC * SENSOR_SCALE;
+
+const float CURRENT_MAX = (VCC - SENSOR_BIAS) / SENSOR_SENSITIVITY;
+const float CURRENT_MIN = -SENSOR_BIAS / SENSOR_SENSITIVITY;
+
+
+
 // the setup routine runs once when you press reset
 void setup() 
-{  
-  // Control Pins are outputs
-  pinMode(ESTOP_CNTRL_P6_0, OUTPUT);
-
-  // Turn on everything when we begin
-  digitalWrite(ESTOP_CNTRL_P6_0, HIGH);
-  
+{   
   // initialize serial communication at 9600 bits per second:
   if(ECHO_SERIAL_MONITOR_DEBUG)
   {
     Serial.begin(9600);
   }//end if
   
-  if(RED_COMMS_DEBUG)
+  if(POWERBOARD_SERIAL_DEBUG)
   { 
-    roveComm_Begin(192, 168, 1, BMS_BOARD_IP_DEVICE_ID);
+    Serial1.begin(9600);
   }// end if
+  
+  // Control Pins are outputs
+  pinMode(ESTOP_CNTRL_P6_0, OUTPUT);
+
+  // Turn on everything when we begin
+  digitalWrite(ESTOP_CNTRL_P6_0, HIGH);
+  
+  // Estop on everything when we begin
+  attachInterrupt(ESTOP_P5_5, estop, CHANGE);
+  
 }//end setup
 
 
 
 //Loop
-//
-// Todo Reed and Connor sign off
-//
 /////////////////////////////////////////////Powerboard Loop Forever
 void loop() 
 {
-  /////////////////////////////////////////////Serial Monitor
-  if(ECHO_SERIAL_MONITOR_DEBUG)
+  bool fuse_did_trip = checkSoftwareFuse(MIKE_TODO);
+  
+  if( checkSoftwareFuse(MIKE_TODO) )
   {
-    int digital_reading = digitalRead(ESTOP_P5_5);      
-    Serial.print("ESTOP_P5_5 analogRead: "); 
-    Serial.print(digital_reading, DEC);
-    
-    int adc_reading = analogRead(ESTOP_P5_5);      
-    Serial.print(": ESTOP_P5_5 analogRead: "); 
-    Serial.println(adc_reading, DEC);
-    
-    digital_reading = digitalDebounce(ESTOP_P5_5);      
-    Serial.print("ESTOP_P5_5 digitalDebounce: "); 
-    Serial.print(digital_reading, DEC);
-    
-    adc_reading = analogDebounce(ESTOP_P5_5);      
-    Serial.print(": ESTOP_P5_5 analogDebounce: "); 
-    Serial.println(adc_reading, DEC);
-    
-    delay(DELAY_SERIAL_MILLIS_DEBUG);
+    digitalWrite(ESTOP_CNTRL_P6_0, LOW);
   }//end if
+    
+  if(POWERBOARD_SERIAL_DEBUG)
+  { 
+    Serial1.print("checkSoftwareFuse : ");
+    Serial1.println(fuse_did_trip);
+  }// end if
   
 }//end loop
 
@@ -149,99 +113,77 @@ void loop()
 
 //Developing
 ///////////////////////////////////////////////Implementation
-int digitalDebounce(int bouncing_pin)
+void estop()
 {    
-  // Count the bounces
-  int digital_trend_count = 0;
-  bool digital_reading = digitalRead(bouncing_pin);  
+  // Keep from interrupt ourselves
+  detachInterrupt(ESTOP_P5_5);
   
-  // Read a bouncing pin and save the state
-  bool last_digital_reading = digital_reading;   
+  digital_reading = digitalRead(ESTOP_P5_5);
   
-  // Get timestamp from the system clock counter
-  unsigned long system_time_micros = micros(); 
- 
- // Spin for a max of millisec
-  while(system_time_micros != ( micros()  + DIGITAL_DEBOUNCE_TIME_MICROS) )
+  if(digital_reading == LOW)
   {
-    digital_reading = digitalRead(bouncing_pin);
+    // Turn off everything when estop
+    digitalWrite(ESTOP_CNTRL_P6_0, LOW);
     
-    if(digital_reading == last_digital_reading)
-    {
-      digital_trend_count++;
-    }//end if
+  }else{
     
-    if( (digital_reading != last_digital_reading) && (digital_trend_count > 0) )
-    {
-       digital_trend_count--; 
-       last_digital_reading = digital_reading;
-    }//end if
-  
-    if(digital_trend_count > DIGITAL_TRY_COUNT)
-    {   
+    delay(ESTOP_DELAY_MILLIS);
+    
+    //debounce on estop on
+    digital_reading = digitalRead(ESTOP_P5_5);
+    
+    if(digital_reading)
+    { 
+      // Turn off everything when estop
+      digitalWrite(ESTOP_CNTRL_P6_0, HIGH);
       
-      return digital_reading;   
-    }else{         
+     }//end if    
+   }//end else 
+   
+  /////////////////////////////////////////////Serial Monitor
+  if(ECHO_SERIAL_MONITOR_DEBUG)
+  {     
+    Serial.print("ESTOP_P5_5 digital_reading: "); 
+    Serial.print(digital_reading, DEC);
+    delay(DELAY_SERIAL_MILLIS_DEBUG);
+  }//end if
       
-      last_digital_reading = digital_reading;
-    }//end else
-  }//end while
-  
-  return PIN_TOO_NOISY;
+   attachInterrupt(ESTOP_P5_5, estop, CHANGE); 
 }//end functn
 
 
 
 //Developing
 ///////////////////////////////////////////////Implementation
-int analogDebounce(int bouncing_pin)
-{    
-  // Count the bounces
-  int analog_trend_count = 0;
-  bool analog_reading = analogRead(bouncing_pin);  
+bool checkSoftwareFuse(int bouncing_pin)
+{  
+  float adc_reading = analogRead(bouncing_pin);
+  float current_reading = mapFloats(adc_reading, ADC_MIN, ADC_MAX, CURRENT_MIN, CURRENT_MAX); 
   
-  // Read a bouncing pin and save the state
-  bool last_analog_reading = analog_reading;   
-  
-  // Get timestamp from the system clock counter
-  unsigned long system_time_micros = micros(); 
- 
- // Spin for a max of millisec
-  while(system_time_micros != ( micros()  + ANALOG_DEBOUNCE_TIME_MICROS) )
+  if(current_reading < AUTO_KILL_THRESHHOLD_AMPS)
   {
-    analog_reading = analogRead(bouncing_pin);
-    
-    if( analog_trend_count && (abs(analog_reading - last_analog_reading) < ANALOG_ACCEPTABLE_DRIFT)  )    
-    {
-      analog_trend_count++;
-    }//end if
-    
-    if( analog_trend_count && (abs(analog_reading - last_analog_reading) > ANALOG_ACCEPTABLE_DRIFT)  )    
-    {
-       analog_trend_count--; 
-       last_analog_reading = last_analog_reading;
-    }//end if
+    return false;
+  }//else
   
-    if(analog_trend_count > ANALOG_TRY_COUNT)
-    {   
-      
-      return analog_reading;   
-    }else{         
-      
-      last_analog_reading = analog_reading;
-    }//end else
-  }//end while
-  
-  return PIN_TOO_NOISY;
+  unsigned long system_time_micros = micros(); 
+
+  while( system_time_micros != ( micros()  + ANALOG_DEBOUNCE_TIME_MILLIS)  )
+  {
+    adc_reading = analogRead(bouncing_pin);
+    current_reading = mapFloats(adc_reading, ADC_MIN, ADC_MAX, CURRENT_MIN, CURRENT_MAX);
+    
+    if(current_reading < AUTO_KILL_THRESHHOLD_AMPS)
+    {
+      return false;
+    }//end if
+  }//end if 
+    
+  return true;
 }//end functn
 
-
-
-
-
-
-
-
-
-
+///////////////////////////////////////////////Implementation
+float mapFloats(float x, float in_min, float in_max, float out_min, float out_max)
+{
+  return (x - in_min) * (out_max - out_min) / (in_max - in_min) + out_min;
+}//end fnctn
 
