@@ -1,46 +1,30 @@
-//RoveWare Bmsboard LT Todo?? Interface
-//
-// Judah jrs6w7
-//
-// Using Todo??
-//
 // Standard C
 #include <stdbool.h>
 #include <stddef.h>
 #include <stdint.h>
+
+//Energia
+#include <EasyTransfer.h>
 #include <SPI.h>
 
 
 
-//Testing
-//
-//////////////////////////////////////////////Debug Flags
-const int ECHO_SERIAL_MONITOR_DEBUG =     1;
-const int DELAY_SERIAL_MILLIS_DEBUG =     100;
-const int POWERBOARD_SERIAL_DEBUG   =     0;
+const uint8_t BMS_BATTERY_PACK_ON_OFF          = 1040;
+const uint8_t BMS_BATTERY_PACK_ON_OFF_REBOOT   = 1041;
+
+const uint8_t BMS_BATTERY_PACK_VOLTAGE         = 1072;
+const uint8_t BMS_BATTERY_PACK_CURRENT         = 1073;
 
 
-
-//Developing 
-//
-// Todo: Cameron/Mike Hardware Calibration
-//
-// Todo: Connor/Reed Edit
-//
-//digital
 const int ESTOP_DELAY_MILLIS  = 250; 
+
 volatile int digital_reading  = HIGH;
+volatile int estop_occured_flag  = 0;
 
-//analog
-const int AUTO_KILL_THRESHHOLD_AMPS = 19;
-const int ANALOG_DEBOUNCE_TIME_MILLIS = 10;
+const int ESTOP_THRESHHOLD_AMPS = 19;
+const int ESTOP_THRESHHOLD_VOLTS = 19;
+const int DEBOUNCE_DELAY = 10;
 
-
-
-//Hardware
-//
-// Todo Mike and Cameron sign off
-//
 //////////////////////////////////////////////RoveBoard
 // Pins
 const int ESTOP_CNTRL_P6_0    = 2;
@@ -61,22 +45,55 @@ const float SENSOR_BIAS          = VCC * SENSOR_SCALE;
 const float CURRENT_MAX = (VCC - SENSOR_BIAS) / SENSOR_SENSITIVITY;
 const float CURRENT_MIN = -SENSOR_BIAS / SENSOR_SENSITIVITY;
 
+typedef struct 
+{
+  int16_t data_id;
+  float pack_voltage;
+  float pack_current;
+} recieve_data;
+
+typedef struct 
+{
+  int16_t data_id; 
+} send_data;
+
+recieve_data receive_powerboard_command;
+send_data    send_powerboard_telem;
+
+EasyTransfer FromPowerboard, ToPowerboard;
+
+/*float mapFloats(float x, float in_min, float in_max, float out_min, float out_max)
+{
+  return (x - in_min) * (out_max - out_min) / (in_max - in_min) + out_min;
+}//end fnctn
+
+// Checks the pin for bouncing voltages to avoid false positives
+bool singleDebounce(int bouncing_pin, int max_amps_threshold)
+{
+  int adc_threshhold = map(max_amps_threshold, CURRENT_MIN, CURRENT_MAX, ADC_MIN, ADC_MAX);
+  
+  if( analogRead(bouncing_pin) > adc_threshhold)
+  {  
+    delay(DEBOUNCE_DELAY);
+    
+    if( analogRead(bouncing_pin) > adc_threshhold)
+    {
+       return true;
+    }//end if
+  }// end if 
+  return false;
+}//end fntcn*/
+
 
 
 // the setup routine runs once when you press reset
 void setup() 
 {   
-  // initialize serial communication at 9600 bits per second:
-  if(ECHO_SERIAL_MONITOR_DEBUG)
-  {
-    Serial.begin(9600);
-  }//end if
+  Serial1.begin(9600);
   
-  if(POWERBOARD_SERIAL_DEBUG)
-  { 
-    Serial1.begin(9600);
-  }// end if
-  
+  FromPowerboard.begin(details(receive_powerboard_command), &Serial1);  
+  ToPowerboard.begin(details(send_powerboard_telem), &Serial1);
+
   // Control Pins are outputs
   pinMode(ESTOP_CNTRL_P6_0, OUTPUT);
 
@@ -94,25 +111,37 @@ void setup()
 /////////////////////////////////////////////Powerboard Loop Forever
 void loop() 
 {
-  bool fuse_did_trip = checkSoftwareFuse(MIKE_TODO);
-  
-  if( checkSoftwareFuse(MIKE_TODO) )
-  {
-    digitalWrite(ESTOP_CNTRL_P6_0, LOW);
+  if( FromPowerboard.receiveData() )
+  {   
+    switch (receive_powerboard_command.data_id)
+      { 
+      case 0:
+        break;
+        
+      case BMS_BATTERY_PACK_ON_OFF:
+        digitalWrite(ESTOP_CNTRL_P6_0, LOW);
+        break;
+        
+     // case BMS_BATTERY_PACK_ON_OFF_REBOOT:
+        //break;
+        
+      default:
+      //Serial.print("Unrecognized data :");
+      //Serial.println(data);
+      break; 
+       }//endswitch
   }//end if
-    
-  if(POWERBOARD_SERIAL_DEBUG)
-  { 
-    Serial1.print("checkSoftwareFuse : ");
-    Serial1.println(fuse_did_trip);
-  }// end if
+  
+  if( estop_occured_flag )
+  {
+    send_powerboard_telem.data_id = BMS_BATTERY_PACK_ON_OFF;
+    ToPowerboard.sendData();
+    send_powerboard_telem.data_id = 0;
+  }//end if
   
 }//end loop
 
 
-
-//Developing
-///////////////////////////////////////////////Implementation
 void estop()
 {    
   // Keep from interrupt ourselves
@@ -139,51 +168,9 @@ void estop()
       
      }//end if    
    }//end else 
-   
-  /////////////////////////////////////////////Serial Monitor
-  if(ECHO_SERIAL_MONITOR_DEBUG)
-  {     
-    Serial.print("ESTOP_P5_5 digital_reading: "); 
-    Serial.print(digital_reading, DEC);
-    delay(DELAY_SERIAL_MILLIS_DEBUG);
-  }//end if
-      
+       
    attachInterrupt(ESTOP_P5_5, estop, CHANGE); 
 }//end functn
 
 
-
-//Developing
-///////////////////////////////////////////////Implementation
-bool checkSoftwareFuse(int bouncing_pin)
-{  
-  float adc_reading = analogRead(bouncing_pin);
-  float current_reading = mapFloats(adc_reading, ADC_MIN, ADC_MAX, CURRENT_MIN, CURRENT_MAX); 
-  
-  if(current_reading < AUTO_KILL_THRESHHOLD_AMPS)
-  {
-    return false;
-  }//else
-  
-  unsigned long system_time_micros = micros(); 
-
-  while( system_time_micros != ( micros()  + ANALOG_DEBOUNCE_TIME_MILLIS)  )
-  {
-    adc_reading = analogRead(bouncing_pin);
-    current_reading = mapFloats(adc_reading, ADC_MIN, ADC_MAX, CURRENT_MIN, CURRENT_MAX);
-    
-    if(current_reading < AUTO_KILL_THRESHHOLD_AMPS)
-    {
-      return false;
-    }//end if
-  }//end if 
-    
-  return true;
-}//end functn
-
-///////////////////////////////////////////////Implementation
-float mapFloats(float x, float in_min, float in_max, float out_min, float out_max)
-{
-  return (x - in_min) * (out_max - out_min) / (in_max - in_min) + out_min;
-}//end fnctn
 
