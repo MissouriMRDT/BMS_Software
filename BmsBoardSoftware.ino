@@ -89,7 +89,8 @@ bool singleAnalogDebounce(int bouncing_pin, int max_amps_threshold)
   
   if( analogRead(bouncing_pin) > adc_threshhold)
   {  
-    delay(ANALOG_DEBOUNCE_DELAY);
+    Task_sleep(ANALOG_DEBOUNCE_DELAY);
+    //delay(ANALOG_DEBOUNCE_DELAY);
     
     if( analogRead(bouncing_pin) > adc_threshhold)
     {
@@ -98,38 +99,6 @@ bool singleAnalogDebounce(int bouncing_pin, int max_amps_threshold)
   }// end if 
   return false;
 }//end fntcn
-
-
-
-void estop()
-{    
-  // Keep from interrupt ourselves
-  //detachInterrupt(ESTOP_P1_6);
-  
-  delay(DIGITAL_DEBOUNCE_DELAY); 
-  
-  if( digitalRead(ESTOP_P1_6) == HIGH)
-  {  
-    delay(DOUBLE_DEBOUNCE_DELAY); 
-    
-    if( digitalRead(ESTOP_P1_6) == HIGH )
-    {
-       digitalWrite(ESTOP_CNTRL_P6_0, LOW);
-    }//end if
-    
-  }else{
-    
-    delay(DOUBLE_DEBOUNCE_DELAY);  
-    
-    if( digitalRead(ESTOP_P1_6) == LOW )
-    {
-       digitalWrite(ESTOP_CNTRL_P6_0, HIGH);
-    }//end if 
-  }//end if  
-  
-  //attachInterrupt(ESTOP_P1_6, estop, CHANGE); 
-}//end functn
-
 
 
 // the setup routine runs once when you press reset
@@ -144,11 +113,10 @@ void setup()
   pinMode(ESTOP_CNTRL_P6_0, OUTPUT);
   
   // Turn on everything when we begin
-  digitalWrite(ESTOP_CNTRL_P6_0, HIGH);
+  digitalWrite(ESTOP_CNTRL_P6_0, LOW);
   
   // Estop on everything when we begin
   attachInterrupt(ESTOP_P1_6, estop, CHANGE);
-  
 }//end setup
 
 
@@ -160,7 +128,7 @@ void loop()
   if(singleAnalogDebounce( AMPS_PACK_P5_5, ESTOP_PACK_AMPS_MAX_THRESHHOLD))
   {
     digitalWrite(ESTOP_CNTRL_P6_0, LOW);
-    delay(REBOOT_DELAY);
+    //delay(REBOOT_DELAY);
     
     for(int reboot_tries = 0; reboot_tries < REBOOT_TRY_COUNT; reboot_tries++)
     {
@@ -200,6 +168,35 @@ void loop()
   }//end if
   
 }//end loop
+
+
+
+void estop()
+{    
+  // Keep from interrupt ourselves
+  
+  delay(DIGITAL_DEBOUNCE_DELAY); 
+  
+  if( digitalRead(ESTOP_P1_6) == HIGH)
+  {  
+    //delay(DOUBLE_DEBOUNCE_DELAY); 
+    
+    if( digitalRead(ESTOP_P1_6) == HIGH )
+    {
+       digitalWrite(ESTOP_CNTRL_P6_0, LOW);
+    }//end if
+    
+  }else{
+    
+    //delay(DOUBLE_DEBOUNCE_DELAY);  
+    
+    if( digitalRead(ESTOP_P1_6) == LOW )
+    {
+       digitalWrite(ESTOP_CNTRL_P6_0, HIGH);
+    }//end if 
+  }//end if  
+  
+}//end functn
 
 
 
