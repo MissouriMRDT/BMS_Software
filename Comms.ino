@@ -37,9 +37,9 @@ EasyTransfer FromPowerboard;
 EasyTransfer ToPowerboard;
 
 // LCD SoftSpi library instance
-Adafruit_LiquidCrystal lcd(LCD_DATA, LCD_CLOCK, LCD_LATCH);
+Adafruit_LiquidCrystal lcd(LCD_DATA_P4_6, LCD_CLOCK_P4_5, LCD_LATCH_P4_7);
 
-uint8_t led_bars = 0;
+uint16_t bars_LED = 0;
 
 void setBarGraph_LED(int data_pin, int clock_pin, int latch_pin, uint8_t bar_graph, uint8_t bit_order = MSBFIRST, uint32_t delay_micros = 0)
 {
@@ -56,29 +56,37 @@ void setBarGraph_LED(int data_pin, int clock_pin, int latch_pin, uint8_t bar_gra
   delayMicroseconds(delay_micros);
 }//end fnctn
     
-uint8_t voltsToBarGraph_LED(float volts_reading)
+uint16_t voltsToBarGraph_LED(float volts_reading)
 {
-  /*
-uint8_t LED_bar_graph[8];
-bar_graph_LED[0] = 0xFF; //11111111
-bar_graph_LED[1] = 0xFE; //11111110
-bar_graph_LED[2] = 0xFC; //11111100
-bar_graph_LED[3] = 0xF8; //11111000
-bar_graph_LED[4] = 0xF0; //11110000
-bar_graph_LED[5] = 0xE0; //11100000
-bar_graph_LED[6] = 0xC0; //11000000
-bar_graph_LED[7] = 0x80; //10000000
- 
-bar_graph_LED[0] = 0xFF; //11111111
-bar_graph_LED[1] = 0x7F; //01111111
-bar_graph_LED[2] = 0x3F; //00111111
-bar_graph_LED[3] = 0x1F; //00011111
-bar_graph_LED[4] = 0x0F; //00001111
-bar_graph_LED[5] = 0x07; //00000111
-bar_graph_LED[6] = 0x03; //00000011
-bar_graph_LED[7] = 0x01; //00000001
-*/
-  return -1;
+  if(volts_reading > VOLTS_MAX/10 && volts_reading < VOLTS_MAX/9)
+    return 0x0001; //000000 00000001
+    
+  if(volts_reading > VOLTS_MAX/9 && volts_reading < VOLTS_MAX/8)
+    return 0x0003; //000000 00000011
+    
+  if(volts_reading > VOLTS_MAX/8 && volts_reading < VOLTS_MAX/7)
+    return 0x0007; //000000 00000111
+    
+  if(volts_reading > VOLTS_MAX/7 && volts_reading < VOLTS_MAX/6)
+    return 0x000F; //000000 00001111
+    
+  if(volts_reading > VOLTS_MAX/6 && volts_reading < VOLTS_MAX/5)
+    return 0x001F; //000000 00011111
+    
+  if(volts_reading > VOLTS_MAX/5 && volts_reading < VOLTS_MAX/4)
+    return 0x003F; //000000 00111111
+    
+  if(volts_reading > VOLTS_MAX/4 && volts_reading < VOLTS_MAX/3)
+    return 0x007F; //000000 01111111
+    
+  if(volts_reading > VOLTS_MAX/3 && volts_reading < VOLTS_MAX/2)
+    return 0x00FF; //000000 11111111
+    
+  if(volts_reading > VOLTS_MAX/2 && volts_reading < VOLTS_MAX)
+    return 0x01FF; //000001 11111111
+    
+  if(volts_reading > VOLTS_MAX)
+    return 0x03FF; //000011 11111111
 }//end fnctn
    
 /////////////////
@@ -133,24 +141,23 @@ void loopComms()
   
   powerboard_telem_tx.data_id = PACK_AMPS;
   powerboard_telem_tx.data = amps_reading;
-  
-  lcd.print("Amps : ");
-  lcd.print(amps_reading);
-  delay(SPI_DELAY);
-  
+   
   ToPowerboard.sendData(); 
   delay(SERIAL_DELAY); 
-   
-  // todo 
-  //adc_reading = analogRead(PACK_VOLTS_READ_P5_3);
-  //volts_reading = mapFloats(adc_reading, ADC_MIN, ADC_MAX, VOLTS_MIN, VOLTS_MAX); 
-  //powerboard_telem_tx.data_id = PACK_VOLTS;
-  //powerboard_telem_tx.data = volts_reading; 
-  //ToPowerboard.sendData();  
-  //delay(SERIAL_DELAY);
   
-  led_bars = voltsToBarGraph_LED(volts_reading); 
-  setBarGraph_LED(LED_GRAPH_DATA_SERIAL_P10_2, LED_GRAPH_CLOCK_SRCK_P10_3, LED_GRAPH_LATCH_RCK_P10_1, led_bars);
+  adc_reading = analogRead(PACK_VOLTS_READ_P5_3);
+  volts_reading = mapFloats(adc_reading, ADC_MIN, ADC_MAX, VOLTS_MIN, VOLTS_MAX); 
+  powerboard_telem_tx.data_id = PACK_VOLTS;
+  powerboard_telem_tx.data = volts_reading; 
+  ToPowerboard.sendData();  
+  delay(SERIAL_DELAY);
+  
+  lcd.print("Voltage : ");
+  lcd.print(volts_reading);
+  delay(SPI_DELAY);
+  
+  bars_LED = voltsToBarGraph_LED(volts_reading); 
+  setBarGraph_LED(LED_GRAPH_DATA_SERIAL_P10_2, LED_GRAPH_CLOCK_SRCK_P10_3, LED_GRAPH_LATCH_RCK_P10_1, bars_LED);
   
   delay(LOOP_DELAY);  
 }//end loop

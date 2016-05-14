@@ -17,9 +17,9 @@ const int PACK_AMPS_READ_P5_5     = 30;
 const int PACK_VOLTS_READ_P5_3    = 61;
 
 // SoftSPI using Adafruit Liquid Crystal product : ID 292
-const int LCD_DATA        = 0;
-const int LCD_LATCH       = 0;
-const int LCD_CLOCK       = 0;
+const int LCD_LATCH_P4_7       = 0;
+const int LCD_DATA_P4_6        = 0;
+const int LCD_CLOCK_P4_5       = 0;
 
 // todo TLC6C5912-Q1
 const int LED_GRAPH_CLEAR_P10_0           = 0; 
@@ -56,8 +56,10 @@ const float AMPS_MAX             = (VCC - SENSOR_BIAS) / SENSOR_SENSITIVITY;
 const float AMPS_MIN             = -SENSOR_BIAS / SENSOR_SENSITIVITY;
 
 // todo
-// const float VOLTS_MAX            = ?
-// const float VOLTS_MIN            = ?
+//max is ACTUALLY 3.054545 from the chip we should never see anything above 3.054545, but we need to account for 3.3 adc
+const float PACK_ACTUAL_VOLTS_MAX = 33.6;
+const float VOLTS_MAX            = (3.3/3.045454)*PACK_ACTUAL_VOLTS_MAX; 
+const float VOLTS_MIN            = 0;
 
 float amps_reading               = 0;
 float volts_reading              = 0;
