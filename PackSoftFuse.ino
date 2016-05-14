@@ -2,7 +2,7 @@
 // Second pri task?
 void setupPackSoftFuse() 
 {
-  adc_threshhold = mapFloats(PACK_SOFT_FUSE_AMPS_MAX_THRESHHOLD, AMPS_MIN, AMPS_MAX, ADC_MIN, ADC_MAX);
+  adc_threshhold = mapFloats(PACK_SOFT_FUSE_AMPS_MAX, AMPS_MIN, AMPS_MAX, ADC_MIN, ADC_MAX);
   
 }//end fnctn
 

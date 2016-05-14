@@ -1,11 +1,12 @@
-
 // Standard C
 #include <stdbool.h>
 #include <stddef.h>
 #include <stdint.h>
 
+// todo ? Task_sleep(DELAY);
+
 // Pack Auto Kill
-const int PACK_SOFT_FUSE_AMPS_MAX_THRESHHOLD = 180;
+const int PACK_SOFT_FUSE_AMPS_MAX = 180;
 
 //////////////////////////////////////////////RoveBoard
 // Pins
@@ -89,18 +90,15 @@ void loopPackSoftEstop()
   if( digitalRead(ESTOP_READ_P1_6) == HIGH)
   {  
     delay(DIGITAL_DEBOUNCE_DELAY);
-    //Task_sleep(DIGITAL_DEBOUNCE_DELAY);  
-
+     
     if( digitalRead(ESTOP_READ_P1_6) == HIGH )
     {
       digitalWrite(ESTOP_WRITE_P6_0, LOW);
     }//end if
 
-  }
-  else{
+  }else{
 
-    delay(DIGITAL_DEBOUNCE_DELAY);  
-    //Task_sleep(DIGITAL_DEBOUNCE_DELAY);  
+    delay(DIGITAL_DEBOUNCE_DELAY);    
 
     if( digitalRead(ESTOP_READ_P1_6) == LOW )
     {
