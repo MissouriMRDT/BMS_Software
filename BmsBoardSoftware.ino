@@ -17,15 +17,15 @@ const int PACK_AMPS_READ_P5_5     = 30;
 const int PACK_VOLTS_READ_P5_3    = 61;
 
 // SoftSPI using Adafruit Liquid Crystal product : ID 292
-const int LCD_LATCH_P4_7       = 0;
-const int LCD_DATA_P4_6        = 0;
-const int LCD_CLOCK_P4_5       = 0;
+const int LCD_LATCH_P4_7       = 28;
+const int LCD_DATA_P4_6        = 8;
+const int LCD_CLOCK_P4_5       = 27;
 
 // todo TLC6C5912-Q1
-const int LED_GRAPH_CLEAR_P10_0           = 0; 
-const int LED_GRAPH_DATA_SERIAL_P10_2     = 0; 
-const int LED_GRAPH_LATCH_RCK_P10_1       = 0; 
-const int LED_GRAPH_CLOCK_SRCK_P10_3      = 0; 
+const int LED_GRAPH_CLEAR_P10_0           = 54; 
+const int LED_GRAPH_DATA_SERIAL_P10_2     = 55; 
+const int LED_GRAPH_LATCH_RCK_P10_1       = 70; 
+const int LED_GRAPH_CLOCK_SRCK_P10_3      = 71; 
 
 //////////////////////////////////////
 // Timing
