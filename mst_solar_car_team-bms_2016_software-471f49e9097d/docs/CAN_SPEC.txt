@@ -1,0 +1,169 @@
+/**
+ * @page CAN_SPEC CAN Communication Specification
+ *
+ * @author Jesse Cureton
+ * @date 5 May 2016
+ *
+ * This page will detail the CAN communication specification for all data transmitted by the battery management system. All floating point values are 32-bit
+ * IEEE 754 floating point values, which can be parsed directly to float in most modern languages.
+ * 
+ * <table>
+ *   <caption>CAN Transmit Specification</caption>
+ *   <tr>
+ *     <th>Address</th>
+ *     <th align="center">Packet Description</th> <th>Byte 0</th> <th>Byte 1</th> <th>Byte 2</th> <th>Byte 3</th> <th>Byte 4</th>  <th>Byte 5</th>  <th>Byte 6</th>  <th>Byte 7</th>
+ *   </tr> 
+ *   <tr>
+ *     <td align="center">{@link BMS_BASE}</td>
+ *     <td align="center">@ref BMS_STATUS_PACKET</td>
+ *     <td align="center" colspan="2">@ref BMS_STATUS_ERR</td>
+ *     <td align="center">@ref BMS_STATUS_WARNING</td>
+ *     <td align="center">@ref BMS_STATUS_STATUS</td>
+ *     <td align="center" colspan="4">@ref BMS_STATUS_PACKVTG</td>
+ *   </tr>
+ *   <tr>
+ *     <td align="center">{@link BMS_BASE} + 1</td>
+ *     <td align="center">@ref BMS_VOLTAGE_PACKET1</td>
+ *     <td align="center" colspan="4">@ref BMS_VOLTAGE_PACKET1_MAX</td>
+ *     <td align="center" colspan="4">@ref BMS_VOLTAGE_PACKET1_MIN</td>
+ *   </tr>
+ *   <tr>
+ *     <td align="center">{@link BMS_BASE} + 2</td>
+ *     <td align="center">@ref BMS_VOLTAGE_PACKET2</td>
+ *     <td align="center">@ref BMS_VOLTAGE_PACKET2_MAXBANK</td>
+ *     <td align="center">@ref BMS_VOLTAGE_PACKET2_MAXCELL</td>
+ *     <td align="center">@ref BMS_VOLTAGE_PACKET2_MINBANK</td>
+ *     <td align="center">@ref BMS_VOLTAGE_PACKET2_MINCELL</td>
+ *     <td align="center" colspan="4">@ref BMS_VOLTAGE_PACKET2_AUX</td>
+ *   </tr>
+ *   <tr>
+ *     <td align="center">{@link BMS_BASE} + 3</td>
+ *     <td align="center">@ref BMS_TEMP_PACKET1</td>
+ *     <td align="center" colspan="4">@ref BMS_TEMP_PACKET1_MAXTEMP</td>
+ *     <td align="center" colspan="4">@ref BMS_TEMP_PACKET1_MINTEMP</td>
+ *   </tr>
+ *   <tr>
+ *     <td align="center">{@link BMS_BASE} + 4</td>
+ *     <td align="center">@ref BMS_TEMP_PACKET2</td>
+ *     <td align="center" colspan="8">@ref BMS_TEMP_PACKET2_MAXADDR</td>
+ *   </tr>
+ *   <tr>
+ *     <td align="center">{@link BMS_BASE} + 5</td>
+ *     <td align="center">@ref BMS_TEMP_PACKET3</td>
+ *     <td align="center" colspan="8">@ref BMS_TEMP_PACKET3_MINADDR</td>
+ *   </tr>
+ *   <tr>
+ *     <td align="center">{@link BMS_BASE} + 6</td>
+ *     <td align="center">@ref BMS_TEMP_PACKET4</td>
+ *     <td align="center" colspan="4">@ref BMS_TEMP_PACKET4_AVGTEMP</td>
+ *     <td align="center">-</td>
+ *     <td align="center">-</td>
+ *     <td align="center">@ref BMS_TEMP_PACKET4_MINBANK</td>
+ *     <td align="center">@ref BMS_TEMP_PACKET4_MAXBANK</td>
+ *   </tr>
+ *   <tr>
+ *     <td align="center">{@link BMS_BASE} + 7</td>
+ *     <td align="center">@ref BMS_CURRENT_PACKET</td>
+ *     <td align="center" colspan="4">@ref BMS_CURRENT_PACKET_CURRENT</td>
+ *     <td align="center" colspan="4">@ref BMS_CURRENT_PACKET_ALLOWED</td>
+ *   <tr>
+ *     <td align="center">{@link BMS_BASE} + 8</td>
+ *     <td align="center">@ref BMS_RESISTANCE_PACKET1</td>
+ *     <td align="center" colspan="4">@ref BMS_RESISTANCE_PACKET1_PACK</td>
+ *     <td align="center">@ref BMS_RESISTANCE_PACKET1_MAXBANK</td>
+ *     <td align="center">@ref BMS_RESISTANCE_PACKET1_MAXCELL</td>
+ *     <td align="center">@ref BMS_RESISTANCE_PACKET1_MINBANK</td>
+ *     <td align="center">@ref BMS_RESISTANCE_PACKET1_MINCELL</td>
+ *   </tr>
+ *   <tr>
+ *     <td align="center">{@link BMS_BASE} + 9</td>
+ *     <td align="center">@ref BMS_RESISTANCE_PACKET2</td>
+ *     <td align="center" colspan="4">@ref BMS_RESISTANCE_PACKET2_MIN</td>
+ *     <td align="center" colspan="4">@ref BMS_RESISTANCE_PACKET2_MAX</td>
+ *   </tr>
+ * </table>
+ *
+ * @section BMS_STATUS_PACKET Overview Packet
+ * This packet can be viewed as the top-level view of the BMS. From here you can see any errors, warnings, or status conditions on the board, as well as
+ * pack voltage. 
+ *
+ * <b>It is safe to treat this message as a "heartbeat" for the BMS.</b>
+ * @subsection BMS_STATUS_ERR ERRORS
+ * This byte is the {@link ERRORS} bitfield transmitted exactly as it lives on the BMS. See {@link SYSTEM_ERRORS} for info on what bits in this byte correspond to. 
+ * @subsection BMS_STATUS_WARNING WARNINGS
+ * This byte is the {@link WARNINGS} bitfield transmitted directly as it lives on the BMS. Bits correspond to {@link SYSTEM_ERRORS} definitions. Warnings are
+ * equivalent to errors, with the exception that they don't isolate the pack when they occur. They are our "heads up" to an upcoming issue.
+ * @subsection BMS_STATUS_STATUS STATUS
+ * This byte is the {@link STATUS} bitfield transmitted directly as it lives on the BMS. Bits correspond to {@link SYSTEM_STATUS} definitions.
+ * @subsection BMS_STATUS_PACKVTG Pack Voltage
+ * A standard floating point value representing the total pack voltage, as measured by the onboard ADC. Sourced from {@link analog_readings}[{@link ADC_PACK_VOLTAGE}]
+ * <hr>
+ *
+ * @section BMS_VOLTAGE_PACKETS Voltage Packets
+ * @subsection BMS_VOLTAGE_PACKET1 Voltage Packet 1
+ * The first voltage packet contains the maximum and minimum cell voltages in the pack.
+ * @subsubsection BMS_VOLTAGE_PACKET1_MAX Maximum Cell Voltage
+ * A standard floating point value representing the voltage of the highest-voltage individual module in the pack. Sourced as the voltage member of an {@link cell_t}
+ * returned by {@link getMaxCell()}.
+ * @subsubsection BMS_VOLTAGE_PACKET1_MIN Minimum Cell Voltage
+ * A standard floating point value representing the voltage of the lowest-voltage individual module in the pack. Sourced as the voltage member of an {@link cell_t}
+ * returned by {@link getMinCell()}.
+ *
+ * @subsection BMS_VOLTAGE_PACKET2 Voltage Packet 2
+ * @subsubsection BMS_VOLTAGE_PACKET2_MAXBANK Maximum Voltage Bank
+ * An {@link uint8_t} that contains the {@link BATTERY_BANKS bank ID} of the highest-voltage cell. Sourced as the bank member of an {@link cell_t} returned by {@link getMaxCell()}
+ * @subsubsection BMS_VOLTAGE_PACKET2_MAXCELL Maximum Voltage Cell
+ * An {@link uint8_t} that contains the {@link BATTERY_BANKS cell ID} of the highest-voltage cell. Sourced as the cell member of an {@link cell_t} returned by {@link getMaxCell()}
+ * @subsubsection BMS_VOLTAGE_PACKET2_MINBANK Minimum Voltage Bank
+ * An {@link uint8_t} that contains the {@link BATTERY_BANKS bank ID} of the lowest-voltage cell. Sourced as the bank member of an {@link cell_t} returned by {@link getMinCell()}
+ * @subsubsection BMS_VOLTAGE_PACKET2_MINCELL Minimum Voltage Cell
+ * An {@link uint8_t} that contains the {@link BATTERY_CELLS cell ID} of the lowest-voltage cell. Sourced as the cell member of an {@link cell_t} returned by {@link getMinCell()}
+ * @subsubsection BMS_VOLTAGE_PACKET2_AUX Aux Pack Voltage
+ * <hr>
+ *
+ *
+ * @section BMS_TEMP_PACKETS Temperature Packets
+ * @subsection BMS_TEMP_PACKET1 Temperature Packet 1
+ * @subsubsection BMS_TEMP_PACKET1_MAXTEMP Maximum Cell Temperature
+ * A floating point representation of the temperature in degrees Celcius of the hottest cell in the pack. Sourced as the temperature member of an {@link temp_t} returned by {@link getMaxTemp()}
+ * @subsubsection BMS_TEMP_PACKET1_MINTEMP Minimum Cell Temperature
+ * A floating point representation of the temperature in degrees Celcius of the coldest cell in the pack. Sourced as the temperature member of an {@link temp_t} returned by {@link getMinCell()}
+ * @subsection BMS_TEMP_PACKET2 Temperature Packet 2
+ * @subsubsection BMS_TEMP_PACKET2_MAXADDR Maximum Temperature Address
+ * The 64-bit unique address of the hottest temperature sensor in the pack. Sourced as the addr member of an {@link temp_t} returned by {@link getMaxTemp()}
+ * @subsection BMS_TEMP_PACKET3 Temperature Packet 3
+ * @subsubsection BMS_TEMP_PACKET3_MINADDR Minimum Temperature Address
+ * The 64-bit unique address of the coldest temperature sensor in the pack. Sourced as the addr member of an {@link temp_t} returned by {@link getMinTemp()}
+ * @subsection BMS_TEMP_PACKET4 Temperature Packet 4
+ * @subsubsection BMS_TEMP_PACKET4_AVGTEMP Average Pack Temperature
+ * A floating point representation of the average temperature of all cells in the pack. Returned by {@link getPackTemp()}
+ * @subsubsection BMS_TEMP_PACKET4_MINBANK Minimum Temperature Bank
+ * A {@link uint8_t} containing the {@link BATTERY_BANKS bank ID} of the bank containing the coldest cell. Sourced as the bank member of an {@link temp_t} returned by {@link getMinCell()}.
+ * @subsubsection BMS_TEMP_PACKET4_MAXBANK Maximum Temperature Bank
+ * A {@link uint8_t} containing the {@link BATTERY_BANKS bank ID} of the bank containing the hottest cell. Sourced as the bank member of an {@link temp_t} returned by {@link getMaxCell()}.
+ * <hr>
+ *
+ *
+ * @section BMS_CURRENT_PACKET Current Packet
+ * @subsection BMS_CURRENT_PACKET_CURRENT Pack Current
+ * A standard floating point representation of the net current in/out of the battery pack. This is essentially the sum of current from the array and current out
+ * to the motor. Sourced as {@link analog_readings}[{@link ADC_PACK_CURRENT}].
+ * @subsection BMS_CURRENT_PACKET_ALLOWED Maximum Allowable Motor Current
+ * TODO: <b>Not yet implemented</b> 
+ * A standard floating point representation of the remaining current capacity of the pack. This is (roughly) the max allowable regen current into the battery at
+ * any given time. 
+ * <hr>
+ *
+ *
+ * @section BMS_RESISTANCE_PACKETS Resistance Packets
+ * Cell resistance measurement is not yet implemented
+ * @subsection BMS_RESISTANCE_PACKET1 Resistance Packet 1
+ * @subsubsection BMS_RESISTANCE_PACKET1_PACK Total Pack Resistance
+ * @subsubsection BMS_RESISTANCE_PACKET1_MAXBANK Maximum Resistance Bank
+ * @subsubsection BMS_RESISTANCE_PACKET1_MAXCELL Maximum Resistance Cell
+ * @subsubsection BMS_RESISTANCE_PACKET1_MINBANK Minimum Resistance Bank
+ * @subsubsection BMS_RESISTANCE_PACKET1_MINCELL Minimum Resistance Cell
+ * @subsection BMS_RESISTANCE_PACKET2 Resistance Packet 2
+ * @subsubsection BMS_RESISTANCE_PACKET2_MIN Minimum Cell Resistance
+ * @subsubsection BMS_RESISTANCE_PACKET2_MAX Maximum Cell Resistance
+ */
