@@ -47,7 +47,7 @@ const float ADC_MIN        = 0;         //bits
 const uint16_t LOOP_DELAY  = 10;         //mS
 //ACS_759 IC Sensor Specs 
 const float SENSOR_SENSITIVITY     = 0.0088;    //volts/amp
-const float SENSOR_BIAS            = 0.005; //mV. for now- determine empirically later
+const float SENSOR_BIAS            = 0.0; //V. for now- determine empirically later
 const float AMPS_MAX               = (VCC - SENSOR_BIAS) / SENSOR_SENSITIVITY; //amps
 const float AMPS_MIN               = -SENSOR_BIAS / SENSOR_SENSITIVITY;        //amps
 const uint16_t AMP_OVERCURRENT     = 180; //amps
@@ -56,7 +56,7 @@ const uint16_t AMP_OVERCURRENT     = 180; //amps
 const float PACK_ACTUAL_VOLTS_MAX     = 33.6;
 const float VOLTS_MAX                 = (3.3/3.045454)*PACK_ACTUAL_VOLTS_MAX; 
 const float VOLTS_MIN                 = 0;
-const uint16_t BATTERY_LOW            = 2.7*8;  //V  warning low voltage
+//const uint16_t BATTERY_LOW            = 2.7*8;  //V  warning low voltage
 const uint16_t BATTERY_LOW_CRIT       = 2.5*8;  //V  low voltage threshold for shutoff to protect pack
 //Various variables
 uint16_t bars_LED = 0;
@@ -74,6 +74,8 @@ const uint16_t CELL_7_VOLT            =1062;
 const uint16_t CELL_8_VOLT            =1063;
 const uint16_t PACK_VOLTS             =1072;
 const uint16_t PACK_AMPS              =1073; 
+const uint16_t TEMPERATURE_1                 =1074;
+const uint16_t TEMPERATURE_2                 =1075;
 
 // recieves commands from PowerBoard
 struct serial_rx
@@ -93,4 +95,8 @@ serial_tx powerboard_telem_tx;
 // Serial library instance
 EasyTransfer FromPowerboard;
 EasyTransfer ToPowerboard;
+/*
+OneWire oneWire(TEMP_1);
+DallasTemperature tempSensors(&oneWire);
+*/
 
