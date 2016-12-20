@@ -4,6 +4,10 @@
 @description:    Assigns pin numbers to I/O variables, global constants, 
 //////////////////////////////////////////////////////////////////////*/
 
+//#include <OneWire.h>
+//#include <DallasTemperature.h>
+
+
 ///Pins
 //named the same as in schematic, for clarity
 const uint8_t PACK_GATE       =26;
@@ -42,21 +46,20 @@ const uint16_t SERIAL_DELAY              = 10;
 const uint16_t SPI_DELAY                 = 10;
 // MSP432 RoveBoard Specs
 const float VCC            = 3.3;       //volts
-const float ADC_MAX        = 4096;      //bits
+const float ADC_MAX        = 1024;      //bits
 const float ADC_MIN        = 0;         //bits
 const uint16_t LOOP_DELAY  = 10;         //mS
 //ACS_759 IC Sensor Specs 
-const float SENSOR_SENSITIVITY     = 0.0088;    //volts/amp
-const float SENSOR_BIAS            = 0.0; //V. for now- determine empirically later
-const float AMPS_MAX               = (VCC - SENSOR_BIAS) / SENSOR_SENSITIVITY; //amps
-const float AMPS_MIN               = -SENSOR_BIAS / SENSOR_SENSITIVITY;        //amps
+const float SENSOR_SENSITIVITY     = 0.0066;    //volts/amp
+const float SENSOR_SCALE           = 0.5;      
+const float SENSOR_BIAS            = VCC*SENSOR_SCALE; //V. for now- determine empirically later
+const float AMPS_MAX               = (VCC - SENSOR_BIAS-0.33)/SENSOR_SENSITIVITY; //amps
+const float AMPS_MIN               = -(SENSOR_BIAS-0.33)/SENSOR_SENSITIVITY;        //amps
 const uint16_t AMP_OVERCURRENT     = 180; //amps
 //Voltage reading
-// max is ACTUALLY 3.054545 from the chip we should never see anything above 3.054545, but we need to account for 3.3 adc
-const float PACK_ACTUAL_VOLTS_MAX     = 33.6;
-const float VOLTS_MAX                 = (3.3/3.045454)*PACK_ACTUAL_VOLTS_MAX; 
+const float VOLTS_MAX                 = 5*11;
 const float VOLTS_MIN                 = 0;
-//const uint16_t BATTERY_LOW            = 2.7*8;  //V  warning low voltage
+//const uint16_t BATTERY_LOW          = 2.7*8;  //V  warning low voltage
 const uint16_t BATTERY_LOW_CRIT       = 2.5*8;  //V  low voltage threshold for shutoff to protect pack
 //Various variables
 uint16_t bars_LED = 0;
@@ -74,8 +77,8 @@ const uint16_t CELL_7_VOLT            =1062;
 const uint16_t CELL_8_VOLT            =1063;
 const uint16_t PACK_VOLTS             =1072;
 const uint16_t PACK_AMPS              =1073; 
-const uint16_t TEMPERATURE_1                 =1074;
-const uint16_t TEMPERATURE_2                 =1075;
+const uint16_t TEMPERATURE_1          =1074;
+const uint16_t TEMPERATURE_2          =1075;
 
 // recieves commands from PowerBoard
 struct serial_rx
@@ -88,15 +91,20 @@ struct serial_tx
   int16_t data_id;
   float   data;
 };
-
 // data instance
 serial_rx powerboard_command_rx;
 serial_tx powerboard_telem_tx;
 // Serial library instance
 EasyTransfer FromPowerboard;
 EasyTransfer ToPowerboard;
+
+//Temperature sensors
 /*
+#define TEMPERATURE_PRECISION 9
 OneWire oneWire(TEMP_1);
-DallasTemperature tempSensors(&oneWire);
+// Pass our oneWire reference to Dallas Temperature. 
+DallasTemperature sensors(&oneWire);
+// arrays to hold device addresses
+DeviceAddress insideThermometer, outsideThermometer;
 */
 

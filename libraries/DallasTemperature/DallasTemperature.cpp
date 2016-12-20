@@ -438,20 +438,26 @@ int16_t DallasTemperature::calculateTemperature(const uint8_t* deviceAddress, ui
 
     /*
     DS1820 and DS18S20 have a 9-bit temperature register.
+
     Resolutions greater than 9-bit can be calculated using the data from
     the temperature, and COUNT REMAIN and COUNT PER °C registers in the
     scratchpad.  The resolution of the calculation depends on the model.
+
     While the COUNT PER °C register is hard-wired to 16 (10h) in a
     DS18S20, it changes with temperature in DS1820.
+
     After reading the scratchpad, the TEMP_READ value is obtained by
     truncating the 0.5°C bit (bit 0) from the temperature data. The
     extended resolution temperature can then be calculated using the
     following equation:
+
                                     COUNT_PER_C - COUNT_REMAIN
     TEMPERATURE = TEMP_READ - 0.25 + --------------------------
                                             COUNT_PER_C
+
     Hagai Shatz simplified this to integer arithmetic for a 12 bits
     value for a DS18S20, and James Cameron added legacy DS1820 support.
+
     See - http://myarduinotoy.blogspot.co.uk/2013/02/12bit-result-from-ds18s20.html
     */
 
@@ -585,10 +591,14 @@ float DallasTemperature::rawToFahrenheit(int16_t raw){
 #if REQUIRESALARMS
 
 /*
+
 ALARMS:
+
 TH and TL Register Format
+
 BIT 7 BIT 6 BIT 5 BIT 4 BIT 3 BIT 2 BIT 1 BIT 0
 S    2^6   2^5   2^4   2^3   2^2   2^1   2^0
+
 Only bits 11 through 4 of the temperature register are used
 in the TH and TL comparison since TH and TL are 8-bit
 registers. If the measured temperature is lower than or equal
@@ -597,6 +607,7 @@ and an alarm flag is set inside the DS18B20. This flag is
 updated after every temperature measurement; therefore, if the
 alarm condition goes away, the flag will be turned off after
 the next temperature conversion.
+
 */
 
 // sets the high alarm temperature for a device in degrees Celsius
