@@ -1,7 +1,0 @@
-
-!CONFIGURATION: 'com.ti.ccstudio.buildDefinitions.MSP430.Debug.1853429783' [Fri Nov 06 18:10:28 CST 2015]
-
-	!TOOL: 'com.ti.ccstudio.buildDefinitions.MSP430_4.3.exe.compilerDebug.2123562693'
-
-		!WARNING: Unresolved option: com.ti.ccstudio.buildDefinitions.MSP430_4.3.compilerID.USE_HW_MPY
-

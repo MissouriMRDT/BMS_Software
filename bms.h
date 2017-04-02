@@ -1,110 +1,130 @@
-/*//////////////////////////////////////////////////////////////////////
-@file:            BMSSoftware.h
-@author:        Emily "Ellis" Sansone
-@description:    Assigns pin numbers to I/O variables, global constants, 
-//////////////////////////////////////////////////////////////////////*/
-
-//#include <OneWire.h>
-//#include <DallasTemperature.h>
-
-
-///Pins
-//named the same as in schematic, for clarity
-const uint8_t PACK_GATE       =26;
-const uint8_t PACK_I_MEAS     =2;
-const uint8_t V_CHECK_ARRAY   =25;
-const uint8_t V_CHECK_OUT     =27;
-const uint8_t LOGIC_SWITCH    =24;
-const uint8_t BMS_CSBI        =29;
-const uint8_t BMS_MISO        =9;
-const uint8_t BMS_MOSI        =10;
-const uint8_t BMS_SCLK        =30;
-const uint8_t SER_TX_IND      =15;
-const uint8_t SER_RX_IND      =14;
-const uint8_t SER_TX_PB       =4;
-const uint8_t SER_RX_PB       =3;
-const uint8_t FAN_CTRL_1      =19;
-const uint8_t FAN_CTRL_2      =40;
-const uint8_t FAN_CTRL_3      =39;
-const uint8_t FAN_CTRL_4      =38;
-const uint8_t BUZZER          =28;
-const uint8_t LED_RCK         =59;
-const uint8_t LED_CLR         =42;
-const uint8_t LED_SRCK        =58;
-const uint8_t GAUGE_ON        =57;
-const uint8_t LED_SER_IN      =41;
-const uint8_t TEMP_1          =18;
-const uint8_t TEMP_2          =37;
-const uint8_t LED1=78;
-///Global Constants                  hold on here we go
-//Timing
-const uint16_t REBOOT_DELAY              = 5000;
-const uint32_t IDLE_DELAY                = 3600000; //the rover sits idle for 1 hour before turning the BMS logic off.
-const uint16_t REBOOT_TRY_COUNT          = 3;
-const uint16_t DEBOUNCE_DELAY            = 10;
-const uint16_t SERIAL_DELAY              = 10;
-const uint16_t SPI_DELAY                 = 10;
-// MSP432 RoveBoard Specs
-const float VCC            = 3.3;       //volts
-const float ADC_MAX        = 1024;      //bits
-const float ADC_MIN        = 0;         //bits
-const uint16_t LOOP_DELAY  = 10;         //mS
-//ACS_759 IC Sensor Specs 
-const float SENSOR_SENSITIVITY     = 0.0066;    //volts/amp
-const float SENSOR_SCALE           = 0.5;      
-const float SENSOR_BIAS            = VCC*SENSOR_SCALE; //V. for now- determine empirically later
-const float AMPS_MAX               = (VCC - SENSOR_BIAS-0.33)/SENSOR_SENSITIVITY; //amps
-const float AMPS_MIN               = -(SENSOR_BIAS-0.33)/SENSOR_SENSITIVITY;        //amps
-const uint16_t AMP_OVERCURRENT     = 180; //amps
-//Voltage reading
-const float VOLTS_MAX                 = 5*11;
-const float VOLTS_MIN                 = 0;
-//const uint16_t BATTERY_LOW          = 2.7*8;  //V  warning low voltage
-const uint16_t BATTERY_LOW_CRIT       = 2.5*8;  //V  low voltage threshold for shutoff to protect pack
-//Various variables
-uint16_t bars_LED = 0;
-///Communication with Power Board
-// Data_id's for RED IP, passed through PowerBoard by serial
-const uint16_t PACK_OFF               =1040;
-const uint16_t PACK_OFF_REBOOT        =1041;
-const uint16_t CELL_1_VOLT            =1056;
-const uint16_t CELL_2_VOLT            =1057;
-const uint16_t CELL_3_VOLT            =1058;
-const uint16_t CELL_4_VOLT            =1059;
-const uint16_t CELL_5_VOLT            =1060;
-const uint16_t CELL_6_VOLT            =1061;
-const uint16_t CELL_7_VOLT            =1062;
-const uint16_t CELL_8_VOLT            =1063;
-const uint16_t PACK_VOLTS             =1072;
-const uint16_t PACK_AMPS              =1073; 
-const uint16_t TEMPERATURE_1          =1074;
-const uint16_t TEMPERATURE_2          =1075;
-
-// recieves commands from PowerBoard
-struct serial_rx
-{
-  int16_t data_id;
-};
-// sends telem to PowerBoard
-struct serial_tx
-{
-  int16_t data_id;
-  float   data;
-};
-// data instance
-serial_rx powerboard_command_rx;
-serial_tx powerboard_telem_tx;
-// Serial library instance
-EasyTransfer FromPowerboard;
-EasyTransfer ToPowerboard;
-
-//Temperature sensors
 /*
-#define TEMPERATURE_PRECISION 9
-OneWire oneWire(TEMP_1);
-// Pass our oneWire reference to Dallas Temperature. 
-DallasTemperature sensors(&oneWire);
-// arrays to hold device addresses
-DeviceAddress insideThermometer, outsideThermometer;
-*/
+ * bms.h
+ *
+ *  Created on: Feb 9, 2017
+ *      Author: Joseph Hall
+ *      Pulling everything together for the main loop.
+ *      Also a catch-all for functions and defines that don't fit elsewhere.
+ */
 
+#ifndef BMS_H_
+#define BMS_H_
+#include "msp.h"
+#include "msp432p401r.h"
+#include "spi.h"
+#include "uart.h"
+#include "ltc6803.h"
+#include "ds18b20.h"
+
+//Delays. "CCR" indicates we're loading something in a compare reg for a timer.
+#define REBOOT_DELAY        5000
+#define IDLE_DELAY          3600000 //the rover sits idle for 1 hour before turning the BMS logic off.
+#define REBOOT_TRY_COUNT    3
+#define DEBOUNCE_DELAY      10 //10ms, do we have a milliseconds utility in CCS? May need to recreate.
+#define STCVAD_CCR_DELAY    0xE000 //This goes in TA0CCR1. Should translate to a half second for ACLK at 32768Hz with ID = 0 sourcing timer A.
+#define RDCV_CCR_DELAY      0x290 //20ms -- 13ms for adc conversion to complete, plus 7ms for safety per Jesse Cureton.
+                                    //This plus the STCVAD_DELAY should be in TA0CCR0 for the above settings.
+#define PACK_MEAS_CCR_DELAY 0xAFC8 //15ms with clock divider 8 and 12MHz from SMCLK -- recommended delay for current measurement, guess I might as well throw voltages in here too
+#define STARTTEMP_CCR_DELAY 0x9A6E
+#define TEMP_MEAS_CCR_DELAY 0x6590
+#define SERIAL_DELAY        10
+
+//Pins for GPIO conf etc. Note the port they go on.
+
+//Port 1
+#define SER_TX_IND      BIT6 //These two must be moved somewhere with UART, NOT UCB
+#define SER_RX_IND      BIT7
+
+//Port 2
+#define FAN_CTRL_1      BIT5
+#define FAN_CTRL_2      BIT7
+#define FAN_CTRL_3      BIT6
+#define FAN_CTRL_4      BIT4
+
+//Port 3
+#define TEMP_1          BIT0
+#define SER_RX_PB       BIT2
+#define SER_TX_PB       BIT3
+
+//Port 4
+#define LOGIC_SWITCH    BIT0
+#define V_CHECK_ARRAY   BIT2 //Pack side v check. ADC Channel 11
+#define PACK_GATE       BIT4
+#define V_CHECK_OUT     BIT5 //Rover side v check.
+#define BUZZER          BIT7
+
+//Port 5
+#define BMS_CSBI        BIT4
+#define TEMP_2          BIT6
+
+//Port 6
+#define PACK_I_MEAS     BIT0
+
+//Port 8
+#define LED_SER_IN      BIT5
+#define GAUGE_ON        BIT6
+#define LED_SRCK        BIT7
+
+//Port 9
+#define LED_CLR         BIT0
+#define LED_RCK         BIT1
+
+//#define LED1            78 Dunno what this is, let's worry about it later
+
+// MSP432 RoveBoard Specs
+#define VCC             3.3       //volts
+#define ADC_MAX         16384      //bits -- 14 bit; Remember this is gonna change if you change ADC resolution
+#define ADC_MIN         0         //bits
+#define LOOP_DELAY      10;       //ms
+
+//ACS_759 IC Sensor Specs
+#define SENSOR_SENSITIVITY  0.0066    //volts/amp
+#define SENSOR_SCALE        0.5
+#define SENSOR_BIAS         VCC*SENSOR_SCALE //V. for now- determine empirically later
+#define AMPS_MAX            (VCC - SENSOR_BIAS-0.33)/SENSOR_SENSITIVITY //amps
+#define AMPS_MIN             -(SENSOR_BIAS-0.33)/SENSOR_SENSITIVITY      //amps
+#define AMP_OVERCURRENT     180 //amps
+
+//Voltage reading
+#define VOLTS_MAX               5*11
+#define VOLTS_MIN               0
+#define BATTERY_LOW             2.7*8  //V  warning low voltage
+#define BATTERY_LOW_CRIT        2.5*8  //V  low voltage threshold for shutoff to protect pack
+
+uint16_t adc14_out[3];
+
+//Easy way to tx adc results byte by byte
+union txable_float {
+    float f;
+    unsigned char ch[4];
+};
+
+float pack_vtg_out;
+
+union txable_float ow_temp_reading; //Rover side
+union txable_float pack_vtg_array; //Pack side
+union txable_float pack_i; //Result of ADC on PACK_I_MEAS
+
+uint8_t pb_command;
+
+int j;
+
+void timer_a0_init(); //Timer A0 config for LTC interaction
+
+void timer_a1_init(); //Need shorter interval for pack readings
+
+void timer_a2_init();
+
+void timer_321_init(); //Estop check once per minute
+
+void timer_322_init(); //idle check
+
+void adc14_init();
+
+void clk_init();
+
+void tx_cvs();
+
+
+
+#endif /* BMS_H_ */
