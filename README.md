@@ -13,6 +13,8 @@ This is the software for Gryphon's BMS. As of Apr 02, 2017, the following functi
 
 -Single-drop communication with and temperature readings from the DS18B20 one-wire temperature sensor
 
+
+
 TODO:
 
 -Transmission of voltages to indicator board
