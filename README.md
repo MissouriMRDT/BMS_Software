@@ -17,6 +17,8 @@ This is the software for Gryphon's BMS. As of Apr 02, 2017, the following functi
 
 TODO:
 
+-Determine handling for comm errors etc.
+
 -Transmission of voltages to indicator board
 
 -Fuel gauge interaction
