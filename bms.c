@@ -50,15 +50,11 @@ void timer_a2_init() //Temp sensors
 
 void adc14_init()
 {
-
-//GPIO setup moved to main
-
 //ADC setup: SAMPCON signal is sourced from sample timer, which is triggered by the ADC14SC bit.
 //Sample and hold time for  registers 0-7 and 24-31 is set to 192 cycles.
 //No clock division, sequence-of-channels mode,
-P4SEL1 = BIT2;
-P4SEL0 = (BIT2 | BIT5);
-P6SEL0 = BIT0;
+P5SEL0 |= PACK_I_MEAS | V_CHECK_ARRAY | V_CHECK_OUT;
+
 ADC14 -> CTL0 = ADC14_CTL0_PDIV__64 |
         ADC14_CTL0_SHP |
         ADC14_CTL0_SSEL__SMCLK |
@@ -69,9 +65,9 @@ ADC14 -> CTL0 = ADC14_CTL0_PDIV__64 |
 //Using 14 bit by default
 
 //Use internal channels 0 through 2, mapped to I_PACK, V_CHECK_ARRAY, V_CHECK OUT
-ADC14 -> MCTL[0] = ADC14_MCTLN_INCH_15; //External channel specifications with AVCC reference selected for all.
-ADC14 -> MCTL[1] = ADC14_MCTLN_INCH_11;
-ADC14 -> MCTL[2] = ADC14_MCTLN_INCH_8 | ADC14_MCTLN_EOS; //The third conversion is the end of the sequence.
+ADC14 -> MCTL[0] = I_PACK_CHNL; //External channel specifications with AVCC reference selected for all.
+ADC14 -> MCTL[1] = V_ARRAY_CHNL;
+ADC14 -> MCTL[2] = V_OUT_CHNL | ADC14_MCTLN_EOS; //The third conversion is the end of the sequence.
 
 NVIC_EnableIRQ(ADC14_IRQn); //Turn on interrupt for last conversion, first in the NVIC, then the ADC
 ADC14 -> IER0 = ADC14_IER0_IE2;
@@ -79,17 +75,6 @@ ADC14 -> IER0 = ADC14_IER0_IE2;
 ADC14 -> CTL0 |= ADC14_CTL0_ENC; //Enable conversion.
 //This means config regs can't be written to without deasserting.
 ADC14 -> CTL0 |= ADC14_CTL0_SC; // Start the first conversion
-}
-
-
-void timer_321_init()
-{
-
-}
-
-void timer_322_init()
-{
-
 }
 
 void clk_init() //Energia sets DCO to 48MHz and so should we.

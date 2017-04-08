@@ -9,10 +9,10 @@
 #define SPI_H_
 #include "msp432p401r.h"
 
-//Port 1
-#define BMS_SCLK BIT5
-#define BMS_MOSI BIT6
-#define BMS_MISO BIT7
+//Port 10
+#define BMS_SCLK BIT1
+#define BMS_MOSI BIT2
+#define BMS_MISO BIT3
 
 void spi_init();
 

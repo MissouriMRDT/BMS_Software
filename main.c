@@ -1,6 +1,6 @@
 //*****************************************************************************
 //
-// MSP432 main.c template - Empty main
+// MSP432 BMS Software
 //
 //****************************************************************************
 
@@ -18,7 +18,7 @@ void TA2_N_IRQHandler(void) //Start temp sensor measurement
     TA2CCTL1 &= ~CCIFG;
 }
 
-void TA1_0_IRQHandler(void) //Assuming ADC conversions won't take 15ms since the clock is 12MHz
+void TA1_0_IRQHandler(void) //Start ADC conv
 {
     ADC14->CTL0 |=
             ADC14_CTL0_ENC |
@@ -34,12 +34,10 @@ void TA0_0_IRQHandler(void) //Get LTC conv results
 
 void TA0_N_IRQHandler(void) //Start LTC conv
 {
-    __no_operation();
     TA0CTL &= ~TIMER_A_CTL_MC_MASK; //Under normal circumstances, we don't want this, but here we want to ensure 15ms delay after the -end- of STCV
     ltc6803_stcvad();
     //ltc6803_dagn(); //for diagnostics, should read 2.5V
     TA0CTL |= TIMER_A_CTL_MC1;
-
     TA0CCTL1 &= ~CCIFG;
 }
 void ADC14_IRQHandler(void)
@@ -49,13 +47,13 @@ void ADC14_IRQHandler(void)
 adc14_out[0] = ADC14->MEM[0]; //PACK_I_MEAS
 adc14_out[1] = ADC14->MEM[1]; //V_CHECK_ARRAY
 adc14_out[2] = ADC14->MEM[2]; //V_CHECK_OUT
-pack_vtg_array.f = (adc14_out[1] * (((1.93634e-5 * adc14_out[1]) + 3.02779)/16384) * 11) -0.7; //Magic number based on multimeter readings and 14-bit scale. Re-test in rover later
+pack_vtg_array.f = (adc14_out[1] * (((1.93634e-5 * adc14_out[1]) + 3.02779)/16384) * 11) - 0.7; //Magic number based on multimeter readings and 14-bit scale. Re-test in rover later
 pack_vtg_out = adc14_out[2] * (VCC / 16384);
 pack_i.f = -(((adc14_out[0] * (VCC / 16384))-SENSOR_BIAS)/SENSOR_SENSITIVITY);
 //__no_operation(); //Debugging use
 }
 
-void EUSCIA2_IRQHandler() //We received a command
+void EUSCIA2_IRQHandler() //RX command from power board
 {
 EUSCI_A2 -> IFG &= ~BIT0;
 pb_command = EUSCI_A2 -> RXBUF;
@@ -71,10 +69,12 @@ void main(void)
     spi_init();
     uart_init();
     //Outputs. The inputs will get set automatically this way.
-    P2DIR = (FAN_CTRL_1 | FAN_CTRL_2 | FAN_CTRL_3 | FAN_CTRL_4);
-    P4DIR = (LOGIC_SWITCH | PACK_GATE);
-    P5DIR = BMS_CSBI;
-    P8DIR = (LED_SER_IN | LED_SRCK);
+    P1DIR = FAN_CTRL_1 | FAN_CTRL_2;
+    P3DIR |= PACK_GATE | LOGIC_SWITCH | FAN_CTRL_3 | FAN_CTRL_4;
+    P5DIR = BUZZER;
+    P8DIR = LED_RCK | LED_SER_IN;
+    P9DIR |= GAUGE_ON | LED_SRCK;
+    P10DIR |= BMS_CSBI;
     //TODO: Make list of unused pins to set to output
    /* P1OUT = 0;
     P2OUT = 0;
@@ -96,18 +96,22 @@ void main(void)
     // 3.2, 3.3 UART module
     // 1.5, 1.6, 1.7 SPI
 
+    P1OUT &= ~(FAN_CTRL_1 | FAN_CTRL_2);
+    P3OUT &= ~(FAN_CTRL_3 | FAN_CTRL_4);
+    P5OUT &= ~BUZZER;
+
  //3.2 and 3.3 primary special function
 
-    ow_temp.port_in = &P3IN;
-    ow_temp.port_out = &P3OUT;
-    ow_temp.port_dir = &P3DIR;
-    ow_temp.pin = BIT0;
+    ow_temp.port_in = &P2IN;
+    ow_temp.port_out = &P2OUT;
+    ow_temp.port_dir = &P2DIR;
+    ow_temp.pin = BIT5;
 
     //Initial pin states
-    P5OUT |= BMS_CSBI; //CSBI should be high when a conversion is not in progress
+    P10OUT |= BMS_CSBI; //CSBI should be high when a conversion is not in progress
 
-    P4OUT |= PACK_GATE; // turn on the pack
-    P4OUT &= ~LOGIC_SWITCH; //Make sure rocker switch is on for BMS logic power (I guess it's active low?)
+    P3OUT |= PACK_GATE; // turn on the pack
+    P3OUT &= ~LOGIC_SWITCH; //Make sure rocker switch is on for BMS logic power (I guess it's active low?)
 
     ltc6803_wrcfg(CDC0); //Configure LTC in standby mode
 
@@ -128,28 +132,31 @@ void main(void)
             __no_operation();
             break;
         case 1: //Shutdown pack
-            P4OUT &= ~PACK_GATE;
+            P3OUT &= ~PACK_GATE;
             pb_command = 0;
             break;
 
         case 2: //Reboot pack
-            P4OUT &= ~PACK_GATE;
+            P3OUT &= ~PACK_GATE;
             __delay_cycles(15000000); //5s * 3MHz
-            P4OUT |= PACK_GATE;
+            P3OUT |= PACK_GATE;
             pb_command = 0;
             break;
 
         case 3: //fans on
-            P2OUT = (BIT4 | BIT5 | BIT6 | BIT7);
+            P1OUT |= (FAN_CTRL_1 | FAN_CTRL_2);
+            P3OUT |= (FAN_CTRL_3 | FAN_CTRL_4);
             pb_command = 0;
             break;
 
         case 4: //fans off
-            P2OUT &= ~(BIT4 | BIT5 | BIT6 | BIT7);
+           // P2OUT &= ~(BIT4 | BIT5 | BIT6 | BIT7);
+            P1OUT &= ~(FAN_CTRL_1 | FAN_CTRL_2);
+            P3OUT &= ~(FAN_CTRL_3 | FAN_CTRL_4);
             pb_command = 0;
             break;
 
-        case 5: //sound buzzer
+        case 5: //PB data request
             for(j = 0; j<4; j++)
                 uart_tx(TARGET_PB, pack_i.ch[j]);
             for(j = 0; j<4; j++)

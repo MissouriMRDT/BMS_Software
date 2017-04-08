@@ -37,15 +37,15 @@
 #define PLINT_PEC                       0x77    ///< Poll interrupt status
 #define DAGN_PEC                        0x79    ///< Start diagnose and poll status
 #define RDDGNR_PEC                      0x6B    ///< Read diagnostic register
-#define CDC0                    0x00    ///< Standby mode. No measurements taken.
-#define CDC1                    0x01    //Comparator off; measurements taken at request of SPI master and complete after 13ms.
+#define CDC0                            0x00    ///< Standby mode. No measurements taken.
+#define CDC1                            0x01    ///< Comparator off; measurements taken at request of SPI master and complete after 13ms.
 
-//Port 5
-#define BMS_CSBI BIT4
+//Port 10
+#define BMS_CSBI BIT0
 
 uint8_t pecVAL;
 uint8_t pecIN;
-uint8_t cell_regs[12];
+uint8_t cell_regs[16];
 
 void ltc6803_pec(uint8_t val);
 

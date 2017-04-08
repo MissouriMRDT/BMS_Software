@@ -29,45 +29,48 @@
 #define TEMP_MEAS_CCR_DELAY 0x6590
 #define SERIAL_DELAY        10
 
+#define V_OUT_CHNL      ADC14_MCTLN_INCH_3
+#define V_ARRAY_CHNL    ADC14_MCTLN_INCH_4
+#define I_PACK_CHNL     ADC14_MCTLN_INCH_5
+
 //Pins for GPIO conf etc. Note the port they go on.
 
 //Port 1
-#define SER_TX_IND      BIT6 //These two must be moved somewhere with UART, NOT UCB
-#define SER_RX_IND      BIT7
+#define FAN_CTRL_1      BIT6
+#define FAN_CTRL_2      BIT7
 
 //Port 2
-#define FAN_CTRL_1      BIT5
-#define FAN_CTRL_2      BIT7
-#define FAN_CTRL_3      BIT6
-#define FAN_CTRL_4      BIT4
+#define TEMP_1          BIT5
 
 //Port 3
-#define TEMP_1          BIT0
+#define PACK_GATE       BIT0
 #define SER_RX_PB       BIT2
 #define SER_TX_PB       BIT3
-
-//Port 4
-#define LOGIC_SWITCH    BIT0
-#define V_CHECK_ARRAY   BIT2 //Pack side v check. ADC Channel 11
-#define PACK_GATE       BIT4
-#define V_CHECK_OUT     BIT5 //Rover side v check.
-#define BUZZER          BIT7
+#define LOGIC_SWITCH    BIT5
+#define FAN_CTRL_3       BIT6
+#define FAN_CTRL_4       BIT7
 
 //Port 5
-#define BMS_CSBI        BIT4
-#define TEMP_2          BIT6
-
-//Port 6
 #define PACK_I_MEAS     BIT0
+#define V_CHECK_ARRAY   BIT1
+#define V_CHECK_OUT     BIT2
+#define BUZZER          BIT7
 
 //Port 8
-#define LED_SER_IN      BIT5
-#define GAUGE_ON        BIT6
-#define LED_SRCK        BIT7
+#define LED_SER_IN      BIT4
+#define LED_RCK         BIT5
 
 //Port 9
-#define LED_CLR         BIT0
-#define LED_RCK         BIT1
+#define GAUGE_ON        BIT0
+#define LED_SRCK        BIT1
+#define SER_RX_IND      BIT6
+#define SER_TX_IND      BIT7
+
+//Port 10
+#define BMS_CSBI        BIT0
+#define BMS_SCLK        BIT1
+#define BMS_MOSI        BIT2
+#define BMS_MISO        BIT3
 
 //#define LED1            78 Dunno what this is, let's worry about it later
 
@@ -114,10 +117,6 @@ void timer_a0_init(); //Timer A0 config for LTC interaction
 void timer_a1_init(); //Need shorter interval for pack readings
 
 void timer_a2_init();
-
-void timer_321_init(); //Estop check once per minute
-
-void timer_322_init(); //idle check
 
 void adc14_init();
 
