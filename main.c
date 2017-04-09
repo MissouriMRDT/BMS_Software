@@ -14,7 +14,7 @@ void TA2_0_IRQHandler(void) //Temp sensor data retrieval
         P1OUT |= FAN_CTRL_1 | FAN_CTRL_2;
         P3OUT |= FAN_CTRL_3 | FAN_CTRL_4;
     }
-    else
+    else if(ow_temp_reading.f < 40.0)
     {
         P1OUT &= ~(FAN_CTRL_1 | FAN_CTRL_2);
         P3OUT &= ~(FAN_CTRL_3 | FAN_CTRL_4);

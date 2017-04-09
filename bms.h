@@ -72,8 +72,6 @@
 #define BMS_MOSI        BIT2
 #define BMS_MISO        BIT3
 
-//#define LED1            78 Dunno what this is, let's worry about it later
-
 // MSP432 RoveBoard Specs
 #define VCC             3.3       //volts
 #define ADC_MAX         16384      //bits -- 14 bit; Remember this is gonna change if you change ADC resolution
@@ -105,7 +103,7 @@ union txable_float {
 float pack_vtg_out;
 
 union txable_float ow_temp_reading; //Rover side
-union txable_float pack_vtg_array; //Pack side
+union txable_float pack_vtg_array; //Pack temperature
 union txable_float pack_i; //Result of ADC on PACK_I_MEAS
 
 uint8_t pb_command;
