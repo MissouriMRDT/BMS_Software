@@ -28,4 +28,4 @@ TODO:
 -Idle shutoff and Estop alarm   
 
 
-It is recommended to create your own, import the source files, and solve the linker and compiler search path issues in your own way.
+It is recommended to create your own project, import the source files, and solve the linker and compiler search path issues in your own way.
