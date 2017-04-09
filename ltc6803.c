@@ -73,21 +73,6 @@ uint8_t crc8_ccitt(uint8_t *data, int size)
     return crc;
 }
 
-/*void ltc6803_pec(uint8_t val)
-{
-
-        uint8_t curBit = 0; //TODO: Check if LUT works, but don't delete this until you do
-        int i=0;                                                                    //8-bit value with the current bit in its LSB
-        for(i = 0; i < 8; i++)                                                        //Loop through every bit in the byte
-        {
-            curBit   = (val >> (7-i)) & 0x01;                                              //Isolate the the (i-1)th bit of val
-            pecIN    = curBit ^ ((pecVAL >> 7) & 0x01);                                    //Initialize pecIN to (0b0000000X where X is curBit) XOR MSB of PEC
-            pecIN   |= ((pecVAL & 0x01) ^ (pecIN & 0x01)) << 1;                            //Magic (IN1 = PEC[0] XOR IN0)
-            pecIN   |= (((pecVAL >> 1) & 0x01) ^ (pecIN & 0x01)) << 2;                     //More magic (IN2 = PEC[1] XOR IN0)
-            pecVAL   = ((pecVAL << 1) & ~0x07) | pecIN;                                    //Set the current PEC value
-        }
-}*/
-
 
 void ltc6803_wrcfg(uint8_t cdc_mode)
 {

@@ -9,6 +9,16 @@
 void TA2_0_IRQHandler(void) //Temp sensor data retrieval
 {
     ow_temp_reading.f = read_scratch_singledrop(&ow_temp);
+    if(ow_temp_reading.f > 50.0)
+    {
+        P1OUT |= FAN_CTRL_1 | FAN_CTRL_2;
+        P3OUT |= FAN_CTRL_3 | FAN_CTRL_4;
+    }
+    else
+    {
+        P1OUT &= ~(FAN_CTRL_1 | FAN_CTRL_2);
+        P3OUT &= ~(FAN_CTRL_3 | FAN_CTRL_4);
+    }
     TA2CCTL0 &= ~CCIFG;
 }
 
@@ -42,6 +52,7 @@ void TA0_N_IRQHandler(void) //Start LTC conv
 }
 void ADC14_IRQHandler(void)
 {
+int i = 0;
 //We don't need to clear the interrupt flag; the reg reads do that
 //Get the data from conversion memory and put it in an array
 adc14_out[0] = ADC14->MEM[0]; //PACK_I_MEAS
@@ -50,7 +61,20 @@ adc14_out[2] = ADC14->MEM[2]; //V_CHECK_OUT
 pack_vtg_array.f = (adc14_out[1] * (((1.93634e-5 * adc14_out[1]) + 3.02779)/16384) * 11) - 0.7; //Magic number based on multimeter readings and 14-bit scale. Re-test in rover later
 pack_vtg_out = adc14_out[2] * (VCC / 16384);
 pack_i.f = -(((adc14_out[0] * (VCC / 16384))-SENSOR_BIAS)/SENSOR_SENSITIVITY);
-//__no_operation(); //Debugging use
+if(pack_i.f < 0)
+    pack_i.f *= -1.0;
+if (pack_i.f >= 180.0)
+{
+    P3OUT &= ~PACK_GATE;
+    for(i=0; i<8; i++)
+    {
+        P5OUT |= BUZZER;
+        __delay_cycles(30000000);
+        P5OUT &= ~BUZZER;
+    }
+__no_operation(); //Debugging use
+}
+
 }
 
 void EUSCIA2_IRQHandler() //RX command from power board
@@ -168,7 +192,7 @@ void main(void)
             break;
 
         default: //invalid command
-            while(1); // Trap CPU so we can figure out what got sent to cause it. Make sure the final revision just buzzes 3x and returns
+            // Trap CPU so we can figure out what got sent to cause it. Make sure the final revision just buzzes 3x and returns
             __no_operation();
             break;
         }
