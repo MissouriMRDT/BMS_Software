@@ -15,17 +15,17 @@ This is the software for Gryphon's BMS. As of Apr 02, 2017, the following functi
 
 -Temperature sensing and temperature-based fan control
 
+-Idle shutoff and Estop alarm   
+
 TODO:
 
 -Determine handling for comm errors etc.
 
 -Transmission of voltages to indicator board
 
--Fuel gauge interaction
+-Fix fuel gauge interaction
 
--Fix ADC scaling for LTC readings and/or find causes of noise
-
--Idle shutoff and Estop alarm   
+-Fix ADC scaling for LTC readings and/or find causes of noise (or more likely, get a working LTC chip...)
 
 
-It is recommended to create your own, import the source files, and solve the linker and compiler search path issues in your own way.
+It is recommended to create your own project, import the source files, and solve the linker and compiler search path issues in your own way.
