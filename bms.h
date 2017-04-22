@@ -15,6 +15,7 @@
 #include "uart.h"
 #include "ltc6803.h"
 #include "ds18b20.h"
+#include "tlc6c.h"
 
 //Delays. "CCR" indicates we're loading something in a compare reg for a timer.
 #define REBOOT_DELAY        5000
@@ -108,7 +109,9 @@ union txable_float pack_i; //Result of ADC on PACK_I_MEAS
 
 uint8_t pb_command;
 
-int j;
+int j, mins;
+
+void rtc_init();
 
 void timer_a0_init(); //Timer A0 config for LTC interaction
 
@@ -121,7 +124,6 @@ void adc14_init();
 void clk_init();
 
 void tx_cvs();
-
 
 
 #endif /* BMS_H_ */

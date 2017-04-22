@@ -7,6 +7,15 @@
 
 #include "bms.h"
 
+void rtc_init()
+{
+    RTCCTL0_H = 0x0A5;
+    while(!(RTCCTL1 & RTCRDY));
+    RTCCTL0_L |= RTC_C_CTL0_TEVIE; //Just use one interrupt and increment counter.
+    NVIC_EnableIRQ(RTC_C_IRQn);
+    RTCCTL1 &= ~RTC_C_CTL13_HOLD;
+}
+
 void timer_a0_init() //LTC use
 {
     TA0CTL = 0x0000; //Clear any prior settings and put the timer in stop mode.
@@ -96,4 +105,6 @@ void tx_cvs()
     for(i=0; i<12; i++)
        uart_tx(0, cell_regs[i]); //Send them packed; dealing with float conversion is too much trouble
 }
+
+
 

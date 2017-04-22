@@ -6,6 +6,36 @@
 
 #include "bms.h"
 
+void RTC_C_IRQHandler(void)
+{
+    int i=0;
+    RTCIV = 0x0000;
+    mins++;
+       if ((pack_vtg_array.f < 10.0))
+       {
+          for(i=0; i<3; i++)
+          {
+              P5OUT |= BUZZER;
+              __delay_cycles(200000);
+              P5OUT &= ~BUZZER;
+              __delay_cycles(200000);
+          }
+
+       }
+
+       if (mins > 59)
+       {
+           for(i=0; i<24; i++)
+           {
+               P5OUT |= BUZZER;
+               __delay_cycles(100000);
+               P5OUT &= ~BUZZER;
+               __delay_cycles(100000);
+           }
+           P3OUT &= ~PACK_GATE;
+       }
+}
+
 void TA2_0_IRQHandler(void) //Temp sensor data retrieval
 {
     ow_temp_reading.f = read_scratch_singledrop(&ow_temp);
@@ -25,6 +55,7 @@ void TA2_0_IRQHandler(void) //Temp sensor data retrieval
 void TA2_N_IRQHandler(void) //Start temp sensor measurement
 {
     start_conv_singledrop(&ow_temp);
+    tlc6c_write_byte(0x05);
     TA2CCTL1 &= ~CCIFG;
 }
 
@@ -58,9 +89,9 @@ int i = 0;
 adc14_out[0] = ADC14->MEM[0]; //PACK_I_MEAS
 adc14_out[1] = ADC14->MEM[1]; //V_CHECK_ARRAY
 adc14_out[2] = ADC14->MEM[2]; //V_CHECK_OUT
-pack_vtg_array.f = (adc14_out[1] * (((1.93634e-5 * adc14_out[1]) + 3.02779)/16384) * 11) - 0.7; //Magic number based on multimeter readings and 14-bit scale. Re-test in rover later
-pack_vtg_out = adc14_out[2] * (VCC / 16384);
-pack_i.f = -(((adc14_out[0] * (VCC / 16384))-SENSOR_BIAS)/SENSOR_SENSITIVITY);
+pack_vtg_array.f = adc14_out[1] * 11 * (VCC / 16384);
+pack_vtg_out = adc14_out[2] * 11 * (VCC / 16384);
+pack_i.f = -(((adc14_out[0] * (VCC / 16384)) - SENSOR_BIAS)/SENSOR_SENSITIVITY);
 if(pack_i.f < 0)
     pack_i.f *= -1.0;
 if (pack_i.f >= 180.0)
@@ -69,12 +100,12 @@ if (pack_i.f >= 180.0)
     for(i=0; i<8; i++)
     {
         P5OUT |= BUZZER;
-        __delay_cycles(30000000);
+        __delay_cycles(1000000);
         P5OUT &= ~BUZZER;
     }
 __no_operation(); //Debugging use
-}
-
+} //Comment this out if you're testing without anything connected, the alarm will trip otherwise
+__no_operation();
 }
 
 void EUSCIA2_IRQHandler() //RX command from power board
@@ -123,6 +154,7 @@ void main(void)
     P1OUT &= ~(FAN_CTRL_1 | FAN_CTRL_2);
     P3OUT &= ~(FAN_CTRL_3 | FAN_CTRL_4);
     P5OUT &= ~BUZZER;
+    P9OUT &= ~GAUGE_ON;
 
  //3.2 and 3.3 primary special function
 
@@ -130,6 +162,8 @@ void main(void)
     ow_temp.port_out = &P2OUT;
     ow_temp.port_dir = &P2DIR;
     ow_temp.pin = BIT5;
+
+    mins = 0;
 
     //Initial pin states
     P10OUT |= BMS_CSBI; //CSBI should be high when a conversion is not in progress
@@ -143,6 +177,7 @@ void main(void)
     timer_a1_init();
     timer_a2_init();
     adc14_init();
+    rtc_init();
     write_scratch_singledrop(&ow_temp, 0xFF, 0x00, RES_12);
     pb_command=0;
     ow_temp_reading.f = 0.0;
@@ -158,6 +193,7 @@ void main(void)
         case 1: //Shutdown pack
             P3OUT &= ~PACK_GATE;
             pb_command = 0;
+            mins = 0; //Only set this to 0 on things that indicate human interaction...
             break;
 
         case 2: //Reboot pack
@@ -165,12 +201,14 @@ void main(void)
             __delay_cycles(15000000); //5s * 3MHz
             P3OUT |= PACK_GATE;
             pb_command = 0;
+            mins = 0;
             break;
 
         case 3: //fans on
             P1OUT |= (FAN_CTRL_1 | FAN_CTRL_2);
             P3OUT |= (FAN_CTRL_3 | FAN_CTRL_4);
             pb_command = 0;
+            mins = 0;
             break;
 
         case 4: //fans off
@@ -178,6 +216,7 @@ void main(void)
             P1OUT &= ~(FAN_CTRL_1 | FAN_CTRL_2);
             P3OUT &= ~(FAN_CTRL_3 | FAN_CTRL_4);
             pb_command = 0;
+            mins = 0;
             break;
 
         case 5: //PB data request
@@ -188,12 +227,11 @@ void main(void)
             for(j = 0; j<4; j++)
                 uart_tx(TARGET_PB, ow_temp_reading.ch[j]);
             tx_cvs();
-            pb_command = 0;
+            pb_command = 0; //This command happens automati
             break;
 
         default: //invalid command
-            // Trap CPU so we can figure out what got sent to cause it. Make sure the final revision just buzzes 3x and returns
-            __no_operation();
+            __no_operation(); //Breakpoint here if you think you're getting invalid commands
             break;
         }
     }
