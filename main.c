@@ -165,6 +165,7 @@ void main(void)
     ow_temp.pin = BIT5;
 
     mins = 0;
+    manual_fans = 0;
 
     //Initial pin states
     P10OUT |= BMS_CSBI; //CSBI should be high when a conversion is not in progress
