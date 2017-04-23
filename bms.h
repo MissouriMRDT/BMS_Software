@@ -109,7 +109,7 @@ union txable_float pack_i; //Result of ADC on PACK_I_MEAS
 
 uint8_t pb_command;
 
-int j, mins;
+int j, mins, manual_fans;
 
 void rtc_init();
 

@@ -10,10 +10,10 @@ void RTC_C_IRQHandler(void)
 {
     int i=0;
     RTCIV = 0x0000;
-    mins++;
-       if ((pack_vtg_array.f < 10.0))
+       if (pack_vtg_out < 10.0)
        {
-          for(i=0; i<3; i++)
+          mins++;
+          for(i=0; i<7; i++)
           {
               P5OUT |= BUZZER;
               __delay_cycles(200000);
@@ -32,7 +32,8 @@ void RTC_C_IRQHandler(void)
                P5OUT &= ~BUZZER;
                __delay_cycles(100000);
            }
-           P3OUT &= ~PACK_GATE;
+
+           P3OUT |= LOGIC_SWITCH;
        }
 }
 
@@ -44,7 +45,7 @@ void TA2_0_IRQHandler(void) //Temp sensor data retrieval
         P1OUT |= FAN_CTRL_1 | FAN_CTRL_2;
         P3OUT |= FAN_CTRL_3 | FAN_CTRL_4;
     }
-    else if(ow_temp_reading.f < 40.0)
+    else if((ow_temp_reading.f < 40.0) && (manual_fans == 0))
     {
         P1OUT &= ~(FAN_CTRL_1 | FAN_CTRL_2);
         P3OUT &= ~(FAN_CTRL_3 | FAN_CTRL_4);
@@ -91,10 +92,10 @@ adc14_out[1] = ADC14->MEM[1]; //V_CHECK_ARRAY
 adc14_out[2] = ADC14->MEM[2]; //V_CHECK_OUT
 pack_vtg_array.f = adc14_out[1] * 11 * (VCC / 16384);
 pack_vtg_out = adc14_out[2] * 11 * (VCC / 16384);
-pack_i.f = -(((adc14_out[0] * (VCC / 16384)) - SENSOR_BIAS)/SENSOR_SENSITIVITY);
-if(pack_i.f < 0)
-    pack_i.f *= -1.0;
-if (pack_i.f >= 180.0)
+pack_i.f = (((adc14_out[0] * (VCC / 16384)) - SENSOR_BIAS)/SENSOR_SENSITIVITY);
+if (pack_i.f < 0)
+    pack_i.f *=-1;
+if ((pack_i.f >= 180.0)||(pack_vtg_array.f < 22.0))
 {
     P3OUT &= ~PACK_GATE;
     for(i=0; i<8; i++)
@@ -207,6 +208,7 @@ void main(void)
         case 3: //fans on
             P1OUT |= (FAN_CTRL_1 | FAN_CTRL_2);
             P3OUT |= (FAN_CTRL_3 | FAN_CTRL_4);
+            manual_fans = 1;
             pb_command = 0;
             mins = 0;
             break;
@@ -215,6 +217,7 @@ void main(void)
            // P2OUT &= ~(BIT4 | BIT5 | BIT6 | BIT7);
             P1OUT &= ~(FAN_CTRL_1 | FAN_CTRL_2);
             P3OUT &= ~(FAN_CTRL_3 | FAN_CTRL_4);
+            manual_fans = 0;
             pb_command = 0;
             mins = 0;
             break;
