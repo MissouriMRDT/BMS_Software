@@ -7,6 +7,7 @@
 
 #ifndef LTC6803_H_
 #define LTC6803_H_
+#include <gpio.h>
 #include "msp432p401r.h"
 #include "spi.h"
 #include "uart.h"
@@ -41,7 +42,7 @@
 #define CDC1                            0x01    ///< Comparator off; measurements taken at request of SPI master and complete after 13ms.
 
 //Port 10
-#define BMS_CSBI BIT0
+#define BMS_CSBI    GPIO_PIN0
 
 uint8_t pecVAL;
 uint8_t pecIN;

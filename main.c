@@ -4,98 +4,117 @@
 //
 //****************************************************************************
 
+//TODO: -Convert most things beyond toggling GPIO to driverlib.
+//      -Change everything LTC related to mux flipping and ADC.
+
 #include "bms.h"
+
 
 void RTC_C_IRQHandler(void)
 {
     int i=0;
     RTCIV = 0x0000;
-       if (pack_vtg_out < 10.0)
-       {
+       if (pack_vtg_out < BATTERY_LOW_CRIT) {
           mins++;
-          for(i=0; i<7; i++)
-          {
+          for(i=0; i<7; i++) {
               P5OUT |= BUZZER;
               __delay_cycles(200000);
               P5OUT &= ~BUZZER;
               __delay_cycles(200000);
           }
-
        }
-
-       if (mins > 59)
-       {
-           for(i=0; i<24; i++)
-           {
+       else {
+                     mins = 0;
+       }
+       if (mins > 59) {
+           for(i=0; i<24; i++) {
                P5OUT |= BUZZER;
                __delay_cycles(100000);
                P5OUT &= ~BUZZER;
                __delay_cycles(100000);
            }
-
            P3OUT |= LOGIC_SWITCH;
        }
 }
 
-void TA2_0_IRQHandler(void) //Temp sensor data retrieval
-{
+void TA2_0_IRQHandler(void) { //Temp sensor data retrieval
     ow_temp_reading.f = read_scratch_singledrop(&ow_temp);
-    if(ow_temp_reading.f > 50.0)
-    {
+    if(ow_temp_reading.f > 50.0) {
         P1OUT |= FAN_CTRL_1 | FAN_CTRL_2;
         P3OUT |= FAN_CTRL_3 | FAN_CTRL_4;
     }
-    else if((ow_temp_reading.f < 40.0) && (manual_fans == 0))
-    {
+    else if((ow_temp_reading.f < 40.0) && (manual_fans == false)) {
         P1OUT &= ~(FAN_CTRL_1 | FAN_CTRL_2);
         P3OUT &= ~(FAN_CTRL_3 | FAN_CTRL_4);
     }
     TA2CCTL0 &= ~CCIFG;
 }
 
-void TA2_N_IRQHandler(void) //Start temp sensor measurement
-{
+void TA2_N_IRQHandler(void) { //Start temp sensor measurement
     start_conv_singledrop(&ow_temp);
-    tlc6c_write_byte(0x05);
     TA2CCTL1 &= ~CCIFG;
 }
 
-void TA1_0_IRQHandler(void) //Start ADC conv
-{
+void TA1_0_IRQHandler(void) { //Start ADC conv
     ADC14->CTL0 |=
             ADC14_CTL0_ENC |
             ADC14_CTL0_SC;
     TA1CCTL0 &= ~CCIFG;
 }
-void TA0_0_IRQHandler(void) //Get LTC conv results
-{
-    //ltc6803_rddgnr(); //read diagnostic regs
-    ltc6803_rdcv();
+
+//TODO: Figure out how to get one conversion result with EN on before changing.
+void TA0_0_IRQHandler(void) { //Get LTC conv results
+    P4OUT |= ADC_CELL_EN; //Turn on the mux
+    cell_v_writelock = true; //start a new set of cell measurements
+    TA1R = 0; // Stupid, stupid hack -- EN gets set while TA1 is counting, so the first ADC interrupt happens too fast.
+    TA1CCTL0 &= ~CCIFG;
     TA0CCTL0 &= ~CCIFG;
 }
 
-void TA0_N_IRQHandler(void) //Start LTC conv
+/*void TA0_N_IRQHandler(void) //SLATED FOR DEMOLITION
 {
     TA0CTL &= ~TIMER_A_CTL_MC_MASK; //Under normal circumstances, we don't want this, but here we want to ensure 15ms delay after the -end- of STCV
-    ltc6803_stcvad();
+  //  ltc6803_stcvad();
     //ltc6803_dagn(); //for diagnostics, should read 2.5V
     TA0CTL |= TIMER_A_CTL_MC1;
     TA0CCTL1 &= ~CCIFG;
-}
-void ADC14_IRQHandler(void)
-{
-int i = 0;
+}*/
+
+void ADC14_IRQHandler(void) {
+int i = 0, j = 1, a0_bitval = 0, a1_bitval = 0, a2_bitval = 0;
 //We don't need to clear the interrupt flag; the reg reads do that
 //Get the data from conversion memory and put it in an array
-adc14_out[0] = ADC14->MEM[0]; //PACK_I_MEAS
-adc14_out[1] = ADC14->MEM[1]; //V_CHECK_ARRAY
-adc14_out[2] = ADC14->MEM[2]; //V_CHECK_OUT
+for(i = 0; i < 4; i++) {
+    adc14_out[i] = ADC14->MEM[i]; //PACK_I_MEAS, V_CHECK_ARRAY, V_CHECK_OUT, cell_vtgs[whatever] if applicable (i.e. set of readings is in progress)
+}
+if(cell_v_writelock) { //We're taking a set of cell measurements
+    cell_vtgs[current_cell].f = adc14_out[3] * 11 * (VCC / 16384);
+    current_cell++; //Note: The way this is set up means we should never accidentally take measurements before the mux flips.
+    if(current_cell > 7) {
+        current_cell = 0;
+        P4OUT &= ~(ADC_CELL_EN | ADC_CELL_A0 | ADC_CELL_A1 | ADC_CELL_A2);
+        cell_v_writelock = false;
+        /*for(j = 7; j >= 0; j--) {
+            cell_vtgs[j].f = cell_vtgs[j].f - cell_vtgs[0].f;
+        }*/
+        __no_operation();
+        //transmit voltages here
+    }
+    else {
+        a0_bitval = ADC_CELL_A0 & (current_cell & 0x01); //Pin 0; no shift needed to mask out with counter bits; all the bit positions match port to counter
+        a1_bitval = ADC_CELL_A1 & (current_cell & 0x02); //Pin 1;
+        a2_bitval = ADC_CELL_A2 & (current_cell & 0x04); //Pin 2;
+        P4OUT = (P4OUT & ~(ADC_CELL_A1 | ADC_CELL_A2 | ADC_CELL_A0)) |
+                a0_bitval | a1_bitval | a2_bitval; //Mask out the values, then set them back if they're 1. Not sure if avoiding branching is worth it, but branching would look even uglier.
+        P6OUT = (P6OUT & ~ADC_CELL_A0) | a0_bitval;
+    }
+}
 pack_vtg_array.f = adc14_out[1] * 11 * (VCC / 16384);
 pack_vtg_out = adc14_out[2] * 11 * (VCC / 16384);
-pack_i.f = (((adc14_out[0] * (VCC / 16384)) - SENSOR_BIAS)/SENSOR_SENSITIVITY);
+pack_i.f = (((adc14_out[0] * (VCC / 16384)) - SENSOR_BIAS)/SENSOR_SENSITIVITY); //stupid hack, compensate for resistor divider bias to fix my schematic issues. REMOVE FOR REV2
 if (pack_i.f < 0)
     pack_i.f *=-1;
-if ((pack_i.f >= 180.0)||(pack_vtg_array.f < 22.0))
+if ((pack_i.f >= AMP_OVERCURRENT)||(pack_vtg_array.f < 22.0))
 {
     P3OUT &= ~PACK_GATE;
     for(i=0; i<8; i++)
@@ -105,14 +124,15 @@ if ((pack_i.f >= 180.0)||(pack_vtg_array.f < 22.0))
         P5OUT &= ~BUZZER;
     }
 __no_operation(); //Debugging use
+
 } //Comment this out if you're testing without anything connected, the alarm will trip otherwise
 __no_operation();
 }
 
 void EUSCIA2_IRQHandler() //RX command from power board
 {
-EUSCI_A2 -> IFG &= ~BIT0;
-pb_command = EUSCI_A2 -> RXBUF;
+    EUSCI_A2 -> IFG &= ~BIT0;
+    pb_command = EUSCI_A2 -> RXBUF;
 }
 
 void main(void)
@@ -124,38 +144,17 @@ void main(void)
     clk_init();
     spi_init();
     uart_init();
-    //Outputs. The inputs will get set automatically this way.
+    //Outputs. Input is the default direction.
     P1DIR = FAN_CTRL_1 | FAN_CTRL_2;
     P3DIR |= PACK_GATE | LOGIC_SWITCH | FAN_CTRL_3 | FAN_CTRL_4;
+    P4DIR |= ADC_CELL_EN | ADC_CELL_A0 | ADC_CELL_A1 | ADC_CELL_A2;
     P5DIR = BUZZER;
-    P8DIR = LED_RCK | LED_SER_IN;
-    P9DIR |= GAUGE_ON | LED_SRCK;
-    P10DIR |= BMS_CSBI;
-    //TODO: Make list of unused pins to set to output
-   /* P1OUT = 0;
-    P2OUT = 0;
-    P3OUT = 0;
-    P4OUT = 0;
-    P5OUT = 0;
-    P6OUT = 0;
-    P7OUT = 0;
-    P8OUT = 0;
-    P9OUT = 0;
-    P10OUT = 0;*/
-  /*  ow_temp.port_out = &P3OUT;
-    ow_temp.port_in = &P3IN;
-    ow_temp.port_ren = &P3REN;
-    ow_temp.port_dir = &P3DIR;
-    ow_temp.pin = 0;*/
-    //Special Functions
-    // 4.2, 4.5, 6.0 ADC
-    // 3.2, 3.3 UART module
-    // 1.5, 1.6, 1.7 SPI
+    //P10DIR |= BMS_CSBI; The LTC is no more
 
     P1OUT &= ~(FAN_CTRL_1 | FAN_CTRL_2);
     P3OUT &= ~(FAN_CTRL_3 | FAN_CTRL_4);
+    P4OUT &= ~(ADC_CELL_EN | ADC_CELL_A1 | ADC_CELL_A2 | ADC_CELL_A0);
     P5OUT &= ~BUZZER;
-    P9OUT &= ~GAUGE_ON;
 
  //3.2 and 3.3 primary special function
 
@@ -164,6 +163,7 @@ void main(void)
     ow_temp.port_dir = &P2DIR;
     ow_temp.pin = BIT5;
 
+    current_cell = 0;
     mins = 0;
     manual_fans = 0;
 
@@ -209,7 +209,7 @@ void main(void)
         case 3: //fans on
             P1OUT |= (FAN_CTRL_1 | FAN_CTRL_2);
             P3OUT |= (FAN_CTRL_3 | FAN_CTRL_4);
-            manual_fans = 1;
+            manual_fans = true;
             pb_command = 0;
             mins = 0;
             break;
@@ -223,15 +223,21 @@ void main(void)
             mins = 0;
             break;
 
-        case 5: //PB data request
-            for(j = 0; j<4; j++)
-                uart_tx(TARGET_PB, pack_i.ch[j]);
-            for(j = 0; j<4; j++)
-                uart_tx(TARGET_PB, pack_vtg_array.ch[j]);
-            for(j = 0; j<4; j++)
-                uart_tx(TARGET_PB, ow_temp_reading.ch[j]);
-            tx_cvs();
-            pb_command = 0; //This command happens automati
+        case 5: //PB data request. Order: Pack current, pack voltage, pack temperature, cell voltages(array).
+            if(cell_v_writelock == 0) {
+                for(j = 0; j < 4; j++)
+                    uart_tx(TARGET_PB, pack_i.ch[j]);
+                for(j = 0; j < 4; j++)
+                    uart_tx(TARGET_PB, pack_vtg_array.ch[j]);
+                for(j = 0; j < 4; j++)
+                    uart_tx(TARGET_PB, ow_temp_reading.ch[j]);
+                for(j = 0; j < 8; j++) {
+                    for(h = 0; h < 4; h++) {
+                        uart_tx(TARGET_PB, cell_vtgs[j].ch[h]);
+                    }
+                }
+            }
+            pb_command = 0;
             break;
 
         default: //invalid command
@@ -239,6 +245,4 @@ void main(void)
             break;
         }
     }
-
-
 }

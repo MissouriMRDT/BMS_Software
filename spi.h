@@ -8,11 +8,12 @@
 #ifndef SPI_H_
 #define SPI_H_
 #include "msp432p401r.h"
+#include <gpio.h>
 
 //Port 10
-#define BMS_SCLK BIT1
-#define BMS_MOSI BIT2
-#define BMS_MISO BIT3
+#define BMS_SCLK    GPIO_PIN1
+#define BMS_MOSI    GPIO_PIN2
+#define BMS_MISO    GPIO_PIN3
 
 void spi_init();
 

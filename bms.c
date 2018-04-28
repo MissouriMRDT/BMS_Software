@@ -23,11 +23,9 @@ void timer_a0_init() //LTC use
     TA0CCTL0 = 0x2000; // No capture, capture/compare input GND since we don't need it, capture/compare interrupt enabled.
     TA0CCTL1 = 0x2000;
     NVIC_EnableIRQ(TA0_0_IRQn);
-    NVIC_EnableIRQ(TA0_N_IRQn);
     TA0CCTL0 |= BIT4;
     TA0CCTL1 |= BIT4;
-    TA0CCR1 = STCVAD_CCR_DELAY; //Count up to here before starting a3 conversion.
-    TA0CCR0 = STCVAD_CCR_DELAY + RDCV_CCR_DELAY; //Count up to here before trying to get adc results.
+    TA0CCR0 = STCVAD_CCR_DELAY;
     TA0CTL |= 0x10; //Start TA0 in up mode.
 }
 
@@ -64,6 +62,10 @@ void adc14_init()
 //No clock division, sequence-of-channels mode,
 P5SEL0 |= PACK_I_MEAS | V_CHECK_ARRAY | V_CHECK_OUT;
 
+P6SEL0 |= ADC_CELL_VOUT;
+
+GPIO_setAsPeripheralModuleFunctionInputPin(GPIO_PORT_P6, GPIO_PIN1, GPIO_PRIMARY_MODULE_FUNCTION); //Set P6.1 to ADC input
+
 ADC14 -> CTL0 = ADC14_CTL0_PDIV__64 |
         ADC14_CTL0_SHP |
         ADC14_CTL0_SSEL__SMCLK |
@@ -76,7 +78,8 @@ ADC14 -> CTL0 = ADC14_CTL0_PDIV__64 |
 //Use internal channels 0 through 2, mapped to I_PACK, V_CHECK_ARRAY, V_CHECK OUT
 ADC14 -> MCTL[0] = I_PACK_CHNL; //External channel specifications with AVCC reference selected for all.
 ADC14 -> MCTL[1] = V_ARRAY_CHNL;
-ADC14 -> MCTL[2] = V_OUT_CHNL | ADC14_MCTLN_EOS; //The third conversion is the end of the sequence.
+ADC14 -> MCTL[2] = V_OUT_CHNL;
+ADC14 -> MCTL[3] = V_CELL_CHNL | ADC14_MCTLN_EOS; //The fourth conversion is the end of the sequence.
 
 NVIC_EnableIRQ(ADC14_IRQn); //Turn on interrupt for last conversion, first in the NVIC, then the ADC
 ADC14 -> IER0 = ADC14_IER0_IE2;
@@ -88,23 +91,25 @@ ADC14 -> CTL0 |= ADC14_CTL0_SC; // Start the first conversion
 
 void clk_init() //Energia sets DCO to 48MHz and so should we.
 {
-//Also, to make timer use a little saner, let's plug REFOCLK into ACLK and turn it on.
-//Using SMCLK at such a high frequency would mean we couldn't get 13ms delay in one cycle of timer A.
-//Must first go to VCORE1; I learned this the hard (fault) way.
-PCM -> CTL0 = PCM_CTL0_KEY_VAL | PCM_CTL0_CPM__AM_LDO_VCORE1;
-//No flash wait states at 48MHz creates unpredictable behavior too.
-FLCTL -> BANK0_RDCTL |= FLCTL_BANK0_RDCTL_WAIT_2; //2 are recommended by TI for this frequency range, per slaa668.
-CS -> KEY = CS_KEY_VAL;
-CS -> CTL0 = CS_CTL0_DCORSEL_5;
-CS -> CTL1 |= CS_CTL1_DIVS__4 | CS_CTL1_SELA__REFOCLK; //SMCLK should be 12MHz; REFOCLK should be 32768Hz
+    //Using SMCLK at such a high frequency would mean we couldn't get 13ms delay in one cycle of timer A, so let's use REFOCLK instead.
+    //Must first go to VCORE1; I learned this the hard (fault) way.
+    PCM -> CTL0 = PCM_CTL0_KEY_VAL | PCM_CTL0_CPM__AM_LDO_VCORE1;
+    //No flash wait states at 48MHz creates unpredictable behavior too.
+    FLCTL -> BANK0_RDCTL |= FLCTL_BANK0_RDCTL_WAIT_2; //2 are recommended by TI for this frequency range, per slaa668.
+    CS -> KEY = CS_KEY_VAL;
+    CS -> CTL0 = CS_CTL0_DCORSEL_5;
+    CS -> CTL1 |= CS_CTL1_DIVS__4 | CS_CTL1_SELA__REFOCLK; //SMCLK should be 12MHz; REFOCLK should be 32768Hz
 }
 
-void tx_cvs()
+
+/*
+void tx_data(float *cv_addr, int num_items)
 {
     int i=0;
-    for(i=0; i<12; i++)
-       uart_tx(0, cell_regs[i]); //Send them packed; dealing with float conversion is too much trouble
+    for(i=0; i<num_items; i++)
+       uart_tx(0, cv_addr[i]); //Send them packed; dealing with float conversion is too much trouble
 }
-
+*/
+//This isn't actually worthy of its own function. Just for loop and send the damn things...
 
 

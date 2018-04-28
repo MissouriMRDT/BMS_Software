@@ -11,25 +11,28 @@
 #define BMS_H_
 #include "msp.h"
 #include "msp432p401r.h"
+#include <gpio.h>
+#include <stdbool.h>
+#include <stdint.h>
 #include "spi.h"
 #include "uart.h"
 #include "ltc6803.h"
 #include "ds18b20.h"
-#include "tlc6c.h"
 
 //Delays. "CCR" indicates we're loading something in a compare reg for a timer.
 #define REBOOT_DELAY        5000
 #define IDLE_DELAY          3600000 //the rover sits idle for 1 hour before turning the BMS logic off.
 #define REBOOT_TRY_COUNT    3
-#define DEBOUNCE_DELAY      10 //10ms, do we have a milliseconds utility in CCS? May need to recreate.
+#define DEBOUNCE_DELAY      10 //10ms; give to a delay function
 #define STCVAD_CCR_DELAY    0xE000 //This goes in TA0CCR1. Should translate to a half second for ACLK at 32768Hz with ID = 0 sourcing timer A.
-#define RDCV_CCR_DELAY      0x290 //20ms -- 13ms for adc conversion to complete, plus 7ms for safety per Jesse Cureton.
-                                    //This plus the STCVAD_DELAY should be in TA0CCR0 for the above settings.
-#define PACK_MEAS_CCR_DELAY 0xAFC8 //15ms with clock divider 8 and 12MHz from SMCLK -- recommended delay for current measurement, guess I might as well throw voltages in here too
+//#define RDCV_CCR_DELAY      0x290 //20ms -- 13ms for adc conversion to complete, plus 7ms for safety per Jesse Cureton.
+                                    // This is an artifact of the LTC6803 design. Leaving it in case someone goes back.
+#define PACK_MEAS_CCR_DELAY 0x927C //15ms with clock divider 8 and 12MHz from SMCLK -- recommended delay for current measurement, guess I might as well throw voltages in here too
 #define STARTTEMP_CCR_DELAY 0x9A6E
 #define TEMP_MEAS_CCR_DELAY 0x6590
 #define SERIAL_DELAY        10
 
+#define V_CELL_CHNL     ADC14_MCTLN_INCH_14
 #define V_OUT_CHNL      ADC14_MCTLN_INCH_3
 #define V_ARRAY_CHNL    ADC14_MCTLN_INCH_4
 #define I_PACK_CHNL     ADC14_MCTLN_INCH_5
@@ -37,41 +40,45 @@
 //Pins for GPIO conf etc. Note the port they go on.
 
 //Port 1
-#define FAN_CTRL_1      BIT6
-#define FAN_CTRL_2      BIT7
+#define FAN_CTRL_1      GPIO_PIN6
+#define FAN_CTRL_2      GPIO_PIN7
 
 //Port 2
-#define TEMP_1          BIT5
+#define TEMP_1          GPIO_PIN5
 
 //Port 3
-#define PACK_GATE       BIT0
-#define SER_RX_PB       BIT2
-#define SER_TX_PB       BIT3
-#define LOGIC_SWITCH    BIT5
-#define FAN_CTRL_3       BIT6
-#define FAN_CTRL_4       BIT7
+#define PACK_GATE       GPIO_PIN0
+#define SER_RX_PB       GPIO_PIN2
+#define SER_TX_PB       GPIO_PIN3
+#define LOGIC_SWITCH    GPIO_PIN5
+#define FAN_CTRL_3       GPIO_PIN6
+#define FAN_CTRL_4       GPIO_PIN7
+
+//Port 4
+#define ADC_CELL_A0     GPIO_PIN0
+#define ADC_CELL_A1     GPIO_PIN1
+#define ADC_CELL_A2     GPIO_PIN2
+#define ADC_CELL_EN     GPIO_PIN4
 
 //Port 5
-#define PACK_I_MEAS     BIT0
-#define V_CHECK_ARRAY   BIT1
-#define V_CHECK_OUT     BIT2
-#define BUZZER          BIT7
+#define PACK_I_MEAS     GPIO_PIN0
+#define V_CHECK_ARRAY   GPIO_PIN1
+#define V_CHECK_OUT     GPIO_PIN2
+#define BUZZER          GPIO_PIN7
+
+//Port 6
+#define ADC_CELL_VOUT   GPIO_PIN1
 
 //Port 8
-#define LED_SER_IN      BIT4
-#define LED_RCK         BIT5
+#define LED_SER_IN      GPIO_PIN4
+#define LED_RCK         GPIO_PIN5
 
 //Port 9
-#define GAUGE_ON        BIT0
-#define LED_SRCK        BIT1
-#define SER_RX_IND      BIT6
-#define SER_TX_IND      BIT7
+#define GAUGE_ON        GPIO_PIN0
+#define LED_SRCK        GPIO_PIN1
+#define SER_RX_IND      GPIO_PIN6
+#define SER_TX_IND      GPIO_PIN7
 
-//Port 10
-#define BMS_CSBI        BIT0
-#define BMS_SCLK        BIT1
-#define BMS_MOSI        BIT2
-#define BMS_MISO        BIT3
 
 // MSP432 RoveBoard Specs
 #define VCC             3.3       //volts
@@ -80,12 +87,14 @@
 #define LOOP_DELAY      10;       //ms
 
 //ACS_759 IC Sensor Specs
-#define SENSOR_SENSITIVITY  0.0066    //volts/amp
+#define SENSOR_SENSITIVITY  0.0066    //volts/amp. This is dependent on the [somenumber]B suffix on the current sensor -- 50B -> 50A max and associated scale from datasheet
 #define SENSOR_SCALE        0.5
-#define SENSOR_BIAS         VCC*SENSOR_SCALE //V. for now- determine empirically later
+//#define SENSOR_BIAS         VCC*SENSOR_SCALE //V. for now- determine empirically later
+#define SENSOR_BIAS         1.64
 #define AMPS_MAX            (VCC - SENSOR_BIAS-0.33)/SENSOR_SENSITIVITY //amps
 #define AMPS_MIN             -(SENSOR_BIAS-0.33)/SENSOR_SENSITIVITY      //amps
 #define AMP_OVERCURRENT     180 //amps
+#define RDIV_BIAS           9.26
 
 //Voltage reading
 #define VOLTS_MAX               5*11
@@ -93,7 +102,7 @@
 #define BATTERY_LOW             2.7*8  //V  warning low voltage
 #define BATTERY_LOW_CRIT        2.5*8  //V  low voltage threshold for shutoff to protect pack
 
-uint16_t adc14_out[3];
+uint16_t adc14_out[4];
 
 //Easy way to tx adc results byte by byte
 union txable_float {
@@ -109,7 +118,11 @@ union txable_float pack_i; //Result of ADC on PACK_I_MEAS
 
 uint8_t pb_command;
 
-int j, mins, manual_fans;
+int j, h, mins, current_cell;
+
+union txable_float cell_vtgs[8];
+
+bool manual_fans, cell_v_writelock;
 
 void rtc_init();
 
