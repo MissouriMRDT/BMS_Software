@@ -232,6 +232,6 @@ void main(void)
     //main loop
     while(true)
     {
-      //  PCM_gotoLPM0InterruptSafe();
+      PCM_gotoLPM0InterruptSafe();
     }
 }
