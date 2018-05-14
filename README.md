@@ -21,7 +21,7 @@ TODO:
 
 -Communication with indicator board
 
-
+-----------------------------------------------------------------------------------------------------------------------------------------------------
 
 To use this code, create a new project, add these files to the folder, and then set up the MSP432Ware paths for the linker and compiler respectively.
 
