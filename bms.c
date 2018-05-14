@@ -24,6 +24,7 @@ void timer_a1_init() //Pack ADCs
     NVIC_EnableIRQ(TA1_0_IRQn);
     TA1CCTL0 |= BIT4;
     TA1CCR0 = PACK_MEAS_CCR_DELAY;
+    TA1R = 0;
     TA1CTL |= 0x10; //Start TA1 in up mode.
 }
 

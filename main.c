@@ -57,7 +57,10 @@ void TA2_N_IRQHandler(void) { //Start temp sensor measurement
 
 void TA1_0_IRQHandler(void) { //Check if we need to start a cell measurement set, start ADC conv, and stop timer until ADC interrupt to avoid race condition
     conv_counts++;
-    if (conv_counts > 29) {
+    if (conv_counts == 28) {
+        P4OUT |= ADC_CELL_EN; //Turn on the mux
+    }
+    else if (conv_counts > 29) {
         P4OUT |= ADC_CELL_EN; //Turn on the mux
         cell_v_writelock = true; //start a new set of cell measurements
         conv_counts = 0;
@@ -67,6 +70,9 @@ void TA1_0_IRQHandler(void) { //Check if we need to start a cell measurement set
     TA1CCTL0 &= ~CCIFG;
     TA1CTL &= ~TIMER_A_CTL_MC_MASK; //Will be restarted by the ADC IRQ handler. Ensures the interrupt always fires at the same point relative to the end of a conversion.
     TA1R = 0;
+    if(cell_v_writelock) {
+        P2OUT |= BIT6;
+    }
 }
 
 
@@ -109,7 +115,8 @@ if ((pack_i.f >= AMP_OVERCURRENT)||(pack_vtg_array.f < 22.0))
     }
 __no_operation(); //Debugging use
 
-} //Comment the above out if you're testing without anything connected, the alarm will trip otherwise
+} //Comment the above out if you're testing without anything connected, the alarm will trip otherwise*/
+TA1R = 0;
 TA1CTL |= TIMER_A_CTL_MC__UP;
 }
 
@@ -211,9 +218,10 @@ void main(void)
     P3OUT |= PACK_GATE; // turn on the pack
     P3OUT &= ~LOGIC_SWITCH; //Make sure rocker switch is on for BMS logic power (I guess it's active low?)
 
+    adc14_init();
     timer_a1_init();
     timer_a2_init();
-    adc14_init();
+
     rtc_init();
     write_scratch_singledrop(&ow_temp, 0xFF, 0x00, RES_12);
     ow_temp_reading.f = 0.0;
