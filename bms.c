@@ -86,14 +86,5 @@ void clk_init() //Energia sets DCO to 48MHz and so should we.
 }
 
 
-/*
-void tx_data(float *cv_addr, int num_items)
-{
-    int i=0;
-    for(i=0; i<num_items; i++)
-       uart_tx(0, cv_addr[i]); //Send them packed; dealing with float conversion is too much trouble
-}
-*/
-//This isn't actually worthy of its own function. Just for loop and send the damn things...
 
 

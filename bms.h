@@ -17,7 +17,6 @@
 #include <stdint.h>
 #include "spi.h"
 #include "uart.h"
-#include "ltc6803.h"
 #include "ds18b20.h"
 
 //Delays. "CCR" indicates we're loading something in a compare reg for a timer.

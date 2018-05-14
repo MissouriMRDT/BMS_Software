@@ -65,21 +65,21 @@ void TA1_0_IRQHandler(void) { //Check if we need to start a cell measurement set
     ADC14->CTL0 |= ADC14_CTL0_ENC;
     ADC14->CTL0 |= ADC14_CTL0_SC;
     TA1CCTL0 &= ~CCIFG;
-    TA1CTL &= ~TIMER_A_CTL_MC_MASK; //Will be restarted by the ADC IRQ handler. Ensures the interrupt always fires at the same point relative to the end of a conversion.1
+    TA1CTL &= ~TIMER_A_CTL_MC_MASK; //Will be restarted by the ADC IRQ handler. Ensures the interrupt always fires at the same point relative to the end of a conversion.
     TA1R = 0;
 }
 
 
 void ADC14_IRQHandler(void) {
-int i = 0, j = 0, a0_bitval = 0, a1_bitval = 0, a2_bitval = 0;
+int i = 0, j = 0;
 //We don't need to clear the interrupt flag; the reg reads do that
 conv_counts_last = conv_counts;
 for(i = 0; i < 4; i++) {
     adc14_out[i] = ADC14->MEM[i]; //PACK_I_MEAS, V_CHECK_ARRAY, V_CHECK_OUT, cell_vtgs[whatever] if applicable (i.e. set of readings is in progress)
 }
-if(cell_v_writelock) { //We're taking a set of cell measurements
+if(cell_v_writelock) { //If cell_v_writelock is asserted, a set of cell measurements is being taken
     cell_vtgs[current_cell].f = adc14_out[3] * 11 * (VCC / 16384);
-    current_cell++; //Note: The way this is set up means we should never accidentally take measurements before the mux flips.
+    current_cell++;
     if(current_cell > 7) {
         current_cell = 0;
         P4OUT &= ~(ADC_CELL_EN | ADC_CELL_A0 | ADC_CELL_A1 | ADC_CELL_A2);
@@ -88,14 +88,9 @@ if(cell_v_writelock) { //We're taking a set of cell measurements
             cell_vtgs_last[j].f = cell_vtgs[j].f;
         }
         __no_operation();
-        //transmit voltages here
     }
     else {
-        a0_bitval = ADC_CELL_A0 & (current_cell & 0x01); //Pin 0; no shift needed to mask out with counter bits; all the bit positions match port to counter
-        a1_bitval = ADC_CELL_A1 & (current_cell & 0x02); //Pin 1;
-        a2_bitval = ADC_CELL_A2 & (current_cell & 0x04); //Pin 2;
-        P4OUT = (P4OUT & ~(ADC_CELL_A1 | ADC_CELL_A2 | ADC_CELL_A0)) |
-                a0_bitval | a1_bitval | a2_bitval; //Mask out the values, then set them back if they're 1. Not sure if avoiding branching is worth it, but branching would look even uglier.
+        P4OUT = (P4OUT & ~(ADC_CELL_A1 | ADC_CELL_A2 | ADC_CELL_A0)) | current_cell; //Mask out the values, then set them back if they're 1
     }
 }
 pack_vtg_array.f = adc14_out[1] * 11 * (VCC / 16384);
@@ -103,7 +98,7 @@ pack_vtg_out = adc14_out[2] * 11 * (VCC / 16384);
 pack_i.f = (((adc14_out[0] * (VCC / 16384)) - SENSOR_BIAS)/SENSOR_SENSITIVITY);
 if (pack_i.f < 0)
     pack_i.f *=-1;
-/*if ((pack_i.f >= AMP_OVERCURRENT)||(pack_vtg_array.f < 22.0))
+if ((pack_i.f >= AMP_OVERCURRENT)||(pack_vtg_array.f < 22.0))
 {
     P3OUT &= ~PACK_GATE;
     for(i=0; i<8; i++)
@@ -114,7 +109,7 @@ if (pack_i.f < 0)
     }
 __no_operation(); //Debugging use
 
-} //Comment this out if you're testing without anything connected, the alarm will trip otherwise*/
+} //Comment the above out if you're testing without anything connected, the alarm will trip otherwise
 TA1CTL |= TIMER_A_CTL_MC__UP;
 }
 
@@ -132,7 +127,7 @@ void EUSCIA2_IRQHandler() //RX command from power board
     case 1: //Shutdown pack
         P3OUT &= ~PACK_GATE;
         pb_command = 0;
-        mins = 0; //Only set this to 0 on things that indicate human interaction...
+        mins = 0;
         break;
 
     case 2: //Reboot pack
@@ -184,17 +179,15 @@ void main(void)
 {
     WDTCTL = WDTPW | WDTHOLD; // Stop watchdog timer
 
-    //MAKE SURE you do clk_init first thing. Everything else -- delay cycles, timers, ADC, communication is dependent on it
+    //clk_init must be done first for correct operation -- all other functions expect 48MHz.
     clk_init();
-    spi_init();
     uart_init();
-    //Outputs. Input is the default direction.
+
     P1DIR = FAN_CTRL_1 | FAN_CTRL_2;
     P3DIR |= PACK_GATE | LOGIC_SWITCH | FAN_CTRL_3 | FAN_CTRL_4;
     P4DIR |= ADC_CELL_EN | ADC_CELL_A0 | ADC_CELL_A1 | ADC_CELL_A2;
     P5DIR = BUZZER;
     P2DIR |= BIT6;
-    //P10DIR |= BMS_CSBI; The LTC is no more
 
     P1OUT &= ~(FAN_CTRL_1 | FAN_CTRL_2);
     P3OUT &= ~(FAN_CTRL_3 | FAN_CTRL_4);
@@ -214,8 +207,6 @@ void main(void)
     conv_counts = 0;
     conv_counts_last = 0;
 
-    //Initial pin states
-    P10OUT |= BMS_CSBI; //CSBI should be high when a conversion is not in progress
 
     P3OUT |= PACK_GATE; // turn on the pack
     P3OUT &= ~LOGIC_SWITCH; //Make sure rocker switch is on for BMS logic power (I guess it's active low?)
