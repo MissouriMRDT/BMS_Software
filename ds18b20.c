@@ -2,7 +2,7 @@
  * ds18b20.c
  *
  *  Created on: Mar 27, 2017
- *      Author: tef
+ *      Author:
  */
 
 #include "ds18b20.h"

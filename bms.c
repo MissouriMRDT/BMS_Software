@@ -16,19 +16,6 @@ void rtc_init()
     RTCCTL1 &= ~RTC_C_CTL13_HOLD;
 }
 
-void timer_a0_init() //LTC use
-{
-    TA0CTL = 0x0000; //Clear any prior settings and put the timer in stop mode.
-    TA0CTL |= 0x0100; //ACLK as source, ID = 0, TAIFG (count to 0) disabled since we're using capture/compare for both.
-    TA0CCTL0 = 0x2000; // No capture, capture/compare input GND since we don't need it, capture/compare interrupt enabled.
-    TA0CCTL1 = 0x2000;
-    NVIC_EnableIRQ(TA0_0_IRQn);
-    TA0CCTL0 |= BIT4;
-    TA0CCTL1 |= BIT4;
-    TA0CCR0 = STCVAD_CCR_DELAY;
-    TA0CTL |= 0x10; //Start TA0 in up mode.
-}
-
 void timer_a1_init() //Pack ADCs
 {
     TA1CTL = 0x0000; //Clear any prior settings and put the timer in stop mode.
@@ -84,9 +71,6 @@ ADC14 -> MCTL[3] = V_CELL_CHNL | ADC14_MCTLN_EOS; //The fourth conversion is the
 NVIC_EnableIRQ(ADC14_IRQn); //Turn on interrupt for last conversion, first in the NVIC, then the ADC
 ADC14 -> IER0 = ADC14_IER0_IE2;
 
-ADC14 -> CTL0 |= ADC14_CTL0_ENC; //Enable conversion.
-//This means config regs can't be written to without deasserting.
-ADC14 -> CTL0 |= ADC14_CTL0_SC; // Start the first conversion
 }
 
 void clk_init() //Energia sets DCO to 48MHz and so should we.
