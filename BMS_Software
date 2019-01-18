@@ -1,0 +1,31 @@
+// Battery Managment System (BMS) Software /////////////////////////////////////////
+//
+// Created for 2019 Rover by: Jacob Lipina, jrlwd5
+//
+//
+// Libraries ///////////////////////////////////////////////////////////////////////
+// 
+// Standard C
+#include <stdbool.h>
+#include <stddef.h>
+#include <stdint.h>
+
+// Energia
+#include <SPI.h>
+#include <Ethernet.h>
+#include <EthernetUdp.h>
+
+// RoveWare
+#include <RoveBoard.h>
+#include <RoveEthernet.h>
+#include <RoveComm.h>
+
+// RoveComm DataIDs /////////////////////////////////////////////////////////////////
+//
+const uint16_t NO_ROVECOMM_MESSAGE          = 0; //RED can toggle the bus by bool
+const int ROVECOMM_DELAY 					= 10;
+
+//Rovecomm :: RED packet :: data_id and data_value with number of data bytes size
+uint16_t data_id       = 0;
+size_t   data_size     = 0; 
+uint8_t  data_value    = 0;
