@@ -5,17 +5,25 @@
 //
 // Functions ///////////////////////////////////////////////////////////////////////
 
-void value_meas(uint8_t pin, float VALUE_MIN, float VALUE_MAX, int DataID, other Rovecomm stuff)
+void getMainCurrent(RC_BMSBOARD_MAINIMEASmA_DATATYPE &main_current)
 {
-	float adc_reading = 0;
-	float value_reading = 0;
-	int value_reading_milli = 0;
+	float adc_reading;
 
-	adc_reading = analogRead(pin);
-	value_reading = 3 * map(adc_reading, ADC_MIN, ADC_MAX, VALUE_MIN, VALUE_MAX); //Value mult by 3 to convert the base unit, say volts, to milli, say millivolts
-	value_reading_milli = int(value_reading);
-	//Insert Rovecomm command to send voltage to RED
-	delay(ROVECOMM_DELAY);
+  	adc_reading = analogRead(PACK_I_MEAS);
+	main_current= 1000 * map(adc_reading, ADC_MIN, ADC_MAX, CURRENT_MIN, CURRENT_MAX); //??are constants from cpp understood in this header file? Can I mult function result by 1000? Is there a better way to get mA by defining variables differently?
+
 	return;
 }
 
+void getCellVoltage(RC_BMSBOARD_VMEASmV_DATATYPE cell_voltage[RC_BMSBOARD_VMEASmV_DATACOUNT])
+{
+  for(int i = 0; i<RC_BMSBOARD_VMEASmV_DATACOUNT; i++)
+  {
+    cell_voltage[i]=i;
+  }
+}
+
+void getBattTemp(RC_BMSBOARD_TEMPMEASmDEGC_DATATYPE &batt_temp)
+{
+
+}
