@@ -5,7 +5,7 @@
 //
 // Libraries ///////////////////////////////////////////////////////////////////////
 //
-#include <BMS_Software.h>
+#include "BMS_Software.h"
 // 
 // Standard C
 #include <stdbool.h>
@@ -33,13 +33,34 @@ void getOutVoltage(uint16_t &pack_out_voltage);
 void setInputPins();
 void setOutputPins();
 void setOutputStates();
+void setEstop(RC_BMSBOARD_SWESTOPs_DATATYPE data);
+void setFans(RC_BMSBOARD_FANEN_DATATYPE data);
+void notifyEstop();
+void notifyReboot();
+void notifyOverCurrent();
+void notifyUnderVoltage();
+void notifyLowVoltage();
 
 // RoveComm DataIDs /////////////////////////////////////////////////////////////////
 //
 // Commands
-const uint32_t SW_ESTOP							= 2000; // [delay] (ms, 0-off until reboot)
-const uint32_t FAN_EN							= 2001; // [Fan1, Fan2, Fan3, Fan4] (0-Fan Disable, 1-Fan Enable)
-const uint32_t BUZZER_EN						= 2002; //
+	//SW_EStop
+#define RC_BMSBOARD_SWESTOPs_DATAID         	= 00+_TYPE_COMMAND+_BMSBOARD_BOARDNUMBER
+#define RC_BMSBOARD_SWESTOPs_DATATYPE       	= uint8_t   //ms delay before re-activation, 0 to stay off until reboot
+#define RC_BMSBOARD_SWESTOPs_DATACOUNT      	= 1   
+#define RC_BMSBOARD_SWESTOPs_HEADER         	= RC_BMSBOARD_SWESTOPs_DATAID,RC_BMSBOARD_SWESTOPs_DATACOUNT    
+	
+	//Batt Fan Ctr
+#define RC_BMSBOARD_FANEN_DATAID             	= 01+_TYPE_COMMAND+_BMSBOARD_BOARDNUMBER
+#define RC_BMSBOARD_FANEN_DATATYPE           	= uint8_t
+#define RC_BMSBOARD_FANEN_DATACOUNT          	= 1   //[Fan1, Fan2, Fan3, Fan4, 0000]
+#define RC_BMSBOARD_FANEN_HEADER             	= RC_BMSBOARD_FANEN_DATAID,RC_BMSBOARD_FANEN_DATACOUNT  
+#define RC_BMSBOARD_FANEN_ENABLED            	= 1
+#define RC_BMSBOARD_FANEN_DISABLED           	= 0
+#define RC_BMSBOARD_FANEN_FAN1BIT            	= 0
+#define RC_BMSBOARD_FANEN_FAN2BIT            	= 1
+#define RC_BMSBOARD_FANEN_FAN3BIT            	= 2
+#define RC_BMSBOARD_FANEN_FAN4BIT            	= 3
 
 // Telemetry
 	// Pack Current
@@ -135,14 +156,17 @@ const float TEMP_MAX = 160;
 
 void setup()
 {
-	Serial3.begin(9600);
+	Serial.begin(9600);
+	Serial3.begin(115600);
 	RoveComm.begin(RC_BMSBOARD_FOURTHOCTET);
 	delay(ROVECOMM_DELAY);
 	
 	setInputPins();
 	setOutputPins();
 	setOutputStates();
-}
+
+	Serial.println("Setup Complete!");
+} //end setup
 
 void loop()
 {
@@ -150,6 +174,7 @@ void loop()
 	RC_BMSBOARD_VMEASmV_DATATYPE cell_voltages[RC_BMSBOARD_VMEASmV_DATACOUNT]; //??"cell_voltages." Is the 's' there for a reason?
 	RC_BMSBOARD_TEMPMEASmDEGC_DATATYPE batt_temp;
 	uint16_t pack_out_voltage;
+	rovecomm_packet packet;
 
 	getMainCurrent(main_current);
 	getCellVoltages(cell_voltages);
@@ -160,7 +185,29 @@ void loop()
 	RoveComm.write(RC_BMSBOARD_VMEASmV_HEADER, cell_voltages); //??Van didnt use HEADER in github. Tell him
 	RoveComm.write(RC_BMSBOARD_TEMPMEASmDEGC_HEADER, batt_temp);
 
-
-
+	packet = RoveComm.read();
+  	if(packet.data_id!=0)
+  	{
+      Serial.println(packet.data_id);
+      Serial.println(packet.data_count);
+      for(int i = 0; i<packet.data_count; i++)
+      {
+        Serial.print(packet.data[i]);
+      }
+    
+      switch(packet.data_id)
+      {
+        case RC_BMSBOARD_SWESTOPs_DATAID:
+        {
+          setEstop(packet.data[0]);
+          break;
+        }
+        case RC_BMSBOARD_FANEN_DATAID:
+        {
+          setFans(packet.data[0]);
+          break;
+        }
+      }
+    }
 
 }

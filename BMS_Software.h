@@ -17,7 +17,7 @@ void getMainCurrent(RC_BMSBOARD_MAINIMEASmA_DATATYPE &main_current)
 	return;
 }
 
-void getCellVoltage(RC_BMSBOARD_VMEASmV_DATATYPE cell_voltage[RC_BMSBOARD_VMEASmV_DATACOUNT])
+void getCellVoltage(RC_BMSBOARD_VMEASmV_DATATYPE cell_voltage[RC_BMSBOARD_VMEASmV_DATACOUNT]) //??How is cell_voltage[] passed back to cpp?
 {
  	float adc_reading;
  	string CELL_MEAS_PINS[9] = {"PACK_V_MEAS", "C1_V_MEAS", "C2_V_MEAS", "C3_V_MEAS", 
@@ -111,5 +111,120 @@ void setOutputStates()
 	digitalWrite(SW_IND, 			LOW);
 	digitalWrite(SW_ERR, 			LOW);
 	
+	return;
+}
+
+void setEstop(RC_BMSBOARD_SWESTOPs_DATATYPE data) //??Should data be an array here?
+{
+	if(data == 0)
+	{
+		digitalWrite(PACK_OUT_CTR, LOW);
+		digitalWrite(PACK_OUT_IND, LOW);
+		
+		notifyEstop();
+
+		digitalWrite(LOGIC_SWITCH_CTR, HIGH); //BMS suicide
+	}
+	else
+	{
+		digitalWrite(PACK_OUT_CTR, LOW);
+		digitalWrite(PACK_OUT_IND, LOW);
+
+		notifyReboot();
+
+		delay(data);
+
+		digitalWrite(PACK_OUT_CTR, HIGH);
+		digitalWrite(PACK_OUT_IND, HIGH);
+	} //end if
+	return;
+}
+
+void setFans(RC_BMSBOARD_FANEN_DATATYPE data) //make sure command turning fans on does not get overridden by the temp being too low.
+{
+
+	return;
+}
+
+void notifyEstop()
+{
+	digitalWrite(BUZZER_CTR, HIGH);
+	digitalWrite(SW_ERR, HIGH);
+	Delay(2000);
+	digitalWrite(BUZZER_CTR, LOW);
+	digitalWrite(SW_ERR, LOW);
+	Delay(250);
+
+	digitalWrite(BUZZER_CTR, HIGH);
+	digitalWrite(SW_ERR, HIGH);
+	Delay(1000);
+	digitalWrite(BUZZER_CTR, LOW);
+	digitalWrite(SW_ERR, LOW);
+	Delay(250);
+
+	digitalWrite(BUZZER_CTR, HIGH);
+	digitalWrite(SW_ERR, HIGH);
+	Delay(500);
+	digitalWrite(BUZZER_CTR, LOW);
+	digitalWrite(SW_ERR, LOW);
+	Delay(250);
+
+	digitalWrite(BUZZER_CTR, HIGH);
+	digitalWrite(SW_ERR, HIGH);
+	Delay(250);
+	digitalWrite(BUZZER_CTR, LOW);
+	digitalWrite(SW_ERR, LOW);
+	Delay(250);
+
+	digitalWrite(BUZZER_CTR, HIGH);
+	digitalWrite(SW_ERR, HIGH);
+	Delay(100);
+	digitalWrite(BUZZER_CTR, LOW);
+	digitalWrite(SW_ERR, LOW);
+
+	return;
+}
+
+void notifyReboot()
+{
+	digitalWrite(BUZZER_CTR, HIGH);
+	digitalWrite(SW_ERR, HIGH);
+	Delay(1000);
+	digitalWrite(BUZZER_CTR, LOW);
+	digitalWrite(SW_ERR, LOW);
+	Delay(250);
+
+	digitalWrite(BUZZER_CTR, HIGH);
+	digitalWrite(SW_ERR, HIGH);
+	Delay(250);
+	digitalWrite(BUZZER_CTR, LOW);
+	digitalWrite(SW_ERR, LOW);
+	Delay(250);
+
+	digitalWrite(BUZZER_CTR, HIGH);
+	digitalWrite(SW_ERR, HIGH);
+	Delay(250);
+	digitalWrite(BUZZER_CTR, LOW);
+	digitalWrite(SW_ERR, LOW);
+	Delay(250);
+
+	return;
+}
+
+void notifyOverCurrent()
+{
+
+	return;
+}
+
+void notifyUnderVoltage()
+{
+
+	return;
+}
+
+void notifyLowVoltage()
+{
+
 	return;
 }
