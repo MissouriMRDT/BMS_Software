@@ -142,7 +142,22 @@ void setEstop(RC_BMSBOARD_SWESTOPs_DATATYPE data) //??Should data be an array he
 
 void setFans(RC_BMSBOARD_FANEN_DATATYPE data) //make sure command turning fans on does not get overridden by the temp being too low.
 {
-
+	if(data == 1)
+	{
+		digitalWrite(FAN_1_CTR, HIGH);
+		digitalWrite(FAN_2_CTR, HIGH);
+		digitalWrite(FAN_3_CTR, HIGH);
+		digitalWrite(FAN_4_CTR, HIGH);
+		digitalWrite(FAN_PWR_IND, HIGH);
+	}
+	if(data == 0)
+	{
+		digitalWrite(FAN_1_CTR, LOW);
+		digitalWrite(FAN_2_CTR, LOW);
+		digitalWrite(FAN_3_CTR, LOW);
+		digitalWrite(FAN_4_CTR, LOW);
+		digitalWrite(FAN_PWR_IND, LOW);
+	}
 	return;
 }
 
