@@ -146,7 +146,7 @@ void setFans(RC_BMSBOARD_FANEN_DATATYPE data) //make sure command turning fans o
 	return;
 }
 
-void notifyEstop()
+void notifyEstop() //Buzzer sound: beeeeeeeeeeeeeeeeeeeep beeeeeeeeeep beeeeep beeep bep
 {
 	digitalWrite(BUZZER_CTR, HIGH);
 	digitalWrite(SW_ERR, HIGH);
@@ -185,7 +185,7 @@ void notifyEstop()
 	return;
 }
 
-void notifyReboot()
+void notifyReboot() //Buzzer sound: beeeeeeeeeep beeep beeep
 {
 	digitalWrite(BUZZER_CTR, HIGH);
 	digitalWrite(SW_ERR, HIGH);
@@ -206,25 +206,81 @@ void notifyReboot()
 	Delay(250);
 	digitalWrite(BUZZER_CTR, LOW);
 	digitalWrite(SW_ERR, LOW);
+
+	return;
+}
+
+void notifyOverCurrent() //Buzzer Sound: beeeeeeeeeeeeeeeeeeeeeeeeeeeeeep
+{
+	digitalWrite(BUZZER_CTR, HIGH);
+	digitalWrite(SW_ERR, HIGH);
+	Delay(3000);
+	digitalWrite(BUZZER_CTR, LOW);
+	digitalWrite(SW_ERR, LOW);
+
+	return;
+}
+
+void notifyUnderVoltage() //Buzzer Sound: beeep beeep beeep beeep beeeeeeeeeeeeeeeeeeeep
+{
+	digitalWrite(BUZZER_CTR, HIGH);
+	digitalWrite(SW_ERR, HIGH);
+	Delay(250);
+	digitalWrite(BUZZER_CTR, LOW);
+	digitalWrite(SW_ERR, LOW);
 	Delay(250);
 
+	digitalWrite(BUZZER_CTR, HIGH);
+	digitalWrite(SW_ERR, HIGH);
+	Delay(250);
+	digitalWrite(BUZZER_CTR, LOW);
+	digitalWrite(SW_ERR, LOW);
+	Delay(250);
+
+	digitalWrite(BUZZER_CTR, HIGH);
+	digitalWrite(SW_ERR, HIGH);
+	Delay(250);
+	digitalWrite(BUZZER_CTR, LOW);
+	digitalWrite(SW_ERR, LOW);
+	delay(250)
+
+	digitalWrite(BUZZER_CTR, HIGH);
+	digitalWrite(SW_ERR, HIGH);
+	Delay(250);
+	digitalWrite(BUZZER_CTR, LOW);
+	digitalWrite(SW_ERR, LOW);
+	Delay(250);
+
+	digitalWrite(BUZZER_CTR, HIGH);
+	digitalWrite(SW_ERR, HIGH);
+	Delay(2000);
+	digitalWrite(BUZZER_CTR, LOW);
+	digitalWrite(SW_ERR, LOW);
+
 	return;
 }
 
-void notifyOverCurrent()
+void notifyLowVoltage() //Buzzer Sound: beeep beeep beeep
 {
+	digitalWrite(BUZZER_CTR, HIGH);
+	digitalWrite(SW_ERR, HIGH);
+	Delay(250);
+	digitalWrite(BUZZER_CTR, LOW);
+	digitalWrite(SW_ERR, LOW);
+	Delay(250);
 
-	return;
-}
+	digitalWrite(BUZZER_CTR, HIGH);
+	digitalWrite(SW_ERR, HIGH);
+	Delay(250);
+	digitalWrite(BUZZER_CTR, LOW);
+	digitalWrite(SW_ERR, LOW);
+	Delay(250);
 
-void notifyUnderVoltage()
-{
-
-	return;
-}
-
-void notifyLowVoltage()
-{
+	digitalWrite(BUZZER_CTR, HIGH);
+	digitalWrite(SW_ERR, HIGH);
+	Delay(250);
+	digitalWrite(BUZZER_CTR, LOW);
+	digitalWrite(SW_ERR, LOW);
 
 	return;
 }
