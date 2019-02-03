@@ -6,7 +6,11 @@
 //
 // Libraries ///////////////////////////////////////////////////////////////////////
 //
-#include "BMS_Software_Functions.h"
+#ifndef BMS_Software_Functions
+#define BMS_Software_Functions
+
+#include <Energia.h>
+#include "RoveComm.h"
 //
 //
 // Pinmap //////////////////////////////////////////////////////////////////////////
@@ -73,3 +77,9 @@ const int CELL_MEAS_PINS[] = {PACK_V_MEAS, C1_V_MEAS, C2_V_MEAS, C3_V_MEAS,
 
 // Minimum and Maximum Values: Constants
 #define ROVECOMM_DELAY			10 //millisec
+#define DEBOUNCE_DELAY			10 //millisec
+
+
+
+
+#endif

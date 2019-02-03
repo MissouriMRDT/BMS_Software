@@ -8,7 +8,6 @@
 //
 #include "BMS_Software_Functions.h" 
 #include "BMS_Software_Main.h"
-#include <RoveComm.h>
 
 /*
 // Standard C
@@ -21,13 +20,14 @@ RoveCommEthernetUdp RoveComm; //Extantiates a class
 
 // Function Declarations ////////////////////////////////////////////////////////////
 //
-void getMainCurrent(RC_BMSBOARD_MAINIMEASmA_DATATYPE &main_current); //??func has & sign to pass value for main current back to program. Is it correct that it gets placed in "RC_BMSBOARD_BLAH main_current" var in loop?
-void getCellVoltage(RC_BMSBOARD_VMEASmV_DATATYPE cell_voltage[RC_BMSBOARD_VMEASmV_DATACOUNT]); //??How do the values in the array get back to the loop?
-void getBattTemp(RC_BMSBOARD_TEMPMEASmDEGC_DATATYPE &batt_temp);
-void getOutVoltage(uint16_t &pack_out_voltage);
 void setInputPins();
 void setOutputPins();
 void setOutputStates();
+void getMainCurrent(RC_BMSBOARD_MAINIMEASmA_DATATYPE &main_current);
+void getCellVoltage(RC_BMSBOARD_VMEASmV_DATATYPE cell_voltage[RC_BMSBOARD_VMEASmV_DATACOUNT]); //??How do the values in the array get back to the loop?
+void getOutVoltage(int &pack_out_voltage);
+void getBattTemp(RC_BMSBOARD_TEMPMEASmDEGC_DATATYPE &batt_temp);
+bool singleDebounce(int bouncing_pin, int max_amps_threshold);
 void setEstop(RC_BMSBOARD_SWESTOPs_DATATYPE data);
 void setFans(RC_BMSBOARD_FANEN_DATATYPE data);
 void notifyEstop();
@@ -60,7 +60,7 @@ void loop()
 	rovecomm_packet packet;
 
 	getMainCurrent(main_current);
-	getCellVoltages(cell_voltages);
+	getCellVoltage(cell_voltages);
 	getOutVoltage(pack_out_voltage);
 	getBattTemp(batt_temp);
 	
@@ -92,6 +92,7 @@ void loop()
         }
       } //end switch
     } //end if
+
 
 
 } //end loop

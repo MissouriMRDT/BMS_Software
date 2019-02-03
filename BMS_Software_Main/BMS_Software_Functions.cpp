@@ -81,19 +81,19 @@ void getCellVoltage(RC_BMSBOARD_VMEASmV_DATATYPE cell_voltage[RC_BMSBOARD_VMEASm
  	{
  	  if (i == 0)
  	  {
- 	  	adc_reading = analogRead(CELL_MEAS_PINS[i])
+ 	  	adc_reading = analogRead(CELL_MEAS_PINS[i]);
  	  	cell_voltage[i] = map(adc_reading, ADC_MIN, ADC_MAX, VOLTS_MIN, PACK_VOLTS_MAX);
  	  }
  	  else
  	  {
- 	  	adc_reading = analogRead(CELL_MEAS_PINS[i])
+ 	  	adc_reading = analogRead(CELL_MEAS_PINS[i]);
  	  	cell_voltage[i] = map(adc_reading, ADC_MIN, ADC_MAX, VOLTS_MIN, CELL_VOLTS_MAX);
  	  } //end if
  	  return;
  	} //end for
 }
 
-void getOutVoltage(uint16_t &pack_out_voltage);
+void getOutVoltage(int &pack_out_voltage)
 {
 	int adc_reading;
 
@@ -112,6 +112,22 @@ void getBattTemp(RC_BMSBOARD_TEMPMEASmDEGC_DATATYPE &batt_temp)
 
 	return;
 }
+
+bool singleDebounce(int bouncing_pin, int max_amps_threshold)
+{
+  int adc_threshhold = map(max_amps_threshold, CURRENT_MIN, CURRENT_MAX, ADC_MIN, ADC_MAX);
+  
+  if( analogRead(bouncing_pin) > adc_threshhold)
+  {  
+    delay(DEBOUNCE_DELAY);
+    
+    if( analogRead(bouncing_pin) > adc_threshhold)
+    {
+       return true;
+    }//end if
+  }// end if 
+  return false;
+}//end fntcn
 
 void setEstop(RC_BMSBOARD_SWESTOPs_DATATYPE data) //??Should data be an array here?
 {
@@ -164,35 +180,35 @@ void notifyEstop() //Buzzer sound: beeeeeeeeeeeeeeeeeeeep beeeeeeeeeep beeeeep b
 {
 	digitalWrite(BUZZER_CTR, HIGH);
 	digitalWrite(SW_ERR, HIGH);
-	Delay(2000);
+	delay(2000);
 	digitalWrite(BUZZER_CTR, LOW);
 	digitalWrite(SW_ERR, LOW);
-	Delay(250);
+	delay(250);
 
 	digitalWrite(BUZZER_CTR, HIGH);
 	digitalWrite(SW_ERR, HIGH);
-	Delay(1000);
+	delay(1000);
 	digitalWrite(BUZZER_CTR, LOW);
 	digitalWrite(SW_ERR, LOW);
-	Delay(250);
+	delay(250);
 
 	digitalWrite(BUZZER_CTR, HIGH);
 	digitalWrite(SW_ERR, HIGH);
-	Delay(500);
+	delay(500);
 	digitalWrite(BUZZER_CTR, LOW);
 	digitalWrite(SW_ERR, LOW);
-	Delay(250);
+	delay(250);
 
 	digitalWrite(BUZZER_CTR, HIGH);
 	digitalWrite(SW_ERR, HIGH);
-	Delay(250);
+	delay(250);
 	digitalWrite(BUZZER_CTR, LOW);
 	digitalWrite(SW_ERR, LOW);
-	Delay(250);
+	delay(250);
 
 	digitalWrite(BUZZER_CTR, HIGH);
 	digitalWrite(SW_ERR, HIGH);
-	Delay(100);
+	delay(100);
 	digitalWrite(BUZZER_CTR, LOW);
 	digitalWrite(SW_ERR, LOW);
 
@@ -203,21 +219,21 @@ void notifyReboot() //Buzzer sound: beeeeeeeeeep beeep beeep
 {
 	digitalWrite(BUZZER_CTR, HIGH);
 	digitalWrite(SW_ERR, HIGH);
-	Delay(1000);
+	delay(1000);
 	digitalWrite(BUZZER_CTR, LOW);
 	digitalWrite(SW_ERR, LOW);
-	Delay(250);
+	delay(250);
 
 	digitalWrite(BUZZER_CTR, HIGH);
 	digitalWrite(SW_ERR, HIGH);
-	Delay(250);
+	delay(250);
 	digitalWrite(BUZZER_CTR, LOW);
 	digitalWrite(SW_ERR, LOW);
-	Delay(250);
+	delay(250);
 
 	digitalWrite(BUZZER_CTR, HIGH);
 	digitalWrite(SW_ERR, HIGH);
-	Delay(250);
+	delay(250);
 	digitalWrite(BUZZER_CTR, LOW);
 	digitalWrite(SW_ERR, LOW);
 
@@ -228,7 +244,7 @@ void notifyOverCurrent() //Buzzer Sound: beeeeeeeeeeeeeeeeeeeeeeeeeeeeeep
 {
 	digitalWrite(BUZZER_CTR, HIGH);
 	digitalWrite(SW_ERR, HIGH);
-	Delay(3000);
+	delay(3000);
 	digitalWrite(BUZZER_CTR, LOW);
 	digitalWrite(SW_ERR, LOW);
 
@@ -239,35 +255,35 @@ void notifyUnderVoltage() //Buzzer Sound: beeep beeep beeep beeep beeeeeeeeeeeee
 {
 	digitalWrite(BUZZER_CTR, HIGH);
 	digitalWrite(SW_ERR, HIGH);
-	Delay(250);
+	delay(250);
 	digitalWrite(BUZZER_CTR, LOW);
 	digitalWrite(SW_ERR, LOW);
-	Delay(250);
+	delay(250);
 
 	digitalWrite(BUZZER_CTR, HIGH);
 	digitalWrite(SW_ERR, HIGH);
-	Delay(250);
+	delay(250);
 	digitalWrite(BUZZER_CTR, LOW);
 	digitalWrite(SW_ERR, LOW);
-	Delay(250);
+	delay(250);
 
 	digitalWrite(BUZZER_CTR, HIGH);
 	digitalWrite(SW_ERR, HIGH);
-	Delay(250);
+	delay(250);
 	digitalWrite(BUZZER_CTR, LOW);
 	digitalWrite(SW_ERR, LOW);
-	delay(250)
+	delay(250);
 
 	digitalWrite(BUZZER_CTR, HIGH);
 	digitalWrite(SW_ERR, HIGH);
-	Delay(250);
+	delay(250);
 	digitalWrite(BUZZER_CTR, LOW);
 	digitalWrite(SW_ERR, LOW);
-	Delay(250);
+	delay(250);
 
 	digitalWrite(BUZZER_CTR, HIGH);
 	digitalWrite(SW_ERR, HIGH);
-	Delay(2000);
+	delay(2000);
 	digitalWrite(BUZZER_CTR, LOW);
 	digitalWrite(SW_ERR, LOW);
 
@@ -278,21 +294,21 @@ void notifyLowVoltage() //Buzzer Sound: beeep beeep beeep
 {
 	digitalWrite(BUZZER_CTR, HIGH);
 	digitalWrite(SW_ERR, HIGH);
-	Delay(250);
+	delay(250);
 	digitalWrite(BUZZER_CTR, LOW);
 	digitalWrite(SW_ERR, LOW);
-	Delay(250);
+	delay(250);
 
 	digitalWrite(BUZZER_CTR, HIGH);
 	digitalWrite(SW_ERR, HIGH);
-	Delay(250);
+	delay(250);
 	digitalWrite(BUZZER_CTR, LOW);
 	digitalWrite(SW_ERR, LOW);
-	Delay(250);
+	delay(250);
 
 	digitalWrite(BUZZER_CTR, HIGH);
 	digitalWrite(SW_ERR, HIGH);
-	Delay(250);
+	delay(250);
 	digitalWrite(BUZZER_CTR, LOW);
 	digitalWrite(SW_ERR, LOW);
 
