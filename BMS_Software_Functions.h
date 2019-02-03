@@ -16,7 +16,7 @@ void getMainCurrent(RC_BMSBOARD_MAINIMEASmA_DATATYPE &main_current)
 void getCellVoltage(RC_BMSBOARD_VMEASmV_DATATYPE cell_voltage[RC_BMSBOARD_VMEASmV_DATACOUNT]) //??How is cell_voltage[] passed back to cpp?
 
 
-void getOutVoltage(uint16_t &pack_out_voltage);
+void getOutVoltage(uint16_t &pack_out_voltage)
 
 
 void getBattTemp(RC_BMSBOARD_TEMPMEASmDEGC_DATATYPE &batt_temp)

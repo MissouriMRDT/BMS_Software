@@ -11,61 +11,6 @@
 //
 // Functions ///////////////////////////////////////////////////////////////////////
 
-void getMainCurrent(RC_BMSBOARD_MAINIMEASmA_DATATYPE &main_current)
-{
-	float adc_reading;
-
-  	adc_reading = analogRead(PACK_I_MEAS);
-	main_current= 1000 * map(adc_reading, ADC_MIN, ADC_MAX, CURRENT_MIN, CURRENT_MAX); //??are constants from cpp understood in this header file? Can I mult function result by 1000? Is there a better way to get mA by defining variables differently?
-
-	return;
-}
-
-void getCellVoltage(RC_BMSBOARD_VMEASmV_DATATYPE cell_voltage[RC_BMSBOARD_VMEASmV_DATACOUNT]) //??How is cell_voltage[] passed back to cpp?
-{
- 	float adc_reading;
- 	const string CELL_MEAS_PINS[9] = {"PACK_V_MEAS", "C1_V_MEAS", "C2_V_MEAS", "C3_V_MEAS", 
- 								"C4_V_MEAS", "C5_V_MEAS", "C6_V_MEAS", "C7_V_MEAS", "C8_V_MEAS"};
-
- 	adc_reading = analogRead(CELL_MEAS_PINS[0]);	
- 	cell_voltage[0] = 1000 * map(adc_reading, ADC_MIN, ADC_MAX, VOLTS_MIN, PACK_VOLTS_MAX);
- 	
- 	for(int i = 1; i<RC_BMSBOARD_VMEASmV_DATACOUNT; i++)
- 	{
- 	  if (i == 0)
- 	  {
- 	  	adc_reading = analogRead(CELL_MEAS_PINS[i])
- 	  	cell_voltage[i] = 1000 * map(adc_reading, ADC_MIN, ADC_MAX, VOLTS_MIN, PACK_VOLTS_MAX);
- 	  }
- 	  else
- 	  {
- 	  	adc_reading = analogRead(CELL_MEAS_PINS[i])
- 	  	cell_voltage[i] = 1000 * map(adc_reading, ADC_MIN, ADC_MAX, VOLTS_MIN, CELL_VOLTS_MAX);
- 	  } //end if
- 	  return;
- 	} //end for
-}
-
-void getOutVoltage(uint16_t &pack_out_voltage);
-{
-	float adc_reading;
-
-  	adc_reading = analogRead(PACK_V_MEAS);
-  	pack_out_voltage = 1000 * map(adc_reading, ADC_MIN, ADC_MAX, VOLTS_MIN, PACK_VOLTS_MAX);
-
-  	return;
-}
-
-void getBattTemp(RC_BMSBOARD_TEMPMEASmDEGC_DATATYPE &batt_temp)
-{
-	float adc_reading;
-
-	adc_reading = analogRead(TEMP_degC_MEAS);
-	batt_temp = 1000 * map(adc_reading, ADC_MIN, ADC_MAX, TEMP_MIN, TEMP_MAX);
-
-	return;
-}
-
 void setInputPins()
 {
 	pinMode(PACK_I_MEAS, 	INPUT);
@@ -118,6 +63,56 @@ void setOutputStates()
 	return;
 }
 
+void getMainCurrent(RC_BMSBOARD_MAINIMEASmA_DATATYPE &main_current)
+{
+	int adc_reading;
+
+  	adc_reading = analogRead(PACK_I_MEAS);
+	main_current = map(adc_reading, ADC_MIN, ADC_MAX, CURRENT_MIN, CURRENT_MAX);
+
+	return;
+}
+
+void getCellVoltage(RC_BMSBOARD_VMEASmV_DATATYPE cell_voltage[RC_BMSBOARD_VMEASmV_DATACOUNT])
+{
+ 	int adc_reading;
+ 	
+ 	for(int i = 0; i<RC_BMSBOARD_VMEASmV_DATACOUNT; i++)
+ 	{
+ 	  if (i == 0)
+ 	  {
+ 	  	adc_reading = analogRead(CELL_MEAS_PINS[i])
+ 	  	cell_voltage[i] = map(adc_reading, ADC_MIN, ADC_MAX, VOLTS_MIN, PACK_VOLTS_MAX);
+ 	  }
+ 	  else
+ 	  {
+ 	  	adc_reading = analogRead(CELL_MEAS_PINS[i])
+ 	  	cell_voltage[i] = map(adc_reading, ADC_MIN, ADC_MAX, VOLTS_MIN, CELL_VOLTS_MAX);
+ 	  } //end if
+ 	  return;
+ 	} //end for
+}
+
+void getOutVoltage(uint16_t &pack_out_voltage);
+{
+	int adc_reading;
+
+  	adc_reading = analogRead(PACK_V_MEAS);
+  	pack_out_voltage = map(adc_reading, ADC_MIN, ADC_MAX, VOLTS_MIN, PACK_VOLTS_MAX);
+
+  	return;
+}
+
+void getBattTemp(RC_BMSBOARD_TEMPMEASmDEGC_DATATYPE &batt_temp)
+{
+	int adc_reading;
+
+	adc_reading = analogRead(TEMP_degC_MEAS);
+	batt_temp = map(adc_reading, ADC_MIN, ADC_MAX, TEMP_MIN, TEMP_MAX);
+
+	return;
+}
+
 void setEstop(RC_BMSBOARD_SWESTOPs_DATATYPE data) //??Should data be an array here?
 {
 	if(data == 0)
@@ -146,22 +141,22 @@ void setEstop(RC_BMSBOARD_SWESTOPs_DATATYPE data) //??Should data be an array he
 
 void setFans(RC_BMSBOARD_FANEN_DATATYPE data) //make sure command turning fans on does not get overridden by the temp being too low.
 {
-	if(data == 1)
+	if(data == RC_BMSBOARD_FANEN_ENABLED) //data == 1
 	{
 		digitalWrite(FAN_1_CTR, HIGH);
 		digitalWrite(FAN_2_CTR, HIGH);
 		digitalWrite(FAN_3_CTR, HIGH);
 		digitalWrite(FAN_4_CTR, HIGH);
 		digitalWrite(FAN_PWR_IND, HIGH);
-	}
-	if(data == 0)
+	} //end if
+	if(data == RC_BMSBOARD_FANEN_DISABLED) //data == 0
 	{
 		digitalWrite(FAN_1_CTR, LOW);
 		digitalWrite(FAN_2_CTR, LOW);
 		digitalWrite(FAN_3_CTR, LOW);
 		digitalWrite(FAN_4_CTR, LOW);
 		digitalWrite(FAN_PWR_IND, LOW);
-	}
+	} //end if
 	return;
 }
 
