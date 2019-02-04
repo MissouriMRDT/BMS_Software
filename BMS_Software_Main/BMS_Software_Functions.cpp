@@ -208,13 +208,16 @@ void reactOverCurrent(RC_BMSBOARD_EVENT_DATATYPE event_report[RC_BMSBOARD_EVENT_
 	}//end if
 	if((num_overcurrent == 1) && (millis() >= (time_of_overcurrent + RESTART_DELAY)))
 	{
-		digitalWrite(PACK_OUT_CTR, HIGH);
-		digitalWrite(PACK_OUT_IND, HIGH);
-	}//end if
-	if((num_overcurrent == 1) && (millis() >= (time_of_overcurrent + RECHECK_DELAY)))
-	{
-		num_overcurrent = 0;
-		time_of_overcurrent = 0;
+		if(millis() >= (time_of_overcurrent + RESTART_DELAY))
+		{
+			digitalWrite(PACK_OUT_CTR, HIGH);
+			digitalWrite(PACK_OUT_IND, HIGH);
+		}//end if
+		if(millis() >= (time_of_overcurrent + RECHECK_DELAY))
+		{
+			num_overcurrent = 0;
+			time_of_overcurrent = 0;
+		}//end if
 	}//end if
 	if((num_overcurrent == 2) && (millis() < (time_of_overcurrent + RECHECK_DELAY)))
 	{
@@ -269,20 +272,23 @@ void reactForgottenLogicSwitch(int pack_out_voltage, bool &forgotten_logic_switc
 		time_switch_forgotten = millis();
 		time_switch_reminder = millis();
 	}
-	if((forgotten_logic_switch == true) && (pack_out_voltage > PACK_SAFETY_LOW))
+	if(forgotten_logic_switch == true)
 	{
-		forgotten_logic_switch = false;
-		time_switch_forgotten = 0;
-	}
-	if((forgotten_logic_switch == true) && (millis() >= time_switch_reminder + LOGIC_SWITCH_REMINDER))
-	{
-		time_switch_reminder = millis();
-		notifyLogicSwitch();
-	}
-	if((forgotten_logic_switch == true) && (millis() >= time_switch_forgotten + IDLE_SHUTOFF_TIME))
-	{
-		digitalWrite(LOGIC_SWITCH_CTR, HIGH); //BMS Suicide
-	}
+		if(pack_out_voltage > PACK_SAFETY_LOW)
+		{
+			forgotten_logic_switch = false;
+			time_switch_forgotten = 0;	
+		}//end if
+		if(millis() >= time_switch_reminder + LOGIC_SWITCH_REMINDER)
+		{
+			time_switch_reminder = millis();
+			notifyLogicSwitch();
+		}//end if
+		if(millis() >= time_switch_forgotten + IDLE_SHUTOFF_TIME)
+		{
+			digitalWrite(LOGIC_SWITCH_CTR, HIGH); //BMS Suicide	
+		}//end if
+	}//end if
 	return;
 }//end func
 
