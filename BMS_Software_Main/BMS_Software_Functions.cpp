@@ -79,7 +79,7 @@ void getCellVoltage(RC_BMSBOARD_VMEASmV_DATATYPE cell_voltage[RC_BMSBOARD_VMEASm
  	
  	for(int i = 0; i<RC_BMSBOARD_VMEASmV_DATACOUNT; i++)
  	{
- 	  if (i == 0)
+ 	  if (i == RC_BMSBOARD_VMEASmV_PACKENTRY)
  	  {
  	  	adc_reading = analogRead(CELL_MEAS_PINS[i]);
  	  	cell_voltage[i] = map(adc_reading, ADC_MIN, ADC_MAX, VOLTS_MIN, PACK_VOLTS_MAX);
@@ -113,21 +113,69 @@ void getBattTemp(RC_BMSBOARD_TEMPMEASmDEGC_DATATYPE &batt_temp)
 	return;
 }
 
-bool singleDebounce(int bouncing_pin, int max_amps_threshold)
+bool singleDebounceCurrent(int bouncing_pin, int overcurrent_threshold)
 {
-  int adc_threshhold = map(max_amps_threshold, CURRENT_MIN, CURRENT_MAX, ADC_MIN, ADC_MAX);
+  int adc_threshhold = map(overcurrent_threshold, CURRENT_MIN, CURRENT_MAX, ADC_MIN, ADC_MAX);
   
-  if( analogRead(bouncing_pin) > adc_threshhold)
+  if(analogRead(bouncing_pin) > adc_threshhold)
   {  
     delay(DEBOUNCE_DELAY);
     
-    if( analogRead(bouncing_pin) > adc_threshhold)
+    if(analogRead(bouncing_pin) > adc_threshhold)
     {
        return true;
     }//end if
   }// end if 
   return false;
 }//end fntcn
+
+bool singleDebounceVoltage(int bouncing_pin, int undervoltage_threshold, int volts_max)
+{
+  int adc_threshhold = map(undervoltage_threshold, VOLTS_MIN, volts_max, ADC_MIN, ADC_MAX);
+  
+  if(analogRead(bouncing_pin) < adc_threshhold)
+  {  
+    delay(DEBOUNCE_DELAY);
+    
+    if(analogRead(bouncing_pin) < adc_threshhold)
+    {
+       return true;
+    }//end if
+  }// end if 
+  return false;
+}//end fntcn
+
+void checkOverCurrent(RC_BMSBOARD_EVENT_DATATYPE event_report[RC_BMSBOARD_EVENT_DATACOUNT])
+{
+	if(singleDebounceCurrent(PACK_I_MEAS, OVERCURRENT))
+	{
+		event_report[RC_BMSBOARD_EVENT_PACKOVERCURRENT] = RC_BMSBOARD_EVENT_OCCURED;
+	} //end if
+
+	return;
+}
+
+void checkUnderVoltage(RC_BMSBOARD_EVENT_DATATYPE event_report[RC_BMSBOARD_EVENT_DATACOUNT])
+{
+	for(int i = 0; i < RC_BMSBOARD_VMEASmV_DATACOUNT; i++)
+	{
+		if(i == RC_BMSBOARD_VMEASmV_PACKENTRY)
+		{
+			if(singleDebounceVoltage(CELL_MEAS_PINS[RC_BMSBOARD_VMEASmV_PACKENTRY], PACK_UNDERVOLTAGE, PACK_VOLTS_MAX))
+			{
+				event_report[RC_BMSBOARD_EVENT_PACKUNDERVOLT] = RC_BMSBOARD_EVENT_OCCURED;
+			} //end if
+		}
+		else
+		{
+			if(singleDebounceVoltage(CELL_MEAS_PINS[i], CELL_UNDERVOLTAGE, CELL_VOLTS_MAX))
+			{
+				event_report[i] = RC_BMSBOARD_EVENT_OCCURED;
+			} //end if
+		} //end if
+	} //end for
+	return;
+}
 
 void setEstop(RC_BMSBOARD_SWESTOPs_DATATYPE data) //??Should data be an array here?
 {

@@ -27,7 +27,10 @@ void getMainCurrent(RC_BMSBOARD_MAINIMEASmA_DATATYPE &main_current);
 void getCellVoltage(RC_BMSBOARD_VMEASmV_DATATYPE cell_voltage[RC_BMSBOARD_VMEASmV_DATACOUNT]); //??How do the values in the array get back to the loop?
 void getOutVoltage(int &pack_out_voltage);
 void getBattTemp(RC_BMSBOARD_TEMPMEASmDEGC_DATATYPE &batt_temp);
-bool singleDebounce(int bouncing_pin, int max_amps_threshold);
+bool singleDebounceCurrent(int bouncing_pin, int overcurrent_threshold);
+bool singleDebounceVoltage(int bouncing_pin, int undervoltage_threshold, int volts_max);
+void checkOverCurrent(RC_BMSBOARD_EVENT_DATATYPE event_report[RC_BMSBOARD_EVENT_DATACOUNT]);
+void checkUnderVoltage(RC_BMSBOARD_EVENT_DATATYPE event_report[RC_BMSBOARD_EVENT_DATACOUNT]);
 void setEstop(RC_BMSBOARD_SWESTOPs_DATATYPE data);
 void setFans(RC_BMSBOARD_FANEN_DATATYPE data);
 void notifyEstop();
@@ -57,6 +60,7 @@ void loop()
 	RC_BMSBOARD_VMEASmV_DATATYPE cell_voltages[RC_BMSBOARD_VMEASmV_DATACOUNT]; //??"cell_voltages." Is the 's' there for a reason?
 	RC_BMSBOARD_TEMPMEASmDEGC_DATATYPE batt_temp;
 	int pack_out_voltage;
+	RC_BMSBOARD_EVENT_DATATYPE event_report[RC_BMSBOARD_EVENT_DATACOUNT];
 	rovecomm_packet packet;
 
 	getMainCurrent(main_current);
@@ -93,6 +97,12 @@ void loop()
       } //end switch
     } //end if
 
+    checkOverCurrent(event_report);
+    checkUnderVoltage(event_report);
 
+    RoveComm.write(RC_BMSBOARD_EVENT_HEADER, event_report);
+
+    //reactOverCurrent();
+    //reactUnderVoltage();
 
 } //end loop

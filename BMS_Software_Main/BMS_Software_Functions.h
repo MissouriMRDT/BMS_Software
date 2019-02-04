@@ -33,7 +33,16 @@ void getOutVoltage(int &pack_out_voltage);
 void getBattTemp(RC_BMSBOARD_TEMPMEASmDEGC_DATATYPE &batt_temp);
 
 
-bool singleDebounce(int bouncing_pin, int max_amps_threshold); // Checks the pin for bouncing voltages to avoid false positives
+bool singleDebounceCurrent(int bouncing_pin, int overcurrent_threshold); // Checks the pin for bouncing voltages to avoid false positives
+
+
+bool singleDebounceVoltage(int bouncing_pin, int undervoltage_threshold, int volts_max);
+
+
+void checkOverCurrent(RC_BMSBOARD_EVENT_DATATYPE event_report[RC_BMSBOARD_EVENT_DATACOUNT]);
+
+
+void checkUnderVoltage(RC_BMSBOARD_EVENT_DATATYPE event_report[RC_BMSBOARD_EVENT_DATACOUNT]);
 
 
 void setEstop(RC_BMSBOARD_SWESTOPs_DATATYPE data);

@@ -48,38 +48,40 @@ const int CELL_MEAS_PINS[] = {PACK_V_MEAS, C1_V_MEAS, C2_V_MEAS, C3_V_MEAS,
 // Sensor Measurment: Constants and Calculations ////////////////////////////////////////////////
 //
 // Tiva1294C RoveBoard Specs
-#define VCC                 	3300 //millivolts
+#define VCC                 	3300 //mV
 #define ADC_MAX            		1024 //bits
 #define ADC_MIN            		0 //bits
 #define IDLE_SHUTOFF_MINS		30 //minutes
 
 // ACS759ECB-200B-PFF-T Current Sensor Specs
 	// Find at: https://www.digikey.com/products/en?keywords=%20620-1466-5-ND%20
-#define SENSOR_SENSITIVITY  	0.0066 //millivolts/milliamp
+#define SENSOR_SENSITIVITY  	0.0066 //mV/mA
 #define SENSOR_SCALE        	0.5
 #define SENSOR_BIAS         	VCC * SENSOR_SCALE //Viout voltage when current is at 0A (aka quiescent output voltage)
 													// Noise is 2mV, meaning the smallest current that the device is able to resolve is 0.3A
-#define CURRENT_MAX         	(VCC - SENSOR_BIAS - 330) / SENSOR_SENSITIVITY //milliamps; Current values must be sent over RoveComm as milliamps
-#define CURRENT_MIN         	-(SENSOR_BIAS - 330) / SENSOR_SENSITIVITY //milliamps
-#define OVERCURRENT				180000 //milliamps //TODO: This value should be lower, but where?
+#define CURRENT_MAX         	(VCC - SENSOR_BIAS - 330) / SENSOR_SENSITIVITY //mA; Current values must be sent over RoveComm as mA
+#define CURRENT_MIN         	-(SENSOR_BIAS - 330) / SENSOR_SENSITIVITY //mA
+#define OVERCURRENT				50000 //mA //TODO: This value should be lower, but where?
 
 // Voltage Measurments
-#define VOLTS_MIN           	0
-#define PACK_VOLTS_MAX      	33600 //millivolts //TODO: This num may change as we test using hardware
-#define CELL_VOLTS_MAX 			4200 //millivolts
+#define VOLTS_MIN           	0 //mV
+#define PACK_VOLTS_MAX      	33600 //mV //TODO: This num may change as we test using hardware
+#define CELL_VOLTS_MAX 			4200 //mV
+#define PACK_UNDERVOLTAGE		21600 //mV
+#define PACK_LOWVOLTAGE			25000 //mV
+#define CELL_UNDERVOLTAGE		2700 //mV
 
 // TMP37 Temp Sensor Specs 
 	//Find at: https://www.digikey.com/products/en?mpart=TMP37FT9Z&v=505
 		//Voltage at 20 deg C is 500mV
 		//Scale Factor is 20mV/deg C
 #define	TEMP_MIN   				0 //TODO: test temp conversions with a thermometer.
-#define TEMP_MAX   				160000 //millidegree C
+#define TEMP_MAX   				160000 //mdeg C
+#define TEMP_THRESHOLD			38000 //mdeg C  //About 100 degF
 
-// Minimum and Maximum Values: Constants
+// Delay Constants
 #define ROVECOMM_DELAY			10 //millisec
 #define DEBOUNCE_DELAY			10 //millisec
-
-
 
 
 #endif
