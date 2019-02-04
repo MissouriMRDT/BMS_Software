@@ -246,6 +246,15 @@ void reactUnderVoltage(RC_BMSBOARD_EVENT_DATATYPE event_report[RC_BMSBOARD_EVENT
 	return;
 }//end func
 
+/*void reactLowVoltage(RC_BMSBOARD_VMEASmV_DATATYPE cell_voltage[RC_BMSBOARD_VMEASmV_DATACOUNT], bool &low_voltage_state, int &time_low_voltage_reminder)
+{
+	if(low_voltage_state == false && (cell_voltage[RC_BMSBOARD_VMEASmV_PACKENTRY] <= PACK_UNDERVOLTAGE) && (cell_voltage[RC_BMSBOARD_VMEASmV_PACKENTRY] > PACK_UNDERVOLTAGE))
+	{
+
+	}
+	break;
+}//end func*/
+
 void reactOverTemp(RC_BMSBOARD_TEMPMEASmDEGC_DATATYPE batt_temp, bool &overtemp_state)
 {
 	if((overtemp_state == false) && (batt_temp >= TEMP_THRESHOLD)) //overtemp_state created to prevent writing the fan outputs 
@@ -266,7 +275,7 @@ void reactOverTemp(RC_BMSBOARD_TEMPMEASmDEGC_DATATYPE batt_temp, bool &overtemp_
 
 void reactForgottenLogicSwitch(int pack_out_voltage, bool &forgotten_logic_switch, int &time_switch_forgotten, int &time_switch_reminder)
 {
-	if((forgotten_logic_switch == false) && (pack_out_voltage <= PACK_OUT_LOW_VOLTS))
+	if((forgotten_logic_switch == false) && (pack_out_voltage <= PACK_OUT_OFF))
 	{
 		forgotten_logic_switch = true;
 		time_switch_forgotten = millis();
