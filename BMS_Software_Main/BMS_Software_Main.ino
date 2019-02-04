@@ -28,9 +28,11 @@ void getCellVoltage(RC_BMSBOARD_VMEASmV_DATATYPE cell_voltage[RC_BMSBOARD_VMEASm
 void getOutVoltage(int &pack_out_voltage);
 void getBattTemp(RC_BMSBOARD_TEMPMEASmDEGC_DATATYPE &batt_temp);
 bool singleDebounceCurrent(int bouncing_pin, int overcurrent_threshold);
-bool singleDebounceVoltage(int bouncing_pin, int undervoltage_threshold, int volts_max);
+bool singleDebounceVoltage(int bouncing_pin, int undervoltage_threshold, int volts_max, int volts_safety_low);
 void checkOverCurrent(RC_BMSBOARD_EVENT_DATATYPE event_report[RC_BMSBOARD_EVENT_DATACOUNT]);
 void checkUnderVoltage(RC_BMSBOARD_EVENT_DATATYPE event_report[RC_BMSBOARD_EVENT_DATACOUNT]);
+void reactOverCurrent(RC_BMSBOARD_EVENT_DATATYPE event_report[RC_BMSBOARD_EVENT_DATACOUNT], bool &overcurrent_state, float &timeofovercurrent);
+void reactUnderVoltage(RC_BMSBOARD_EVENT_DATATYPE event_report[RC_BMSBOARD_EVENT_DATACOUNT]);
 void setEstop(RC_BMSBOARD_SWESTOPs_DATATYPE data);
 void setFans(RC_BMSBOARD_FANEN_DATATYPE data);
 void notifyEstop();
@@ -61,6 +63,9 @@ void loop()
 	RC_BMSBOARD_TEMPMEASmDEGC_DATATYPE batt_temp;
 	int pack_out_voltage;
 	RC_BMSBOARD_EVENT_DATATYPE event_report[RC_BMSBOARD_EVENT_DATACOUNT];
+  bool overcurrent_state = false;
+  float timeofovercurrent = 0;
+  bool overtemp_state = false;
 	rovecomm_packet packet;
 
 	getMainCurrent(main_current);
@@ -102,7 +107,14 @@ void loop()
 
     RoveComm.write(RC_BMSBOARD_EVENT_HEADER, event_report);
 
-    //reactOverCurrent();
-    //reactUnderVoltage();
+    reactOverCurrent(event_report, overcurrent_state, timeofovercurrent);
+    reactUnderVoltage(event_report);
+
+    if(batt_temp > TEMP_THRESHOLD)
+    {
+      reactOverTemp();
+    }
+
+    
 
 } //end loop

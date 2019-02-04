@@ -62,6 +62,8 @@ const int CELL_MEAS_PINS[] = {PACK_V_MEAS, C1_V_MEAS, C2_V_MEAS, C3_V_MEAS,
 #define CURRENT_MAX         	(VCC - SENSOR_BIAS - 330) / SENSOR_SENSITIVITY //mA; Current values must be sent over RoveComm as mA
 #define CURRENT_MIN         	-(SENSOR_BIAS - 330) / SENSOR_SENSITIVITY //mA
 #define OVERCURRENT				50000 //mA //TODO: This value should be lower, but where?
+#define OVERCURRENT_DELAY		5000 //msec
+#define OVERCURRENT_MEM_DELAY	40000 //msec
 
 // Voltage Measurments
 #define VOLTS_MIN           	0 //mV
@@ -69,7 +71,9 @@ const int CELL_MEAS_PINS[] = {PACK_V_MEAS, C1_V_MEAS, C2_V_MEAS, C3_V_MEAS,
 #define CELL_VOLTS_MAX 			4200 //mV
 #define PACK_UNDERVOLTAGE		21600 //mV
 #define PACK_LOWVOLTAGE			25000 //mV
+#define PACK_SAFETY_LOW			PACK_UNDERVOLTAGE - 4000 //mV
 #define CELL_UNDERVOLTAGE		2700 //mV
+#define CELL_SAFETY_LOW			CELL_UNDERVOLTAGE - 1000 //mV
 
 // TMP37 Temp Sensor Specs 
 	//Find at: https://www.digikey.com/products/en?mpart=TMP37FT9Z&v=505

@@ -36,13 +36,19 @@ void getBattTemp(RC_BMSBOARD_TEMPMEASmDEGC_DATATYPE &batt_temp);
 bool singleDebounceCurrent(int bouncing_pin, int overcurrent_threshold); // Checks the pin for bouncing voltages to avoid false positives
 
 
-bool singleDebounceVoltage(int bouncing_pin, int undervoltage_threshold, int volts_max);
+bool singleDebounceVoltage(int bouncing_pin, int undervoltage_threshold, int volts_max, int volts_safety_low);
 
 
 void checkOverCurrent(RC_BMSBOARD_EVENT_DATATYPE event_report[RC_BMSBOARD_EVENT_DATACOUNT]);
 
 
 void checkUnderVoltage(RC_BMSBOARD_EVENT_DATATYPE event_report[RC_BMSBOARD_EVENT_DATACOUNT]);
+
+
+void reactOverCurrent(RC_BMSBOARD_EVENT_DATATYPE event_report[RC_BMSBOARD_EVENT_DATACOUNT], bool &overcurrent_state, float &timeofovercurrent);
+
+
+void reactUnderVoltage(RC_BMSBOARD_EVENT_DATATYPE event_report[RC_BMSBOARD_EVENT_DATACOUNT]);
 
 
 void setEstop(RC_BMSBOARD_SWESTOPs_DATATYPE data);
