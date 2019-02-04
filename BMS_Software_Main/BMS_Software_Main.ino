@@ -31,11 +31,13 @@ bool singleDebounceCurrent(int bouncing_pin, int overcurrent_threshold);
 bool singleDebounceVoltage(int bouncing_pin, int undervoltage_threshold, int volts_max, int volts_safety_low);
 void checkOverCurrent(RC_BMSBOARD_EVENT_DATATYPE event_report[RC_BMSBOARD_EVENT_DATACOUNT]);
 void checkUnderVoltage(RC_BMSBOARD_EVENT_DATATYPE event_report[RC_BMSBOARD_EVENT_DATACOUNT]);
-void reactOverCurrent(RC_BMSBOARD_EVENT_DATATYPE event_report[RC_BMSBOARD_EVENT_DATACOUNT], bool &overcurrent_state, float &timeofovercurrent);
+void reactOverCurrent(RC_BMSBOARD_EVENT_DATATYPE event_report[RC_BMSBOARD_EVENT_DATACOUNT], int &num_overcurrent, float &timeofovercurrent);
 void reactUnderVoltage(RC_BMSBOARD_EVENT_DATATYPE event_report[RC_BMSBOARD_EVENT_DATACOUNT]);
+void reactOverTemp(RC_BMSBOARD_TEMPMEASmDEGC_DATATYPE batt_temp, bool &overtemp_state);
 void setEstop(RC_BMSBOARD_SWESTOPs_DATATYPE data);
 void setFans(RC_BMSBOARD_FANEN_DATATYPE data);
 void notifyEstop();
+void notifyLogicSwitch();
 void notifyReboot();
 void notifyOverCurrent();
 void notifyUnderVoltage();
@@ -45,7 +47,7 @@ void notifyLowVoltage();
 void setup()
 {
 	Serial.begin(9600);
-	Serial3.begin(115200);
+	Serial3.begin(9600);
 	RoveComm.begin(RC_BMSBOARD_FOURTHOCTET);
 	delay(ROVECOMM_DELAY);
 	
@@ -63,7 +65,7 @@ void loop()
 	RC_BMSBOARD_TEMPMEASmDEGC_DATATYPE batt_temp;
 	int pack_out_voltage;
 	RC_BMSBOARD_EVENT_DATATYPE event_report[RC_BMSBOARD_EVENT_DATACOUNT];
-  bool overcurrent_state = false;
+  int num_overcurrent = 0;
   float timeofovercurrent = 0;
   bool overtemp_state = false;
 	rovecomm_packet packet;
@@ -74,8 +76,11 @@ void loop()
 	getBattTemp(batt_temp);
 	
 	RoveComm.write(RC_BMSBOARD_MAINIMEASmA_HEADER, main_current);
+  delay(ROVECOMM_DELAY);
 	RoveComm.write(RC_BMSBOARD_VMEASmV_HEADER, cell_voltages);
+  delay(ROVECOMM_DELAY);
 	RoveComm.write(RC_BMSBOARD_TEMPMEASmDEGC_HEADER, batt_temp);
+  delay(ROVECOMM_DELAY);
 
 	packet = RoveComm.read();
   	if(packet.data_id!=0)
@@ -107,14 +112,9 @@ void loop()
 
     RoveComm.write(RC_BMSBOARD_EVENT_HEADER, event_report);
 
-    reactOverCurrent(event_report, overcurrent_state, timeofovercurrent);
+    reactOverCurrent(event_report, num_overcurrent, timeofovercurrent);
     reactUnderVoltage(event_report);
-
-    if(batt_temp > TEMP_THRESHOLD)
-    {
-      reactOverTemp();
-    }
-
-    
+    reactOverTemp(batt_temp, overtemp_state);
+    reactForgottenLogicSwitch();
 
 } //end loop

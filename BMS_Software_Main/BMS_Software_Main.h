@@ -30,8 +30,8 @@
 
 // Sensor Volts/Amps Readings Pins
 #define PACK_I_MEAS				PE_0
-#define PACK_V_MEAS				PE_1
-#define LOGIC_V_MEAS			PE_2
+#define PACK_V_MEAS				PE_1 //Measures voltage outputting to rover. Will read zero if PACK_OUT_CTR is LOW.
+#define LOGIC_V_MEAS			PE_2 //Measures total voltage of pack continuously while logic switch is on. 
 #define TEMP_degC_MEAS			PM_3
 #define C1_V_MEAS				PK_3 //CELL 1 - GND
 #define C2_V_MEAS				PK_2 //CELL 2 - CELL 1
@@ -42,7 +42,7 @@
 #define C7_V_MEAS				PD_5 //CELL 7 - CELL 6
 #define C8_V_MEAS				PD_4 //CELL 8 - CELL 7
 
-const int CELL_MEAS_PINS[] = {PACK_V_MEAS, C1_V_MEAS, C2_V_MEAS, C3_V_MEAS, 
+const int CELL_MEAS_PINS[] = {LOGIC_V_MEAS, C1_V_MEAS, C2_V_MEAS, C3_V_MEAS, 
  							  C4_V_MEAS, C5_V_MEAS, C6_V_MEAS, C7_V_MEAS, C8_V_MEAS};
 
 // Sensor Measurment: Constants and Calculations ////////////////////////////////////////////////
@@ -51,7 +51,6 @@ const int CELL_MEAS_PINS[] = {PACK_V_MEAS, C1_V_MEAS, C2_V_MEAS, C3_V_MEAS,
 #define VCC                 	3300 //mV
 #define ADC_MAX            		1024 //bits
 #define ADC_MIN            		0 //bits
-#define IDLE_SHUTOFF_MINS		30 //minutes
 
 // ACS759ECB-200B-PFF-T Current Sensor Specs
 	// Find at: https://www.digikey.com/products/en?keywords=%20620-1466-5-ND%20
@@ -62,8 +61,6 @@ const int CELL_MEAS_PINS[] = {PACK_V_MEAS, C1_V_MEAS, C2_V_MEAS, C3_V_MEAS,
 #define CURRENT_MAX         	(VCC - SENSOR_BIAS - 330) / SENSOR_SENSITIVITY //mA; Current values must be sent over RoveComm as mA
 #define CURRENT_MIN         	-(SENSOR_BIAS - 330) / SENSOR_SENSITIVITY //mA
 #define OVERCURRENT				50000 //mA //TODO: This value should be lower, but where?
-#define OVERCURRENT_DELAY		5000 //msec
-#define OVERCURRENT_MEM_DELAY	40000 //msec
 
 // Voltage Measurments
 #define VOLTS_MIN           	0 //mV
@@ -74,6 +71,7 @@ const int CELL_MEAS_PINS[] = {PACK_V_MEAS, C1_V_MEAS, C2_V_MEAS, C3_V_MEAS,
 #define PACK_SAFETY_LOW			PACK_UNDERVOLTAGE - 4000 //mV
 #define CELL_UNDERVOLTAGE		2700 //mV
 #define CELL_SAFETY_LOW			CELL_UNDERVOLTAGE - 1000 //mV
+#define LOGIC_LOW_VOLTS			VOLTS_MIN + 5000 //mV
 
 // TMP37 Temp Sensor Specs 
 	//Find at: https://www.digikey.com/products/en?mpart=TMP37FT9Z&v=505
@@ -84,8 +82,11 @@ const int CELL_MEAS_PINS[] = {PACK_V_MEAS, C1_V_MEAS, C2_V_MEAS, C3_V_MEAS,
 #define TEMP_THRESHOLD			38000 //mdeg C  //About 100 degF
 
 // Delay Constants
-#define ROVECOMM_DELAY			10 //millisec
-#define DEBOUNCE_DELAY			10 //millisec
-
+#define ROVECOMM_DELAY			10 //msec
+#define DEBOUNCE_DELAY			10 //msec
+#define RESTART_DELAY			5000 //msec
+#define RECHECK_DELAY			40000 //msec
+#define LOGIC_SWITCH_REMINDER	60000 //msec
+#define IDLE_SHUTOFF_MINS		2400000 //msec or 40 minutes
 
 #endif
