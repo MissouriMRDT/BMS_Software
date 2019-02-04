@@ -71,7 +71,7 @@ const int CELL_MEAS_PINS[] = {LOGIC_V_MEAS, C1_V_MEAS, C2_V_MEAS, C3_V_MEAS,
 #define PACK_SAFETY_LOW			PACK_UNDERVOLTAGE - 4000 //mV
 #define CELL_UNDERVOLTAGE		2700 //mV
 #define CELL_SAFETY_LOW			CELL_UNDERVOLTAGE - 1000 //mV
-#define LOGIC_LOW_VOLTS			VOLTS_MIN + 5000 //mV
+#define PACK_OUT_LOW_VOLTS		VOLTS_MIN + 5000 //mV
 
 // TMP37 Temp Sensor Specs 
 	//Find at: https://www.digikey.com/products/en?mpart=TMP37FT9Z&v=505
@@ -87,6 +87,6 @@ const int CELL_MEAS_PINS[] = {LOGIC_V_MEAS, C1_V_MEAS, C2_V_MEAS, C3_V_MEAS,
 #define RESTART_DELAY			5000 //msec
 #define RECHECK_DELAY			40000 //msec
 #define LOGIC_SWITCH_REMINDER	60000 //msec
-#define IDLE_SHUTOFF_MINS		2400000 //msec or 40 minutes
+#define IDLE_SHUTOFF_TIME		2400000 //msec or 40 minutes
 
 #endif

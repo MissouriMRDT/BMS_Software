@@ -31,9 +31,10 @@ bool singleDebounceCurrent(int bouncing_pin, int overcurrent_threshold);
 bool singleDebounceVoltage(int bouncing_pin, int undervoltage_threshold, int volts_max, int volts_safety_low);
 void checkOverCurrent(RC_BMSBOARD_EVENT_DATATYPE event_report[RC_BMSBOARD_EVENT_DATACOUNT]);
 void checkUnderVoltage(RC_BMSBOARD_EVENT_DATATYPE event_report[RC_BMSBOARD_EVENT_DATACOUNT]);
-void reactOverCurrent(RC_BMSBOARD_EVENT_DATATYPE event_report[RC_BMSBOARD_EVENT_DATACOUNT], int &num_overcurrent, float &timeofovercurrent);
+void reactOverCurrent(RC_BMSBOARD_EVENT_DATATYPE event_report[RC_BMSBOARD_EVENT_DATACOUNT], int &num_overcurrent, float &time_of_overcurrent);
 void reactUnderVoltage(RC_BMSBOARD_EVENT_DATATYPE event_report[RC_BMSBOARD_EVENT_DATACOUNT]);
 void reactOverTemp(RC_BMSBOARD_TEMPMEASmDEGC_DATATYPE batt_temp, bool &overtemp_state);
+void reactForgottenLogicSwitch(int pack_out_voltage, bool &forgotten_logic_switch, int &time_switch_forgotten, int &time_switch_reminder);
 void setEstop(RC_BMSBOARD_SWESTOPs_DATATYPE data);
 void setFans(RC_BMSBOARD_FANEN_DATATYPE data);
 void notifyEstop();
@@ -66,8 +67,11 @@ void loop()
 	int pack_out_voltage;
 	RC_BMSBOARD_EVENT_DATATYPE event_report[RC_BMSBOARD_EVENT_DATACOUNT];
   int num_overcurrent = 0;
-  float timeofovercurrent = 0;
+  float time_of_overcurrent = 0;
   bool overtemp_state = false;
+  bool forgotten_logic_switch = false;
+  int time_switch_forgotten = 0;
+  int time_switch_reminder = 0;
 	rovecomm_packet packet;
 
 	getMainCurrent(main_current);
@@ -81,6 +85,16 @@ void loop()
   delay(ROVECOMM_DELAY);
 	RoveComm.write(RC_BMSBOARD_TEMPMEASmDEGC_HEADER, batt_temp);
   delay(ROVECOMM_DELAY);
+
+  checkOverCurrent(event_report);
+  checkUnderVoltage(event_report);
+
+  RoveComm.write(RC_BMSBOARD_EVENT_HEADER, event_report);
+
+  reactOverCurrent(event_report, num_overcurrent, time_of_overcurrent);
+  reactUnderVoltage(event_report);
+  reactOverTemp(batt_temp, overtemp_state);
+  reactForgottenLogicSwitch(pack_out_voltage, forgotten_logic_switch, time_switch_forgotten, time_switch_reminder);
 
 	packet = RoveComm.read();
   	if(packet.data_id!=0)
@@ -106,15 +120,5 @@ void loop()
         }
       } //end switch
     } //end if
-
-    checkOverCurrent(event_report);
-    checkUnderVoltage(event_report);
-
-    RoveComm.write(RC_BMSBOARD_EVENT_HEADER, event_report);
-
-    reactOverCurrent(event_report, num_overcurrent, timeofovercurrent);
-    reactUnderVoltage(event_report);
-    reactOverTemp(batt_temp, overtemp_state);
-    reactForgottenLogicSwitch();
 
 } //end loop

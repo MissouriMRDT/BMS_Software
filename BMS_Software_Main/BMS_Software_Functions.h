@@ -45,13 +45,16 @@ void checkOverCurrent(RC_BMSBOARD_EVENT_DATATYPE event_report[RC_BMSBOARD_EVENT_
 void checkUnderVoltage(RC_BMSBOARD_EVENT_DATATYPE event_report[RC_BMSBOARD_EVENT_DATACOUNT]);
 
 
-void reactOverCurrent(RC_BMSBOARD_EVENT_DATATYPE event_report[RC_BMSBOARD_EVENT_DATACOUNT], int &num_overcurrent, float &timeofovercurrent);
+void reactOverCurrent(RC_BMSBOARD_EVENT_DATATYPE event_report[RC_BMSBOARD_EVENT_DATACOUNT], int &num_overcurrent, float &time_of_overcurrent);
 
 
 void reactUnderVoltage(RC_BMSBOARD_EVENT_DATATYPE event_report[RC_BMSBOARD_EVENT_DATACOUNT]);
 
 
 void reactOverTemp(RC_BMSBOARD_TEMPMEASmDEGC_DATATYPE batt_temp, bool &overtemp_state);
+
+
+void reactForgottenLogicSwitch(int pack_out_voltage, bool &forgotten_logic_switch, int &time_switch_forgotten, int &time_switch_reminder);
 
 
 void setEstop(RC_BMSBOARD_SWESTOPs_DATATYPE data);
