@@ -20,32 +20,6 @@ RoveCommEthernetUdp RoveComm; //Extantiates a class
 
 // Function Declarations ////////////////////////////////////////////////////////////
 //
-void setInputPins();
-void setOutputPins();
-void setOutputStates();
-void getMainCurrent(RC_BMSBOARD_MAINIMEASmA_DATATYPE &main_current);
-void getCellVoltage(RC_BMSBOARD_VMEASmV_DATATYPE cell_voltage[RC_BMSBOARD_VMEASmV_DATACOUNT]); //??How do the values in the array get back to the loop?
-void getOutVoltage(int &pack_out_voltage);
-void getBattTemp(RC_BMSBOARD_TEMPMEASmDEGC_DATATYPE &batt_temp);
-bool singleDebounceCurrent(int bouncing_pin, int overcurrent_threshold);
-bool singleDebounceVoltage(int bouncing_pin, int undervoltage_threshold, int volts_max, int volts_safety_low);
-void checkOverCurrent(RC_BMSBOARD_EVENT_DATATYPE event_report[RC_BMSBOARD_EVENT_DATACOUNT]);
-void checkUnderVoltage(RC_BMSBOARD_EVENT_DATATYPE event_report[RC_BMSBOARD_EVENT_DATACOUNT]);
-void reactOverCurrent(RC_BMSBOARD_EVENT_DATATYPE event_report[RC_BMSBOARD_EVENT_DATACOUNT], int &num_overcurrent, float &time_of_overcurrent);
-void reactUnderVoltage(RC_BMSBOARD_EVENT_DATATYPE event_report[RC_BMSBOARD_EVENT_DATACOUNT]);
-void reactLowVoltage();
-void reactOverTemp(RC_BMSBOARD_TEMPMEASmDEGC_DATATYPE batt_temp, bool &overtemp_state);
-void reactForgottenLogicSwitch(int pack_out_voltage, bool &forgotten_logic_switch, int &time_switch_forgotten, int &time_switch_reminder);
-void setEstop(RC_BMSBOARD_SWESTOPs_DATATYPE data);
-void setFans(RC_BMSBOARD_FANEN_DATATYPE data);
-void notifyEstop();
-void notifyLogicSwitch();
-void notifyReboot();
-void notifyOverCurrent();
-void notifyUnderVoltage();
-void notifyLowVoltage();
-
-
 void setup()
 {
 	Serial.begin(9600);
@@ -62,8 +36,8 @@ void setup()
 
 void loop()
 {
-	RC_BMSBOARD_MAINIMEASmA_DATATYPE main_current;
-	RC_BMSBOARD_VMEASmV_DATATYPE cell_voltages[RC_BMSBOARD_VMEASmV_DATACOUNT]; //??"cell_voltages." Is the 's' there for a reason?
+	uint16_t main_current;
+	uint16_t cell_voltages[RC_BMSBOARD_VMEASmV_DATACOUNT]; //??"cell_voltages." Is the 's' there for a reason?
 	RC_BMSBOARD_TEMPMEASmDEGC_DATATYPE batt_temp;
 	int pack_out_voltage;
 	RC_BMSBOARD_EVENT_DATATYPE event_report[RC_BMSBOARD_EVENT_DATACOUNT];
