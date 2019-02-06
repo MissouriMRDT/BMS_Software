@@ -13,67 +13,67 @@
 
 void setInputPins()
 {
-	pinMode(PACK_I_MEAS, 	INPUT);
-	pinMode(PACK_V_MEAS, 	INPUT);
-	pinMode(LOGIC_V_MEAS, 	INPUT);
-	pinMode(TEMP_degC_MEAS, INPUT);
-	pinMode(C1_V_MEAS, 		INPUT);
-	pinMode(C2_V_MEAS, 		INPUT);
-	pinMode(C3_V_MEAS, 		INPUT);
-	pinMode(C4_V_MEAS, 		INPUT);
-	pinMode(C5_V_MEAS, 		INPUT);
-	pinMode(C6_V_MEAS, 		INPUT);
-	pinMode(C7_V_MEAS, 		INPUT);
-	pinMode(C8_V_MEAS, 		INPUT);
+	pinMode(PACK_I_MEAS_PIN, 	INPUT);
+	pinMode(PACK_V_MEAS_PIN, 	INPUT);
+	pinMode(LOGIC_V_MEAS_PIN, 	INPUT);
+	pinMode(TEMP_degC_MEAS_PIN, INPUT);
+	pinMode(C1_V_MEAS_PIN, 		INPUT);
+	pinMode(C2_V_MEAS_PIN, 		INPUT);
+	pinMode(C3_V_MEAS_PIN, 		INPUT);
+	pinMode(C4_V_MEAS_PIN, 		INPUT);
+	pinMode(C5_V_MEAS_PIN, 		INPUT);
+	pinMode(C6_V_MEAS_PIN, 		INPUT);
+	pinMode(C7_V_MEAS_PIN, 		INPUT);
+	pinMode(C8_V_MEAS_PIN, 		INPUT);
 
 	return;
 }//end func
 
 void setOutputPins()
 {
-	pinMode(PACK_OUT_CTR, 		OUTPUT);
-	pinMode(PACK_OUT_IND, 		OUTPUT);
-	pinMode(LOGIC_SWITCH_CTR, 	OUTPUT);
-	pinMode(BUZZER_CTR, 		OUTPUT);
-	pinMode(FAN_1_CTR, 			OUTPUT);
-	pinMode(FAN_2_CTR, 			OUTPUT);
-	pinMode(FAN_3_CTR, 			OUTPUT);
-	pinMode(FAN_4_CTR, 			OUTPUT);
-	pinMode(FAN_PWR_IND, 		OUTPUT);
-	pinMode(SW_IND, 			OUTPUT);
-	pinMode(SW_ERR, 			OUTPUT);
+	pinMode(PACK_OUT_CTR_PIN, 		OUTPUT);
+	pinMode(PACK_OUT_IND_PIN, 		OUTPUT);
+	pinMode(LOGIC_SWITCH_CTR_PIN, 	OUTPUT);
+	pinMode(BUZZER_CTR_PIN, 		OUTPUT);
+	pinMode(FAN_1_CTR_PIN, 			OUTPUT);
+	pinMode(FAN_2_CTR_PIN, 			OUTPUT);
+	pinMode(FAN_3_CTR_PIN, 			OUTPUT);
+	pinMode(FAN_4_CTR_PIN, 			OUTPUT);
+	pinMode(FAN_PWR_IND_PIN, 		OUTPUT);
+	pinMode(SW_IND_PIN, 			OUTPUT);
+	pinMode(SW_ERR_PIN, 			OUTPUT);
 
 	return;
 }//end func
 
 void setOutputStates()
 {
-	digitalWrite(PACK_OUT_CTR, 		LOW);
-	digitalWrite(PACK_OUT_IND, 		LOW);
-	digitalWrite(LOGIC_SWITCH_CTR, 	LOW);
-	digitalWrite(BUZZER_CTR, 		LOW);
-	digitalWrite(FAN_1_CTR, 		LOW);
-	digitalWrite(FAN_2_CTR, 		LOW);
-	digitalWrite(FAN_3_CTR, 		LOW);
-	digitalWrite(FAN_4_CTR, 		LOW);
-	digitalWrite(FAN_PWR_IND, 		LOW);
-	digitalWrite(SW_IND, 			LOW);
-	digitalWrite(SW_ERR, 			LOW);
+	digitalWrite(PACK_OUT_CTR_PIN, 		LOW);
+	digitalWrite(PACK_OUT_IND_PIN, 		LOW);
+	digitalWrite(LOGIC_SWITCH_CTR_PIN, 	LOW);
+	digitalWrite(BUZZER_CTR_PIN, 		LOW);
+	digitalWrite(FAN_1_CTR_PIN, 		LOW);
+	digitalWrite(FAN_2_CTR_PIN, 		LOW);
+	digitalWrite(FAN_3_CTR_PIN, 		LOW);
+	digitalWrite(FAN_4_CTR_PIN, 		LOW);
+	digitalWrite(FAN_PWR_IND_PIN, 		LOW);
+	digitalWrite(SW_IND_PIN, 			LOW);
+	digitalWrite(SW_ERR_PIN, 			LOW);
 	
 	return;
 }//end func
 
-void getMainCurrent(RC_BMSBOARD_MAINIMEASmA_DATATYPE &main_current)
+void getMainCurrent(uint16_t &main_current)
 {
 	int adc_reading;
 
-  	adc_reading = analogRead(PACK_I_MEAS);
+  	adc_reading = analogRead(PACK_I_MEAS_PIN);
 	main_current = map(adc_reading, ADC_MIN, ADC_MAX, CURRENT_MIN, CURRENT_MAX);
 
 	return;
 }//end func
 
-void getCellVoltage(RC_BMSBOARD_VMEASmV_DATATYPE cell_voltage[RC_BMSBOARD_VMEASmV_DATACOUNT])
+void getCellVoltage(uint16_t cell_voltage[RC_BMSBOARD_VMEASmV_DATACOUNT])
 {
  	int adc_reading;
  	
@@ -97,17 +97,17 @@ void getOutVoltage(int &pack_out_voltage)
 {
 	int adc_reading;
 
-  	adc_reading = analogRead(PACK_V_MEAS);
+  	adc_reading = analogRead(PACK_V_MEAS_PIN);
   	pack_out_voltage = map(adc_reading, ADC_MIN, ADC_MAX, VOLTS_MIN, PACK_VOLTS_MAX);
 
   	return;
 }//end func
 
-void getBattTemp(RC_BMSBOARD_TEMPMEASmDEGC_DATATYPE &batt_temp)
+void getBattTemp(uint16_t &batt_temp)
 {
 	int adc_reading;
 
-	adc_reading = analogRead(TEMP_degC_MEAS);
+	adc_reading = analogRead(TEMP_degC_MEAS_PIN);
 	batt_temp = map(adc_reading, ADC_MIN, ADC_MAX, TEMP_MIN, TEMP_MAX);
 
 	return;
@@ -146,21 +146,21 @@ bool singleDebounceVoltage(int bouncing_pin, int undervoltage_threshold, int vol
   return false;
 }//end func
 
-void checkOverCurrent(RC_BMSBOARD_EVENT_DATATYPE event_report[RC_BMSBOARD_EVENT_DATACOUNT])
+void checkOverCurrent(uint8_t error_report[RC_BMSBOARD_ERROR_DATACOUNT])
 {
-	if(singleDebounceCurrent(PACK_I_MEAS, OVERCURRENT))
+	if(singleDebounceCurrent(PACK_I_MEAS_PIN, OVERCURRENT))
 	{
-		event_report[RC_BMSBOARD_EVENT_PACKOVERCURRENT] = RC_BMSBOARD_EVENT_OCCURED;
+		error_report[RC_BMSBOARD_ERROR_PACKOVERCURRENT] = RC_BMSBOARD_ERROR_OCCURED;
 	} 
 	else
 	{
-		event_report[RC_BMSBOARD_EVENT_PACKOVERCURRENT] = RC_BMSBOARD_EVENT_HASNOTOCCURED;
+		error_report[RC_BMSBOARD_ERROR_PACKOVERCURRENT] = RC_BMSBOARD_ERROR_HASNOTOCCURED;
 	}//end if
 
 	return;
 }//end func
 
-void checkUnderVoltage(RC_BMSBOARD_EVENT_DATATYPE event_report[RC_BMSBOARD_EVENT_DATACOUNT])
+void checkUnderVoltage(uint8_t error_report[RC_BMSBOARD_ERROR_DATACOUNT])
 {
 	for(int i = 0; i < RC_BMSBOARD_VMEASmV_DATACOUNT; i++)
 	{
@@ -168,34 +168,34 @@ void checkUnderVoltage(RC_BMSBOARD_EVENT_DATATYPE event_report[RC_BMSBOARD_EVENT
 		{
 			if(singleDebounceVoltage(CELL_MEAS_PINS[RC_BMSBOARD_VMEASmV_PACKENTRY], PACK_UNDERVOLTAGE, PACK_VOLTS_MAX, PACK_SAFETY_LOW))
 			{
-				event_report[RC_BMSBOARD_EVENT_PACKUNDERVOLT] = RC_BMSBOARD_EVENT_OCCURED;
+				error_report[RC_BMSBOARD_ERROR_PACKUNDERVOLT] = RC_BMSBOARD_ERROR_OCCURED;
 			} 
 			else
 			{
-				event_report[RC_BMSBOARD_EVENT_PACKUNDERVOLT] = RC_BMSBOARD_EVENT_HASNOTOCCURED;
+				error_report[RC_BMSBOARD_ERROR_PACKUNDERVOLT] = RC_BMSBOARD_ERROR_HASNOTOCCURED;
 			}//end if
 		}
 		else
 		{
 			if(singleDebounceVoltage(CELL_MEAS_PINS[i], CELL_UNDERVOLTAGE, CELL_VOLTS_MAX, CELL_SAFETY_LOW))
 			{
-				event_report[i] = RC_BMSBOARD_EVENT_OCCURED;
+				error_report[i] = RC_BMSBOARD_ERROR_OCCURED;
 			} 
 			else
 			{
-				event_report[i] = RC_BMSBOARD_EVENT_HASNOTOCCURED;
+				error_report[i] = RC_BMSBOARD_ERROR_HASNOTOCCURED;
 			}//end if
 		} //end if
 	} //end for
 	return;
 }//end func
 
-void reactOverCurrent(RC_BMSBOARD_EVENT_DATATYPE event_report[RC_BMSBOARD_EVENT_DATACOUNT], int &num_overcurrent, float &time_of_overcurrent)
+void reactOverCurrent(uint8_t error_report[RC_BMSBOARD_ERROR_DATACOUNT], int &num_overcurrent, float &time_of_overcurrent)
 {
-	if(event_report[RC_BMSBOARD_EVENT_PACKOVERCURRENT] == RC_BMSBOARD_EVENT_OCCURED)
+	if(error_report[RC_BMSBOARD_ERROR_PACKOVERCURRENT] == RC_BMSBOARD_ERROR_OCCURED)
 	{
-		digitalWrite(PACK_OUT_CTR, LOW);
-		digitalWrite(PACK_OUT_IND, LOW);
+		digitalWrite(PACK_OUT_CTR_PIN, LOW);
+		digitalWrite(PACK_OUT_IND_PIN, LOW);
 
 		if(num_overcurrent == 0)
 		{
@@ -210,8 +210,8 @@ void reactOverCurrent(RC_BMSBOARD_EVENT_DATATYPE event_report[RC_BMSBOARD_EVENT_
 	{
 		if(millis() >= (time_of_overcurrent + RESTART_DELAY))
 		{
-			digitalWrite(PACK_OUT_CTR, HIGH);
-			digitalWrite(PACK_OUT_IND, HIGH);
+			digitalWrite(PACK_OUT_CTR_PIN, HIGH);
+			digitalWrite(PACK_OUT_IND_PIN, HIGH);
 		}//end if
 		if(millis() >= (time_of_overcurrent + RECHECK_DELAY))
 		{
@@ -223,30 +223,30 @@ void reactOverCurrent(RC_BMSBOARD_EVENT_DATATYPE event_report[RC_BMSBOARD_EVENT_
 	{
 		num_overcurrent = 0;
 
-		digitalWrite(LOGIC_SWITCH_CTR, HIGH); //BMS Suicide
+		digitalWrite(LOGIC_SWITCH_CTR_PIN, HIGH); //BMS Suicide
 	}//end if
 
 	return;
 }//end func
 
-void reactUnderVoltage(RC_BMSBOARD_EVENT_DATATYPE event_report[RC_BMSBOARD_EVENT_DATACOUNT])
+void reactUnderVoltage(uint8_t error_report[RC_BMSBOARD_ERROR_DATACOUNT])
 {
-	for(int i = 0; i < (RC_BMSBOARD_EVENT_DATACOUNT - 1); i++)
+	for(int i = 0; i < (RC_BMSBOARD_ERROR_DATACOUNT - 1); i++)
 	{
-		if(event_report[i] == RC_BMSBOARD_EVENT_OCCURED)
+		if(error_report[i] == RC_BMSBOARD_ERROR_OCCURED)
 		{
-			digitalWrite(PACK_OUT_CTR, LOW);
-			digitalWrite(PACK_OUT_IND, LOW);
+			digitalWrite(PACK_OUT_CTR_PIN, LOW);
+			digitalWrite(PACK_OUT_IND_PIN, LOW);
 
 			notifyUnderVoltage();
 
-			digitalWrite(LOGIC_SWITCH_CTR, HIGH); //BMS Suicide
+			digitalWrite(LOGIC_SWITCH_CTR_PIN, HIGH); //BMS Suicide
 		} //end if
 	} //end for
 	return;
 }//end func
 
-/*void reactLowVoltage(RC_BMSBOARD_VMEASmV_DATATYPE cell_voltage[RC_BMSBOARD_VMEASmV_DATACOUNT], bool &low_voltage_state, int &time_low_voltage_reminder)
+/*void reactLowVoltage(uint16_t cell_voltage[RC_BMSBOARD_VMEASmV_DATACOUNT], bool &low_voltage_state, int &time_low_voltage_reminder)
 {
 	if(low_voltage_state == false && (cell_voltage[RC_BMSBOARD_VMEASmV_PACKENTRY] <= PACK_UNDERVOLTAGE) && (cell_voltage[RC_BMSBOARD_VMEASmV_PACKENTRY] > PACK_UNDERVOLTAGE))
 	{
@@ -255,16 +255,16 @@ void reactUnderVoltage(RC_BMSBOARD_EVENT_DATATYPE event_report[RC_BMSBOARD_EVENT
 	break;
 }//end func*/
 
-void reactOverTemp(RC_BMSBOARD_TEMPMEASmDEGC_DATATYPE batt_temp, bool &overtemp_state)
+void reactOverTemp(uint16_t batt_temp, bool &overtemp_state)
 {
 	if((overtemp_state == false) && (batt_temp >= TEMP_THRESHOLD)) //overtemp_state created to prevent writing the fan outputs 
 	{															  //high every single cycle while temp is above threshold.
 		overtemp_state = true;
-		digitalWrite(FAN_1_CTR, HIGH);
-		digitalWrite(FAN_2_CTR, HIGH);
-		digitalWrite(FAN_3_CTR, HIGH);
-		digitalWrite(FAN_4_CTR, HIGH);
-		digitalWrite(FAN_PWR_IND, HIGH);
+		digitalWrite(FAN_1_CTR_PIN, HIGH);
+		digitalWrite(FAN_2_CTR_PIN, HIGH);
+		digitalWrite(FAN_3_CTR_PIN, HIGH);
+		digitalWrite(FAN_4_CTR_PIN, HIGH);
+		digitalWrite(FAN_PWR_IND_PIN, HIGH);
 	}
 	else if(batt_temp < TEMP_THRESHOLD)
 	{
@@ -295,210 +295,210 @@ void reactForgottenLogicSwitch(int pack_out_voltage, bool &forgotten_logic_switc
 		}//end if
 		if(millis() >= time_switch_forgotten + IDLE_SHUTOFF_TIME)
 		{
-			digitalWrite(LOGIC_SWITCH_CTR, HIGH); //BMS Suicide	
+			digitalWrite(LOGIC_SWITCH_CTR_PIN, HIGH); //BMS Suicide	
 		}//end if
 	}//end if
 	return;
 }//end func
 
-void setEstop(RC_BMSBOARD_SWESTOPs_DATATYPE data)
+void setEstop(uint8_t data)
 {
 	if(data == 0)
 	{
-		digitalWrite(PACK_OUT_CTR, LOW);
-		digitalWrite(PACK_OUT_IND, LOW);
+		digitalWrite(PACK_OUT_CTR_PIN, LOW);
+		digitalWrite(PACK_OUT_IND_PIN, LOW);
 		
 		notifyEstop();
 	}
 	else
 	{
-		digitalWrite(PACK_OUT_CTR, LOW);
-		digitalWrite(PACK_OUT_IND, LOW);
+		digitalWrite(PACK_OUT_CTR_PIN, LOW);
+		digitalWrite(PACK_OUT_IND_PIN, LOW);
 
 		notifyReboot();
 
 		delay(data);
 
-		digitalWrite(PACK_OUT_CTR, HIGH);
-		digitalWrite(PACK_OUT_IND, HIGH);
+		digitalWrite(PACK_OUT_CTR_PIN, HIGH);
+		digitalWrite(PACK_OUT_IND_PIN, HIGH);
 	} //end if
 	return;
 }//end func
 
-void setFans(RC_BMSBOARD_FANEN_DATATYPE data) //make sure command turning fans on does not get overridden by the temp being too low.
+void setFans(uint8_t data) //make sure command turning fans on does not get overridden by the temp being too low.
 {
 	if(data == RC_BMSBOARD_FANEN_ENABLED) //data == 1
 	{
-		digitalWrite(FAN_1_CTR, HIGH);
-		digitalWrite(FAN_2_CTR, HIGH);
-		digitalWrite(FAN_3_CTR, HIGH);
-		digitalWrite(FAN_4_CTR, HIGH);
-		digitalWrite(FAN_PWR_IND, HIGH);
+		digitalWrite(FAN_1_CTR_PIN, HIGH);
+		digitalWrite(FAN_2_CTR_PIN, HIGH);
+		digitalWrite(FAN_3_CTR_PIN, HIGH);
+		digitalWrite(FAN_4_CTR_PIN, HIGH);
+		digitalWrite(FAN_PWR_IND_PIN, HIGH);
 	} //end if
 	if(data == RC_BMSBOARD_FANEN_DISABLED) //data == 0
 	{
-		digitalWrite(FAN_1_CTR, LOW);
-		digitalWrite(FAN_2_CTR, LOW);
-		digitalWrite(FAN_3_CTR, LOW);
-		digitalWrite(FAN_4_CTR, LOW);
-		digitalWrite(FAN_PWR_IND, LOW);
+		digitalWrite(FAN_1_CTR_PIN, LOW);
+		digitalWrite(FAN_2_CTR_PIN, LOW);
+		digitalWrite(FAN_3_CTR_PIN, LOW);
+		digitalWrite(FAN_4_CTR_PIN, LOW);
+		digitalWrite(FAN_PWR_IND_PIN, LOW);
 	} //end if
 	return;
 }//end func
 
 void notifyEstop() //Buzzer sound: beeeeeeeeeeeeeeeeeeeep beeeeeeeeeep beeeeep beeep bep
 {
-	digitalWrite(BUZZER_CTR, HIGH);
-	digitalWrite(SW_ERR, HIGH);
+	digitalWrite(BUZZER_CTR_PIN, HIGH);
+	digitalWrite(SW_ERR_PIN, HIGH);
 	delay(2000);
-	digitalWrite(BUZZER_CTR, LOW);
-	digitalWrite(SW_ERR, LOW);
+	digitalWrite(BUZZER_CTR_PIN, LOW);
+	digitalWrite(SW_ERR_PIN, LOW);
 	delay(250);
 
-	digitalWrite(BUZZER_CTR, HIGH);
-	digitalWrite(SW_ERR, HIGH);
+	digitalWrite(BUZZER_CTR_PIN, HIGH);
+	digitalWrite(SW_ERR_PIN, HIGH);
 	delay(1000);
-	digitalWrite(BUZZER_CTR, LOW);
-	digitalWrite(SW_ERR, LOW);
+	digitalWrite(BUZZER_CTR_PIN, LOW);
+	digitalWrite(SW_ERR_PIN, LOW);
 	delay(250);
 
-	digitalWrite(BUZZER_CTR, HIGH);
-	digitalWrite(SW_ERR, HIGH);
+	digitalWrite(BUZZER_CTR_PIN, HIGH);
+	digitalWrite(SW_ERR_PIN, HIGH);
 	delay(500);
-	digitalWrite(BUZZER_CTR, LOW);
-	digitalWrite(SW_ERR, LOW);
+	digitalWrite(BUZZER_CTR_PIN, LOW);
+	digitalWrite(SW_ERR_PIN, LOW);
 	delay(250);
 
-	digitalWrite(BUZZER_CTR, HIGH);
-	digitalWrite(SW_ERR, HIGH);
+	digitalWrite(BUZZER_CTR_PIN, HIGH);
+	digitalWrite(SW_ERR_PIN, HIGH);
 	delay(250);
-	digitalWrite(BUZZER_CTR, LOW);
-	digitalWrite(SW_ERR, LOW);
+	digitalWrite(BUZZER_CTR_PIN, LOW);
+	digitalWrite(SW_ERR_PIN, LOW);
 	delay(250);
 
-	digitalWrite(BUZZER_CTR, HIGH);
-	digitalWrite(SW_ERR, HIGH);
+	digitalWrite(BUZZER_CTR_PIN, HIGH);
+	digitalWrite(SW_ERR_PIN, HIGH);
 	delay(100);
-	digitalWrite(BUZZER_CTR, LOW);
-	digitalWrite(SW_ERR, LOW);
+	digitalWrite(BUZZER_CTR_PIN, LOW);
+	digitalWrite(SW_ERR_PIN, LOW);
 
 	return;
 }//end func
 
 void notifyLogicSwitch() //Buzzer sound: beeep beeep
 {
-	digitalWrite(BUZZER_CTR, HIGH);
-	digitalWrite(SW_ERR, HIGH);
+	digitalWrite(BUZZER_CTR_PIN, HIGH);
+	digitalWrite(SW_ERR_PIN, HIGH);
 	delay(250);
-	digitalWrite(BUZZER_CTR, LOW);
-	digitalWrite(SW_ERR, LOW);
+	digitalWrite(BUZZER_CTR_PIN, LOW);
+	digitalWrite(SW_ERR_PIN, LOW);
 	delay(250);
 
-	digitalWrite(BUZZER_CTR, HIGH);
-	digitalWrite(SW_ERR, HIGH);
+	digitalWrite(BUZZER_CTR_PIN, HIGH);
+	digitalWrite(SW_ERR_PIN, HIGH);
 	delay(250);
-	digitalWrite(BUZZER_CTR, LOW);
-	digitalWrite(SW_ERR, LOW);
+	digitalWrite(BUZZER_CTR_PIN, LOW);
+	digitalWrite(SW_ERR_PIN, LOW);
 
 	return;
 }//end func
 
 void notifyReboot() //Buzzer sound: beeeeeeeeeep beeep beeep
 {
-	digitalWrite(BUZZER_CTR, HIGH);
-	digitalWrite(SW_ERR, HIGH);
+	digitalWrite(BUZZER_CTR_PIN, HIGH);
+	digitalWrite(SW_ERR_PIN, HIGH);
 	delay(1000);
-	digitalWrite(BUZZER_CTR, LOW);
-	digitalWrite(SW_ERR, LOW);
+	digitalWrite(BUZZER_CTR_PIN, LOW);
+	digitalWrite(SW_ERR_PIN, LOW);
 	delay(250);
 
-	digitalWrite(BUZZER_CTR, HIGH);
-	digitalWrite(SW_ERR, HIGH);
+	digitalWrite(BUZZER_CTR_PIN, HIGH);
+	digitalWrite(SW_ERR_PIN, HIGH);
 	delay(250);
-	digitalWrite(BUZZER_CTR, LOW);
-	digitalWrite(SW_ERR, LOW);
+	digitalWrite(BUZZER_CTR_PIN, LOW);
+	digitalWrite(SW_ERR_PIN, LOW);
 	delay(250);
 
-	digitalWrite(BUZZER_CTR, HIGH);
-	digitalWrite(SW_ERR, HIGH);
+	digitalWrite(BUZZER_CTR_PIN, HIGH);
+	digitalWrite(SW_ERR_PIN, HIGH);
 	delay(250);
-	digitalWrite(BUZZER_CTR, LOW);
-	digitalWrite(SW_ERR, LOW);
+	digitalWrite(BUZZER_CTR_PIN, LOW);
+	digitalWrite(SW_ERR_PIN, LOW);
 
 	return;
 }//end func
 
 void notifyOverCurrent() //Buzzer Sound: beeeeeeeeeeeeeeeeeeeeeeeeeeeeeep
 {
-	digitalWrite(BUZZER_CTR, HIGH);
-	digitalWrite(SW_ERR, HIGH);
+	digitalWrite(BUZZER_CTR_PIN, HIGH);
+	digitalWrite(SW_ERR_PIN, HIGH);
 	delay(3000);
-	digitalWrite(BUZZER_CTR, LOW);
-	digitalWrite(SW_ERR, LOW);
+	digitalWrite(BUZZER_CTR_PIN, LOW);
+	digitalWrite(SW_ERR_PIN, LOW);
 
 	return;
 }//end func
 
 void notifyUnderVoltage() //Buzzer Sound: beeep beeep beeep beeep beeeeeeeeeeeeeeeeeeeep
 {
-	digitalWrite(BUZZER_CTR, HIGH);
-	digitalWrite(SW_ERR, HIGH);
+	digitalWrite(BUZZER_CTR_PIN, HIGH);
+	digitalWrite(SW_ERR_PIN, HIGH);
 	delay(250);
-	digitalWrite(BUZZER_CTR, LOW);
-	digitalWrite(SW_ERR, LOW);
-	delay(250);
-
-	digitalWrite(BUZZER_CTR, HIGH);
-	digitalWrite(SW_ERR, HIGH);
-	delay(250);
-	digitalWrite(BUZZER_CTR, LOW);
-	digitalWrite(SW_ERR, LOW);
+	digitalWrite(BUZZER_CTR_PIN, LOW);
+	digitalWrite(SW_ERR_PIN, LOW);
 	delay(250);
 
-	digitalWrite(BUZZER_CTR, HIGH);
-	digitalWrite(SW_ERR, HIGH);
+	digitalWrite(BUZZER_CTR_PIN, HIGH);
+	digitalWrite(SW_ERR_PIN, HIGH);
 	delay(250);
-	digitalWrite(BUZZER_CTR, LOW);
-	digitalWrite(SW_ERR, LOW);
-	delay(250);
-
-	digitalWrite(BUZZER_CTR, HIGH);
-	digitalWrite(SW_ERR, HIGH);
-	delay(250);
-	digitalWrite(BUZZER_CTR, LOW);
-	digitalWrite(SW_ERR, LOW);
+	digitalWrite(BUZZER_CTR_PIN, LOW);
+	digitalWrite(SW_ERR_PIN, LOW);
 	delay(250);
 
-	digitalWrite(BUZZER_CTR, HIGH);
-	digitalWrite(SW_ERR, HIGH);
+	digitalWrite(BUZZER_CTR_PIN, HIGH);
+	digitalWrite(SW_ERR_PIN, HIGH);
+	delay(250);
+	digitalWrite(BUZZER_CTR_PIN, LOW);
+	digitalWrite(SW_ERR_PIN, LOW);
+	delay(250);
+
+	digitalWrite(BUZZER_CTR_PIN, HIGH);
+	digitalWrite(SW_ERR_PIN, HIGH);
+	delay(250);
+	digitalWrite(BUZZER_CTR_PIN, LOW);
+	digitalWrite(SW_ERR_PIN, LOW);
+	delay(250);
+
+	digitalWrite(BUZZER_CTR_PIN, HIGH);
+	digitalWrite(SW_ERR_PIN, HIGH);
 	delay(2000);
-	digitalWrite(BUZZER_CTR, LOW);
-	digitalWrite(SW_ERR, LOW);
+	digitalWrite(BUZZER_CTR_PIN, LOW);
+	digitalWrite(SW_ERR_PIN, LOW);
 
 	return;
 }//end func
 
 void notifyLowVoltage() //Buzzer Sound: beeep beeep beeep
 {
-	digitalWrite(BUZZER_CTR, HIGH);
-	digitalWrite(SW_ERR, HIGH);
+	digitalWrite(BUZZER_CTR_PIN, HIGH);
+	digitalWrite(SW_ERR_PIN, HIGH);
 	delay(250);
-	digitalWrite(BUZZER_CTR, LOW);
-	digitalWrite(SW_ERR, LOW);
-	delay(250);
-
-	digitalWrite(BUZZER_CTR, HIGH);
-	digitalWrite(SW_ERR, HIGH);
-	delay(250);
-	digitalWrite(BUZZER_CTR, LOW);
-	digitalWrite(SW_ERR, LOW);
+	digitalWrite(BUZZER_CTR_PIN, LOW);
+	digitalWrite(SW_ERR_PIN, LOW);
 	delay(250);
 
-	digitalWrite(BUZZER_CTR, HIGH);
-	digitalWrite(SW_ERR, HIGH);
+	digitalWrite(BUZZER_CTR_PIN, HIGH);
+	digitalWrite(SW_ERR_PIN, HIGH);
 	delay(250);
-	digitalWrite(BUZZER_CTR, LOW);
-	digitalWrite(SW_ERR, LOW);
+	digitalWrite(BUZZER_CTR_PIN, LOW);
+	digitalWrite(SW_ERR_PIN, LOW);
+	delay(250);
+
+	digitalWrite(BUZZER_CTR_PIN, HIGH);
+	digitalWrite(SW_ERR_PIN, HIGH);
+	delay(250);
+	digitalWrite(BUZZER_CTR_PIN, LOW);
+	digitalWrite(SW_ERR_PIN, LOW);
 
 	return;
 }//end func

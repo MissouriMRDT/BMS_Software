@@ -9,16 +9,9 @@
 #include "BMS_Software_Functions.h" 
 #include "BMS_Software_Main.h"
 
-/*
-// Standard C
-#include <stdbool.h>
-#include <stddef.h>
-#include <stdint.h>
-*/ //May not need standard C
-
 RoveCommEthernetUdp RoveComm; //Extantiates a class
 
-// Function Declarations ////////////////////////////////////////////////////////////
+// Setup & Main Loop ////////////////////////////////////////////////////////////
 //
 void setup()
 {
@@ -37,10 +30,10 @@ void setup()
 void loop()
 {
 	uint16_t main_current;
-	uint16_t cell_voltages[RC_BMSBOARD_VMEASmV_DATACOUNT]; //??"cell_voltages." Is the 's' there for a reason?
-	RC_BMSBOARD_TEMPMEASmDEGC_DATATYPE batt_temp;
+	uint16_t cell_voltages[RC_BMSBOARD_VMEASmV_DATACOUNT];
 	int pack_out_voltage;
-	RC_BMSBOARD_EVENT_DATATYPE event_report[RC_BMSBOARD_EVENT_DATACOUNT];
+  uint16_t batt_temp;
+	uint8_t error_report[RC_BMSBOARD_ERROR_DATACOUNT];
   int num_overcurrent = 0;
   float time_of_overcurrent = 0;
   bool overtemp_state = false;
@@ -63,13 +56,13 @@ void loop()
 	RoveComm.write(RC_BMSBOARD_TEMPMEASmDEGC_HEADER, batt_temp);
   delay(ROVECOMM_DELAY);
 
-  checkOverCurrent(event_report);
-  checkUnderVoltage(event_report);
+  checkOverCurrent(error_report);
+  checkUnderVoltage(error_report);
 
-  RoveComm.write(RC_BMSBOARD_EVENT_HEADER, event_report);
+  RoveComm.write(RC_BMSBOARD_ERROR_HEADER, error_report);
 
-  reactOverCurrent(event_report, num_overcurrent, time_of_overcurrent);
-  reactUnderVoltage(event_report);
+  reactOverCurrent(error_report, num_overcurrent, time_of_overcurrent);
+  reactUnderVoltage(error_report);
   //reactLowVoltage();
   reactOverTemp(batt_temp, overtemp_state);
   reactForgottenLogicSwitch(pack_out_voltage, forgotten_logic_switch, time_switch_forgotten, time_switch_reminder);

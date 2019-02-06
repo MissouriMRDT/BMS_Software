@@ -16,34 +16,34 @@
 // Pinmap //////////////////////////////////////////////////////////////////////////
 //
 // Control Pins
-#define PACK_OUT_CTR 			PD_1
-#define PACK_OUT_IND 			PQ_2
-#define LOGIC_SWITCH_CTR		PD_0
-#define BUZZER_CTR				PN_2
-#define FAN_1_CTR				PH_2
-#define FAN_2_CTR				PH_3
-#define FAN_3_CTR				PL_5
-#define FAN_4_CTR				PL_4
-#define FAN_PWR_IND				PF_1
-#define SW_IND					PQ_3
-#define SW_ERR					PP_3
+#define PACK_OUT_CTR_PIN 		PD_1
+#define PACK_OUT_IND_PIN 		PQ_2
+#define LOGIC_SWITCH_CTR_PIN	PD_0
+#define BUZZER_CTR_PIN			PN_2
+#define FAN_1_CTR_PIN			PH_2
+#define FAN_2_CTR_PIN			PH_3
+#define FAN_3_CTR_PIN			PL_5
+#define FAN_4_CTR_PIN			PL_4
+#define FAN_PWR_IND_PIN			PF_1
+#define SW_IND_PIN				PQ_3
+#define SW_ERR_PIN				PP_3
 
 // Sensor Volts/Amps Readings Pins
-#define PACK_I_MEAS				PE_0
-#define PACK_V_MEAS				PE_1 //Measures voltage outputting to rover. Will read zero if PACK_OUT_CTR is LOW.
-#define LOGIC_V_MEAS			PE_2 //Measures total voltage of pack continuously while logic switch is on. 
-#define TEMP_degC_MEAS			PM_3
-#define C1_V_MEAS				PK_3 //CELL 1 - GND
-#define C2_V_MEAS				PK_2 //CELL 2 - CELL 1
-#define C3_V_MEAS				PK_1 //CELL 3 - CELL 2
-#define C4_V_MEAS				PK_0 //CELL 4 - CELL 3
-#define C5_V_MEAS				PB_5 //CELL 5 - CELL 4
-#define C6_V_MEAS				PB_4 //CELL 6 - CELL 5
-#define C7_V_MEAS				PD_5 //CELL 7 - CELL 6
-#define C8_V_MEAS				PD_4 //CELL 8 - CELL 7
+#define PACK_I_MEAS_PIN			PE_0
+#define PACK_V_MEAS_PIN			PE_1 //Measures voltage outputting to rover. Will read zero if PACK_OUT_CTR is LOW.
+#define LOGIC_V_MEAS_PIN		PE_2 //Measures total voltage of pack continuously while logic switch is on. 
+#define TEMP_degC_MEAS_PIN		PM_3
+#define C1_V_MEAS_PIN			PK_3 //CELL 1 - GND
+#define C2_V_MEAS_PIN			PK_2 //CELL 2 - CELL 1
+#define C3_V_MEAS_PIN			PK_1 //CELL 3 - CELL 2
+#define C4_V_MEAS_PIN			PK_0 //CELL 4 - CELL 3
+#define C5_V_MEAS_PIN			PB_5 //CELL 5 - CELL 4
+#define C6_V_MEAS_PIN			PB_4 //CELL 6 - CELL 5
+#define C7_V_MEAS_PIN			PD_5 //CELL 7 - CELL 6
+#define C8_V_MEAS_PIN			PD_4 //CELL 8 - CELL 7
 
-const int CELL_MEAS_PINS[] = {LOGIC_V_MEAS, C1_V_MEAS, C2_V_MEAS, C3_V_MEAS, 
- 							  C4_V_MEAS, C5_V_MEAS, C6_V_MEAS, C7_V_MEAS, C8_V_MEAS};
+const int CELL_MEAS_PINS[] = {LOGIC_V_MEAS_PIN, C1_V_MEAS_PIN, C2_V_MEAS_PIN, C3_V_MEAS_PIN, 
+ 							  C4_V_MEAS_PIN, C5_V_MEAS_PIN, C6_V_MEAS_PIN, C7_V_MEAS_PIN, C8_V_MEAS_PIN};
 
 // Sensor Measurment: Constants and Calculations ////////////////////////////////////////////////
 //

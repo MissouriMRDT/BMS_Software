@@ -21,16 +21,16 @@ void setOutputPins();
 void setOutputStates();
 
 
-void getMainCurrent(RC_BMSBOARD_MAINIMEASmA_DATATYPE &main_current);
+void getMainCurrent(uint16_t &main_current);
 
 
-void getCellVoltage(RC_BMSBOARD_VMEASmV_DATATYPE cell_voltage[RC_BMSBOARD_VMEASmV_DATACOUNT]); //??How is cell_voltage[] passed back to cpp?
+void getCellVoltage(uint16_t cell_voltage[RC_BMSBOARD_VMEASmV_DATACOUNT]); //??How is cell_voltage[] passed back to cpp?
 
 
 void getOutVoltage(int &pack_out_voltage);
 
 
-void getBattTemp(RC_BMSBOARD_TEMPMEASmDEGC_DATATYPE &batt_temp);
+void getBattTemp(uint16_t &batt_temp);
 
 
 bool singleDebounceCurrent(int bouncing_pin, int overcurrent_threshold); // Checks the pin for bouncing voltages to avoid false positives
@@ -39,28 +39,28 @@ bool singleDebounceCurrent(int bouncing_pin, int overcurrent_threshold); // Chec
 bool singleDebounceVoltage(int bouncing_pin, int undervoltage_threshold, int volts_max, int volts_safety_low);
 
 
-void checkOverCurrent(RC_BMSBOARD_EVENT_DATATYPE event_report[RC_BMSBOARD_EVENT_DATACOUNT]);
+void checkOverCurrent(uint8_t error_report[RC_BMSBOARD_ERROR_DATACOUNT]);
 
 
-void checkUnderVoltage(RC_BMSBOARD_EVENT_DATATYPE event_report[RC_BMSBOARD_EVENT_DATACOUNT]);
+void checkUnderVoltage(uint8_t error_report[RC_BMSBOARD_ERROR_DATACOUNT]);
 
 
-void reactOverCurrent(RC_BMSBOARD_EVENT_DATATYPE event_report[RC_BMSBOARD_EVENT_DATACOUNT], int &num_overcurrent, float &time_of_overcurrent);
+void reactOverCurrent(uint8_t error_report[RC_BMSBOARD_ERROR_DATACOUNT], int &num_overcurrent, float &time_of_overcurrent);
 
 
-void reactUnderVoltage(RC_BMSBOARD_EVENT_DATATYPE event_report[RC_BMSBOARD_EVENT_DATACOUNT]);
+void reactUnderVoltage(uint8_t error_report[RC_BMSBOARD_ERROR_DATACOUNT]);
 
 
-void reactOverTemp(RC_BMSBOARD_TEMPMEASmDEGC_DATATYPE batt_temp, bool &overtemp_state);
+void reactOverTemp(uint16_t batt_temp, bool &overtemp_state);
 
 
 void reactForgottenLogicSwitch(int pack_out_voltage, bool &forgotten_logic_switch, int &time_switch_forgotten, int &time_switch_reminder);
 
 
-void setEstop(RC_BMSBOARD_SWESTOPs_DATATYPE data);
+void setEstop(uint8_t data);
 
 
-void setFans(RC_BMSBOARD_FANEN_DATATYPE data); //make sure command turning fans on does not get overridden by the temp being too low.
+void setFans(uint8_t data); //make sure command turning fans on does not get overridden by the temp being too low.
 
 
 void notifyEstop(); //Buzzer sound: beeeeeeeeeeeeeeeeeeeep beeeeeeeeeep beeeeep beeep bep
