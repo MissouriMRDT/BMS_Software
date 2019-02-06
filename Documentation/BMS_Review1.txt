@@ -1,15 +1,15 @@
-Name types for rovecomm data
-Create and test ADC_MAX for current, every single cell volts, and pack volts
-consider adjusting ADC_MIN to reduce the size of the window measured. Make the lowest possible value I expect the new ADC_MIN
-on pin #defines add "_PIN"
-in getmaincurrent dont define adc_reading by itself, analogread inside the map functions
-could rewrite getoutvoltage to return voltage value instead of it passing by reference
-instead of single debounce, count number of times overcurrent or undervoltage happens and react by turning off rover after a number of loops go bywith overcurrent
-change event to error; make it uint8_t; consider breaking it up into more dataids to simplify code; 
+DONE: Name types for rovecomm data
+Need to test: Create and test ADC_MAX for current, every single cell volts, and pack volts
+	consider adjusting ADC_MIN to reduce the size of the window measured. Make the lowest possible value I expect the new ADC_MIN
+DONE: on pin #defines add "_PIN"
+DONE: in getmaincurrent dont define adc_reading by itself, analogread inside the map functions
+DONE: could rewrite getoutvoltage to return voltage value instead of it passing by reference
+DONE: instead of single debounce, count number of times overcurrent or undervoltage happens and react by turning off rover after a number of loops go bywith overcurrent
+DONE: change event to error; make it uint8_t; consider breaking it up into more dataids to simplify code; 
 If voltage does read as zero, send a different number than 1 which would tell red that a wire was broken, not that the cell is actually low
-for variables like, "num_overcurrent", declare those as static int blah in the functions.cpp at top before all the functions. Then num_overcurrent wouldn't need to be an argument in the function, so take it out.
-change recheck_delay to be shorter (10s)
-Add rovecomm_delays before turning off rover to allow comms to get to basestation
-use else if on setestop
+DONE: for variables like, "num_overcurrent", declare those as static int blah in the functions.cpp at top before all the functions. Then num_overcurrent wouldn't need to be an argument in the function, so take it out.
+DONE: change recheck_delay to be shorter (10s)
+DONE: Add rovecomm_delays before turning off rover to allow comms to get to basestation
+DONE: use else if on setestop
 notify functions wont work so replace with tone(). Use serial monitor for unit tests
 

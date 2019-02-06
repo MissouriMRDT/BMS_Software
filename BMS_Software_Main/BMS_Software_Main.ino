@@ -34,14 +34,8 @@ void loop()
 	int pack_out_voltage;
   uint16_t batt_temp;
 	uint8_t error_report[RC_BMSBOARD_ERROR_DATACOUNT];
-  int num_overcurrent = 0;
-  float time_of_overcurrent = 0;
-  bool overtemp_state = false;
-  //bool low_voltage_state = false;
-  bool forgotten_logic_switch = false;
-  int time_switch_forgotten = 0;
-  int time_switch_reminder = 0;
-  //int time_low_voltage_reminder = 0;
+  static int num_loop = 0;
+  static bool sw_ind_state = false;
 	rovecomm_packet packet;
 
 	getMainCurrent(main_current);
@@ -59,9 +53,7 @@ void loop()
   checkOverCurrent(error_report);
   checkUnderVoltage(error_report);
 
-  RoveComm.write(RC_BMSBOARD_ERROR_HEADER, error_report);
-
-  reactOverCurrent(error_report, num_overcurrent, time_of_overcurrent);
+  reactOverCurrent(error_report);
   reactUnderVoltage(error_report);
   //reactLowVoltage();
   reactOverTemp(batt_temp, overtemp_state);
@@ -84,12 +76,23 @@ void loop()
           setEstop(packet.data[0]);
           break;
         }
-        case RC_BMSBOARD_FANEN_DATAID:
-        {
-          setFans(packet.data[0]);
-          break;
-        }
+        //expand by adding more cases if more dataids are created
       } //end switch
     } //end if
 
+    if(num_loop % BLINK_ON_LOOP == 0) //SW_IND led will blink while the code is looping
+    {
+      if(sw_ind_state == false)
+      {
+        digitalWrite(SW_IND_PIN, HIGH);
+        sw_ind_state = true;
+      }//end if
+      if(sw_ind_state == true)
+      {
+        digitalWrite(SW_IND_PIN, LOW);
+        sw_ind_state = false;
+      }//end if
+    }//end if
+
+    num_loop++;
 } //end loop

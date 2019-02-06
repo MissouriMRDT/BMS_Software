@@ -49,8 +49,8 @@ const int CELL_MEAS_PINS[] = {LOGIC_V_MEAS_PIN, C1_V_MEAS_PIN, C2_V_MEAS_PIN, C3
 //
 // Tiva1294C RoveBoard Specs
 #define VCC                 	3300 //mV
-#define ADC_MAX            		1024 //bits
-#define ADC_MIN            		0 //bits
+//#define TIVA_ADC_MAX            1024 //bits
+//#define TIVA_MIN            	0 //bits
 
 // ACS759ECB-200B-PFF-T Current Sensor Specs
 	// Find at: https://www.digikey.com/products/en?keywords=%20620-1466-5-ND%20
@@ -61,6 +61,8 @@ const int CELL_MEAS_PINS[] = {LOGIC_V_MEAS_PIN, C1_V_MEAS_PIN, C2_V_MEAS_PIN, C3
 #define CURRENT_MAX         	(VCC - SENSOR_BIAS - 330) / SENSOR_SENSITIVITY //mA; Current values must be sent over RoveComm as mA
 #define CURRENT_MIN         	-(SENSOR_BIAS - 330) / SENSOR_SENSITIVITY //mA
 #define OVERCURRENT				50000 //mA //TODO: This value should be lower, but where?
+#define CURRENT_ADC_MIN			0 //bits  TODO: Must test ADC MIN & MAX with hardware and adjust these values
+#define CURRENT_ADC_MAX			1024 //bits
 
 // Voltage Measurments
 #define VOLTS_MIN           	0 //mV
@@ -72,6 +74,10 @@ const int CELL_MEAS_PINS[] = {LOGIC_V_MEAS_PIN, C1_V_MEAS_PIN, C2_V_MEAS_PIN, C3
 #define CELL_UNDERVOLTAGE		2700 //mV
 #define CELL_SAFETY_LOW			CELL_UNDERVOLTAGE - 1000 //mV
 #define PACK_OUT_OFF			VOLTS_MIN + 5000 //mV
+#define PACK_V_ADC_MIN			0 //bits  TODO: Must test ADC MIN & MAX with hardware and adjust these values
+#define PACK_V_ADC_MAX			1024 //bits
+#define CELL_V_ADC_MIN			0 //bits  TODO: Must test ADC MIN & MAX with hardware and adjust these values
+#define CELL_V_ADC_MAX			1024 //bits
 
 // TMP37 Temp Sensor Specs 
 	//Find at: https://www.digikey.com/products/en?mpart=TMP37FT9Z&v=505
@@ -80,13 +86,16 @@ const int CELL_MEAS_PINS[] = {LOGIC_V_MEAS_PIN, C1_V_MEAS_PIN, C2_V_MEAS_PIN, C3
 #define	TEMP_MIN   				0 //TODO: test temp conversions with a thermometer.
 #define TEMP_MAX   				160000 //mdeg C
 #define TEMP_THRESHOLD			38000 //mdeg C  //About 100 degF
+#define TEMP_ADC_MIN			0 //bits  TODO: Must test ADC MIN & MAX with hardware and adjust these values
+#define TEMP_ADC_MAX			1024 //bits
 
 // Delay Constants
-#define ROVECOMM_DELAY			10 //msec
+#define ROVECOMM_DELAY			5 //msec
 #define DEBOUNCE_DELAY			10 //msec
 #define RESTART_DELAY			5000 //msec
-#define RECHECK_DELAY			40000 //msec
+#define RECHECK_DELAY			10000 //msec
 #define LOGIC_SWITCH_REMINDER	60000 //msec
 #define IDLE_SHUTOFF_TIME		2400000 //msec or 40 minutes
+#define BLINK_ON_LOOP			5 //loops
 
 #endif
