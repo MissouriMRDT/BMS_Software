@@ -26,6 +26,7 @@ static bool overtemp_state = false;
 static bool fans_on = false;
 	//Logic Switch
 static bool forgotten_logic_switch = false;
+static int num_out_voltage_loops = 0;
 static int time_switch_forgotten = 0;
 static int time_switch_reminder = 0;
 
@@ -104,17 +105,57 @@ void getMainCurrent(uint16_t &main_current)
 	return;
 }//end func
 
-void getCellVoltage(uint16_t cell_voltage[RC_BMSBOARD_VMEASmV_DATACOUNT])
+void getCellVoltage(uint16_t cell_voltage[RC_BMSBOARD_VMEASmV_DATACOUNT], uint8_t error_report[RC_BMSBOARD_ERROR_DATACOUNT])
 { 	
  	for(int i = 0; i<RC_BMSBOARD_VMEASmV_DATACOUNT; i++)
  	{
  	  if (i == RC_BMSBOARD_VMEASmV_PACKENTRY)
  	  {
  	  	cell_voltage[RC_BMSBOARD_VMEASmV_PACKENTRY] = map(analogRead(CELL_MEAS_PINS[RC_BMSBOARD_VMEASmV_PACKENTRY]), PACK_V_ADC_MIN, PACK_V_ADC_MAX, VOLTS_MIN, PACK_VOLTS_MAX);
+ 	 
+ 	 	if(cell_voltage[RC_BMSBOARD_VMEASmV_PACKENTRY] < PACK_SAFETY_LOW)
+		{
+			delay(DEBOUNCE_DELAY);
+
+			if(map(analogRead(CELL_MEAS_PINS[RC_BMSBOARD_VMEASmV_PACKENTRY]), PACK_V_ADC_MIN, PACK_V_ADC_MAX, VOLTS_MIN, PACK_VOLTS_MAX) < PACK_SAFETY_LOW)
+			{
+				pack_undervoltage_state = true;
+
+				error_report[RC_BMSBOARD_ERROR_PACKENTRY] = RC_BMSBOARD_ERROR_UNDERVOLTAGE;
+				RoveComm.write(RC_BMSBOARD_ERROR_HEADER, error_report);
+				delay(DEBOUNCE_DELAY);
+			} 
+		}
+ 	 	if(cell_voltage[RC_BMSBOARD_VMEASmV_PACKENTRY] < PACK_EFFECTIVE_ZERO)
+ 	 	{
+ 	 		error_report[RC_BMSBOARD_ERROR_PACKENTRY] = RC_BMSBOARD_ERROR_PINFAULT;
+			RoveComm.write(RC_BMSBOARD_ERROR_HEADER, error_report);
+			delay(DEBOUNCE_DELAY);
+ 	 	}
  	  }
  	  else
  	  {
  	  	cell_voltage[i] = map(analogRead(CELL_MEAS_PINS[i]), CELL_V_ADC_MIN, CELL_V_ADC_MAX, VOLTS_MIN, CELL_VOLTS_MAX);
+
+ 	  	if(cell_voltage[i] < CELL_SAFETY_LOW)
+		{
+			delay(DEBOUNCE_DELAY);
+
+			if(map(analogRead(CELL_MEAS_PINS[i]), CELL_V_ADC_MIN, CELL_V_ADC_MAX, VOLTS_MIN, CELL_VOLTS_MAX) < CELL_SAFETY_LOW)
+			{
+				cell_undervoltage_state = true;
+
+				error_report[i] = RC_BMSBOARD_ERROR_UNDERVOLTAGE;
+				RoveComm.write(RC_BMSBOARD_ERROR_HEADER, error_report);
+				delay(DEBOUNCE_DELAY);
+			} 
+		}
+ 	  	if(cell_voltage[i] < CELL_EFFECTIVE_ZERO)
+ 	  	{
+ 	  		error_report[i] = RC_BMSBOARD_ERROR_PINFAULT;
+			RoveComm.write(RC_BMSBOARD_ERROR_HEADER, error_report);
+			delay(DEBOUNCE_DELAY);
+ 	  	}
  	  } //end if
  	  return;
  	} //end for
@@ -127,14 +168,16 @@ void getOutVoltage(int &pack_out_voltage)
   	if(pack_out_voltage > PACK_SAFETY_LOW)
   	{
   		forgotten_logic_switch = false;
+  		time_switch_forgotten = 0;
   	}
-  	if(pack_out_voltage < PACK_OUT_OFF)
+  	if(pack_out_voltage < PACK_EFFECTIVE_ZERO)
 	{
 		delay(DEBOUNCE_DELAY);
 
 		if(map(analogRead(PACK_V_MEAS_PIN), PACK_V_ADC_MIN, PACK_V_ADC_MAX, VOLTS_MIN, PACK_VOLTS_MAX))
 		{
 			forgotten_logic_switch = true;
+			num_out_voltage_loops++;
 		} 
 	}
   	return;
@@ -197,14 +240,14 @@ void reactOverCurrent(uint8_t error_report[RC_BMSBOARD_ERROR_DATACOUNT])
 { //TODO: RED will see overcurrent for 10sec before recheck time is up.
 	if(overcurrent_state == false)
 	{
-		error_report[RC_BMSBOARD_ERROR_PACKOVERCURRENT] = RC_BMSBOARD_ERROR_HASNOTOCCURED;
+		error_report[RC_BMSBOARD_ERROR_PACKENTRY] = RC_BMSBOARD_ERROR_OVERCURRENT;
 	}//end if
 	if(overcurrent_state == true)
 	{
 		switch(num_overcurrent)
 		{
 			case 0:
-				error_report[RC_BMSBOARD_ERROR_PACKOVERCURRENT] = RC_BMSBOARD_ERROR_OCCURED;
+				error_report[RC_BMSBOARD_ERROR_PACKENTRY] = RC_BMSBOARD_ERROR_OVERCURRENT;
 				RoveComm.write(RC_BMSBOARD_ERROR_HEADER, error_report);
 				delay(ROVECOMM_DELAY);
 		
@@ -230,7 +273,7 @@ void reactOverCurrent(uint8_t error_report[RC_BMSBOARD_ERROR_DATACOUNT])
 				}//end if
 			
 			case 2:
-				error_report[RC_BMSBOARD_ERROR_PACKOVERCURRENT] = RC_BMSBOARD_ERROR_OCCURED;
+				error_report[RC_BMSBOARD_ERROR_PACKENTRY] = RC_BMSBOARD_ERROR_OVERCURRENT;
 				RoveComm.write(RC_BMSBOARD_ERROR_HEADER, error_report);
 				delay(ROVECOMM_DELAY);
 			
@@ -249,18 +292,15 @@ void reactOverCurrent(uint8_t error_report[RC_BMSBOARD_ERROR_DATACOUNT])
 
 void reactUnderVoltage(uint8_t error_report[RC_BMSBOARD_ERROR_DATACOUNT])
 {
-	for(int i = 0; i < (RC_BMSBOARD_ERROR_DATACOUNT - 1); i++)
+	if(pack_undervoltage_state == true || cell_undervoltage_state == true)
 	{
-		if(error_report[i] == RC_BMSBOARD_ERROR_OCCURED)
-		{
-			digitalWrite(PACK_OUT_CTR_PIN, LOW);
-			digitalWrite(PACK_OUT_IND_PIN, LOW);
+		digitalWrite(PACK_OUT_CTR_PIN, LOW);
+		digitalWrite(PACK_OUT_IND_PIN, LOW);
 
-			notifyUnderVoltage();
+		notifyUnderVoltage();
 
-			digitalWrite(LOGIC_SWITCH_CTR_PIN, HIGH); //BMS Suicide
-		} //end if
-	} //end for
+		digitalWrite(LOGIC_SWITCH_CTR_PIN, HIGH); //BMS Suicide
+	}
 	return;
 }//end func
 
@@ -296,30 +336,27 @@ void reactOverTemp()
 	return;
 }//end func
 
-void reactForgottenLogicSwitch(int pack_out_voltage)
+void reactForgottenLogicSwitch()
 {
-	if((forgotten_logic_switch == false) && (pack_out_voltage <= PACK_OUT_OFF))
-	{
-		forgotten_logic_switch = true;
-		time_switch_forgotten = millis();
-		time_switch_reminder = millis();
-	}
 	if(forgotten_logic_switch == true)
 	{
-		if(pack_out_voltage > PACK_SAFETY_LOW)
+		if(num_out_voltage_loops == 1)
 		{
-			forgotten_logic_switch = false;
-			time_switch_forgotten = 0;	
-		}//end if
-		if(millis() >= time_switch_reminder + LOGIC_SWITCH_REMINDER)
-		{
+			time_switch_forgotten = millis();
 			time_switch_reminder = millis();
-			notifyLogicSwitch();
-		}//end if
-		if(millis() >= time_switch_forgotten + IDLE_SHUTOFF_TIME)
+		}
+		if(num_out_voltage_loops > 1)
 		{
-			digitalWrite(LOGIC_SWITCH_CTR_PIN, HIGH); //BMS Suicide	
-		}//end if
+			if(millis() >= time_switch_reminder + LOGIC_SWITCH_REMINDER)
+			{
+				time_switch_reminder = millis();
+				notifyLogicSwitch();
+			}//end if
+			if(millis() >= time_switch_forgotten + IDLE_SHUTOFF_TIME)
+			{
+				digitalWrite(LOGIC_SWITCH_CTR_PIN, HIGH); //BMS Suicide	
+			}//end if		
+		}//end if	
 	}//end if
 	return;
 }//end func

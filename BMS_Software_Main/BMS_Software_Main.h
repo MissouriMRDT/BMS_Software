@@ -6,11 +6,11 @@
 //
 // Libraries ///////////////////////////////////////////////////////////////////////
 //
-#ifndef BMS_Software_Functions
-#define BMS_Software_Functions
+#ifndef BMS_Software_Main
+#define BMS_Software_Main
 
 #include <Energia.h>
-#include "RoveComm.h"
+
 //
 //
 // Pinmap //////////////////////////////////////////////////////////////////////////
@@ -73,7 +73,8 @@ const int CELL_MEAS_PINS[] = {LOGIC_V_MEAS_PIN, C1_V_MEAS_PIN, C2_V_MEAS_PIN, C3
 #define PACK_SAFETY_LOW			PACK_UNDERVOLTAGE - 4000 //mV
 #define CELL_UNDERVOLTAGE		2700 //mV
 #define CELL_SAFETY_LOW			CELL_UNDERVOLTAGE - 1000 //mV
-#define PACK_OUT_OFF			VOLTS_MIN + 5000 //mV
+#define PACK_EFFECTIVE_ZERO		5000 //mV
+#define CELL_EFFECTIVE_ZERO		1000 //mV		
 #define PACK_V_ADC_MIN			0 //bits  TODO: Must test ADC MIN & MAX with hardware and adjust these values
 #define PACK_V_ADC_MAX			1024 //bits
 #define CELL_V_ADC_MIN			0 //bits  TODO: Must test ADC MIN & MAX with hardware and adjust these values

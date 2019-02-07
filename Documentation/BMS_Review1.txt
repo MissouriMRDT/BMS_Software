@@ -13,3 +13,5 @@ DONE: Add rovecomm_delays before turning off rover to allow comms to get to base
 DONE: use else if on setestop
 notify functions wont work so replace with tone(). Use serial monitor for unit tests
 
+rewrite forgottenLogicSwitch(), getCellVoltage(), and reactUnderVoltage()
+

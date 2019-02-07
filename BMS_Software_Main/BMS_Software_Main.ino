@@ -9,8 +9,6 @@
 #include "BMS_Software_Functions.h" 
 #include "BMS_Software_Main.h"
 
-RoveCommEthernetUdp RoveComm; //Extantiates a class
-
 // Setup & Main Loop ////////////////////////////////////////////////////////////
 //
 void setup()
@@ -39,7 +37,7 @@ void loop()
 	rovecomm_packet packet;
 
 	getMainCurrent(main_current);
-	getCellVoltage(cell_voltages);
+	getCellVoltage(cell_voltages, error_report);
 	getOutVoltage(pack_out_voltage);
 	getBattTemp(batt_temp);
 	
@@ -50,14 +48,11 @@ void loop()
 	RoveComm.write(RC_BMSBOARD_TEMPMEASmDEGC_HEADER, batt_temp);
   delay(ROVECOMM_DELAY);
 
-  checkOverCurrent(error_report);
-  checkUnderVoltage(error_report);
-
   reactOverCurrent(error_report);
   reactUnderVoltage(error_report);
   //reactLowVoltage();
-  reactOverTemp(batt_temp, overtemp_state);
-  reactForgottenLogicSwitch(pack_out_voltage, forgotten_logic_switch, time_switch_forgotten, time_switch_reminder);
+  reactOverTemp();
+  reactForgottenLogicSwitch();
 
 	packet = RoveComm.read();
   	if(packet.data_id!=0)

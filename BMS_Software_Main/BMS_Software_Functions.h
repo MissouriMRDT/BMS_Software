@@ -6,11 +6,14 @@
 //
 // Libraries ///////////////////////////////////////////////////////////////////////
 //
-#ifndef BMS_Software_Main
-#define BMS_Software_Main
+#ifndef BMS_Software_Functions
+#define BMS_Software_Functions
+
 #include "RoveComm.h"
-//
+
+RoveCommEthernetUdp RoveComm; //Extantiates a class
 // Function Declarations ///////////////////////////////////////////////////////////
+
 
 void setInputPins();
 
@@ -24,7 +27,7 @@ void setOutputStates();
 void getMainCurrent(uint16_t &main_current);
 
 
-void getCellVoltage(uint16_t cell_voltage[RC_BMSBOARD_VMEASmV_DATACOUNT]);
+void getCellVoltage(uint16_t cell_voltage[RC_BMSBOARD_VMEASmV_DATACOUNT], uint8_t error_report[RC_BMSBOARD_ERROR_DATACOUNT]);
 
 
 void getOutVoltage(int &pack_out_voltage);
@@ -42,7 +45,7 @@ void reactUnderVoltage(uint8_t error_report[RC_BMSBOARD_ERROR_DATACOUNT]);
 void reactOverTemp();
 
 
-void reactForgottenLogicSwitch(int pack_out_voltage);
+void reactForgottenLogicSwitch();
 
 
 void setEstop(uint8_t data);
