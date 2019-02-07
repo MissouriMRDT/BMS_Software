@@ -5,7 +5,7 @@
 //
 //
 // Libraries ///////////////////////////////////////////////////////////////////////
-//
+
 #include "BMS_Software_Main.h"
 
 // Setup & Main Loop ////////////////////////////////////////////////////////////
@@ -91,7 +91,9 @@ void loop()
     num_loop++;
 } //end loop
 
-// Static Variables ////////////////////////////////////////////////////////////////
+
+
+// Static Variables for Below Functions ////////////////////////////////////////////////////////////////
   //Current 
 static int num_overcurrent = 0;
 static bool overcurrent_state = false;
@@ -116,18 +118,18 @@ static int time_switch_reminder = 0;
 
 void setInputPins()
 {
-  pinMode(PACK_I_MEAS_PIN,    INPUT);
-  pinMode(PACK_V_MEAS_PIN,    INPUT);
+  pinMode(PACK_I_MEAS_PIN,      INPUT);
+  pinMode(PACK_V_MEAS_PIN,      INPUT);
   pinMode(LOGIC_V_MEAS_PIN,     INPUT);
   pinMode(TEMP_degC_MEAS_PIN,   INPUT);
-  pinMode(C1_V_MEAS_PIN,      INPUT);
-  pinMode(C2_V_MEAS_PIN,      INPUT);
-  pinMode(C3_V_MEAS_PIN,      INPUT);
-  pinMode(C4_V_MEAS_PIN,      INPUT);
-  pinMode(C5_V_MEAS_PIN,      INPUT);
-  pinMode(C6_V_MEAS_PIN,      INPUT);
-  pinMode(C7_V_MEAS_PIN,      INPUT);
-  pinMode(C8_V_MEAS_PIN,      INPUT);
+  pinMode(C1_V_MEAS_PIN,        INPUT);
+  pinMode(C2_V_MEAS_PIN,        INPUT);
+  pinMode(C3_V_MEAS_PIN,        INPUT);
+  pinMode(C4_V_MEAS_PIN,        INPUT);
+  pinMode(C5_V_MEAS_PIN,        INPUT);
+  pinMode(C6_V_MEAS_PIN,        INPUT);
+  pinMode(C7_V_MEAS_PIN,        INPUT);
+  pinMode(C8_V_MEAS_PIN,        INPUT);
 
   return;
 }//end func
@@ -136,32 +138,32 @@ void setOutputPins()
 {
   pinMode(PACK_OUT_CTR_PIN,     OUTPUT);
   pinMode(PACK_OUT_IND_PIN,     OUTPUT);
-  pinMode(LOGIC_SWITCH_CTR_PIN,   OUTPUT);
-  pinMode(BUZZER_CTR_PIN,     OUTPUT);
-  pinMode(FAN_1_CTR_PIN,      OUTPUT);
-  pinMode(FAN_2_CTR_PIN,      OUTPUT);
-  pinMode(FAN_3_CTR_PIN,      OUTPUT);
-  pinMode(FAN_4_CTR_PIN,      OUTPUT);
-  pinMode(FAN_PWR_IND_PIN,    OUTPUT);
-  pinMode(SW_IND_PIN,       OUTPUT);
-  pinMode(SW_ERR_PIN,       OUTPUT);
+  pinMode(LOGIC_SWITCH_CTR_PIN, OUTPUT);
+  pinMode(BUZZER_CTR_PIN,       OUTPUT);
+  pinMode(FAN_1_CTR_PIN,        OUTPUT);
+  pinMode(FAN_2_CTR_PIN,        OUTPUT);
+  pinMode(FAN_3_CTR_PIN,        OUTPUT);
+  pinMode(FAN_4_CTR_PIN,        OUTPUT);
+  pinMode(FAN_PWR_IND_PIN,      OUTPUT);
+  pinMode(SW_IND_PIN,           OUTPUT);
+  pinMode(SW_ERR_PIN,           OUTPUT);
 
   return;
 }//end func
 
 void setOutputStates()
 {
-  digitalWrite(PACK_OUT_CTR_PIN,    LOW);
-  digitalWrite(PACK_OUT_IND_PIN,    LOW);
+  digitalWrite(PACK_OUT_CTR_PIN,      LOW);
+  digitalWrite(PACK_OUT_IND_PIN,      LOW);
   digitalWrite(LOGIC_SWITCH_CTR_PIN,  LOW);
-  digitalWrite(BUZZER_CTR_PIN,    LOW);
-  digitalWrite(FAN_1_CTR_PIN,     LOW);
-  digitalWrite(FAN_2_CTR_PIN,     LOW);
-  digitalWrite(FAN_3_CTR_PIN,     LOW);
-  digitalWrite(FAN_4_CTR_PIN,     LOW);
-  digitalWrite(FAN_PWR_IND_PIN,     LOW);
-  digitalWrite(SW_IND_PIN,      LOW);
-  digitalWrite(SW_ERR_PIN,      LOW);
+  digitalWrite(BUZZER_CTR_PIN,        LOW);
+  digitalWrite(FAN_1_CTR_PIN,         LOW);
+  digitalWrite(FAN_2_CTR_PIN,         LOW);
+  digitalWrite(FAN_3_CTR_PIN,         LOW);
+  digitalWrite(FAN_4_CTR_PIN,         LOW);
+  digitalWrite(FAN_PWR_IND_PIN,       LOW);
+  digitalWrite(SW_IND_PIN,            LOW);
+  digitalWrite(SW_ERR_PIN,            LOW);
   
   return;
 }//end func
@@ -181,9 +183,9 @@ void getMainCurrent(uint16_t &main_current)
       if(num_overcurrent == 1)
       {
         num_overcurrent++;
-      }
-    } 
-  }
+      }//end if 
+    }//end if 
+  }//end if
   return;
 }//end func
 
@@ -195,64 +197,64 @@ void getCellVoltage(uint16_t cell_voltage[RC_BMSBOARD_VMEASmV_DATACOUNT], uint8_
     {
       cell_voltage[RC_BMSBOARD_VMEASmV_PACKENTRY] = map(analogRead(CELL_MEAS_PINS[RC_BMSBOARD_VMEASmV_PACKENTRY]), PACK_V_ADC_MIN, PACK_V_ADC_MAX, VOLTS_MIN, PACK_VOLTS_MAX);
    
-    if(cell_voltage[RC_BMSBOARD_VMEASmV_PACKENTRY] < PACK_SAFETY_LOW)
-    {
-      delay(DEBOUNCE_DELAY);
-
-      if(map(analogRead(CELL_MEAS_PINS[RC_BMSBOARD_VMEASmV_PACKENTRY]), PACK_V_ADC_MIN, PACK_V_ADC_MAX, VOLTS_MIN, PACK_VOLTS_MAX) < PACK_SAFETY_LOW)
+      if(cell_voltage[RC_BMSBOARD_VMEASmV_PACKENTRY] < PACK_SAFETY_LOW)
       {
-        pack_undervoltage_state = true;
+        delay(DEBOUNCE_DELAY);
 
-        error_report[RC_BMSBOARD_ERROR_PACKENTRY] = RC_BMSBOARD_ERROR_UNDERVOLTAGE;
+        if(map(analogRead(CELL_MEAS_PINS[RC_BMSBOARD_VMEASmV_PACKENTRY]), PACK_V_ADC_MIN, PACK_V_ADC_MAX, VOLTS_MIN, PACK_VOLTS_MAX) < PACK_SAFETY_LOW)
+        {
+          pack_undervoltage_state = true;
+  
+          error_report[RC_BMSBOARD_ERROR_PACKENTRY] = RC_BMSBOARD_ERROR_UNDERVOLTAGE;
+          RoveComm.write(RC_BMSBOARD_ERROR_HEADER, error_report);
+          delay(DEBOUNCE_DELAY);
+        }//end if
+      }//end if
+      if(cell_voltage[RC_BMSBOARD_VMEASmV_PACKENTRY] < PACK_EFFECTIVE_ZERO)
+      {
+        error_report[RC_BMSBOARD_ERROR_PACKENTRY] = RC_BMSBOARD_ERROR_PINFAULT;
         RoveComm.write(RC_BMSBOARD_ERROR_HEADER, error_report);
         delay(DEBOUNCE_DELAY);
-      } 
-    }
-    if(cell_voltage[RC_BMSBOARD_VMEASmV_PACKENTRY] < PACK_EFFECTIVE_ZERO)
-    {
-      error_report[RC_BMSBOARD_ERROR_PACKENTRY] = RC_BMSBOARD_ERROR_PINFAULT;
-      RoveComm.write(RC_BMSBOARD_ERROR_HEADER, error_report);
-      delay(DEBOUNCE_DELAY);
-    }
-    }
+      }//end if
+    }//end if
     else
     {
       cell_voltage[i] = map(analogRead(CELL_MEAS_PINS[i]), CELL_V_ADC_MIN, CELL_V_ADC_MAX, VOLTS_MIN, CELL_VOLTS_MAX);
 
       if(cell_voltage[i] < CELL_SAFETY_LOW)
-    {
-      delay(DEBOUNCE_DELAY);
-
-      if(map(analogRead(CELL_MEAS_PINS[i]), CELL_V_ADC_MIN, CELL_V_ADC_MAX, VOLTS_MIN, CELL_VOLTS_MAX) < CELL_SAFETY_LOW)
       {
-        cell_undervoltage_state = true;
-
-        error_report[i] = RC_BMSBOARD_ERROR_UNDERVOLTAGE;
-        RoveComm.write(RC_BMSBOARD_ERROR_HEADER, error_report);
         delay(DEBOUNCE_DELAY);
-      } 
-    }
+
+        if(map(analogRead(CELL_MEAS_PINS[i]), CELL_V_ADC_MIN, CELL_V_ADC_MAX, VOLTS_MIN, CELL_VOLTS_MAX) < CELL_SAFETY_LOW)
+        {
+          cell_undervoltage_state = true;
+  
+          error_report[i] = RC_BMSBOARD_ERROR_UNDERVOLTAGE;
+          RoveComm.write(RC_BMSBOARD_ERROR_HEADER, error_report);
+          delay(DEBOUNCE_DELAY);
+        }//end if
+      }//end if
       if(cell_voltage[i] < CELL_EFFECTIVE_ZERO)
       {
         error_report[i] = RC_BMSBOARD_ERROR_PINFAULT;
-      RoveComm.write(RC_BMSBOARD_ERROR_HEADER, error_report);
-      delay(DEBOUNCE_DELAY);
+        RoveComm.write(RC_BMSBOARD_ERROR_HEADER, error_report);
+        delay(DEBOUNCE_DELAY);
       }
-    } //end if
+    }//end if
     return;
-  } //end for
+  }//end for
 }//end func
 
 void getOutVoltage(int &pack_out_voltage)
 {
-    pack_out_voltage = map(analogRead(PACK_V_MEAS_PIN), PACK_V_ADC_MIN, PACK_V_ADC_MAX, VOLTS_MIN, PACK_VOLTS_MAX);
+  pack_out_voltage = map(analogRead(PACK_V_MEAS_PIN), PACK_V_ADC_MIN, PACK_V_ADC_MAX, VOLTS_MIN, PACK_VOLTS_MAX);
 
-    if(pack_out_voltage > PACK_SAFETY_LOW)
-    {
-      forgotten_logic_switch = false;
-      time_switch_forgotten = 0;
-    }
-    if(pack_out_voltage < PACK_EFFECTIVE_ZERO)
+  if(pack_out_voltage > PACK_SAFETY_LOW)
+  {
+    forgotten_logic_switch = false;
+    time_switch_forgotten = 0;
+  }
+  if(pack_out_voltage < PACK_EFFECTIVE_ZERO)
   {
     delay(DEBOUNCE_DELAY);
 
@@ -262,7 +264,7 @@ void getOutVoltage(int &pack_out_voltage)
       num_out_voltage_loops++;
     } 
   }
-    return;
+  return;
 }//end func
 
 void getBattTemp(uint16_t &batt_temp)
@@ -285,38 +287,6 @@ void getBattTemp(uint16_t &batt_temp)
   }
   return;
 }//end func
-
-/*
-void checkUnderVoltage(uint8_t error_report[RC_BMSBOARD_ERROR_DATACOUNT])
-{
-  for(int i = 0; i < RC_BMSBOARD_VMEASmV_DATACOUNT; i++)
-  {
-    if(i == RC_BMSBOARD_VMEASmV_PACKENTRY)
-    {
-      if(singleDebounceVoltage(CELL_MEAS_PINS[RC_BMSBOARD_VMEASmV_PACKENTRY], PACK_UNDERVOLTAGE, PACK_VOLTS_MAX, PACK_SAFETY_LOW))
-      {
-        error_report[RC_BMSBOARD_ERROR_PACKUNDERVOLT] = RC_BMSBOARD_ERROR_OCCURED;
-      } 
-      else
-      {
-        error_report[RC_BMSBOARD_ERROR_PACKUNDERVOLT] = RC_BMSBOARD_ERROR_HASNOTOCCURED;
-      }//end if
-    }
-    else
-    {
-      if(singleDebounceVoltage(CELL_MEAS_PINS[i], CELL_UNDERVOLTAGE, CELL_VOLTS_MAX, CELL_SAFETY_LOW))
-      {
-        error_report[i] = RC_BMSBOARD_ERROR_OCCURED;
-      } 
-      else
-      {
-        error_report[i] = RC_BMSBOARD_ERROR_HASNOTOCCURED;
-      }//end if
-    } //end if
-  } //end for
-  return;
-}//end func
-*/
 
 void reactOverCurrent(uint8_t error_report[RC_BMSBOARD_ERROR_DATACOUNT])
 { //TODO: RED will see overcurrent for 10sec before recheck time is up.

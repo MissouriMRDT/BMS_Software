@@ -12,62 +12,6 @@
 #include <Energia.h>
 #include "RoveComm.h"
 
-void setInputPins();
-
-
-void setOutputPins();
-
-
-void setOutputStates();
-
-
-void getMainCurrent(uint16_t &main_current);
-
-
-void getCellVoltage(uint16_t cell_voltage[RC_BMSBOARD_VMEASmV_DATACOUNT], uint8_t error_report[RC_BMSBOARD_ERROR_DATACOUNT]);
-
-
-void getOutVoltage(int &pack_out_voltage);
-
-
-void getBattTemp(uint16_t &batt_temp);
-
-
-void reactOverCurrent(uint8_t error_report[RC_BMSBOARD_ERROR_DATACOUNT]);
-
-
-void reactUnderVoltage(uint8_t error_report[RC_BMSBOARD_ERROR_DATACOUNT]);
-
-
-void reactOverTemp();
-
-
-void reactForgottenLogicSwitch();
-
-
-void setEstop(uint8_t data);
-
-
-void notifyEstop(); //Buzzer sound: beeeeeeeeeeeeeeeeeeeep beeeeeeeeeep beeeeep beeep bep
-
-
-void notifyLogicSwitch(); //Buzzer sound: beeep beeep
-
-
-void notifyReboot(); //Buzzer sound: beeeeeeeeeep beeep beeep
-
-
-void notifyOverCurrent(); //Buzzer Sound: beeeeeeeeeeeeeeeeeeeeeeeeeeeeeep
-
-
-void notifyUnderVoltage(); //Buzzer Sound: beeep beeep beeep beeep beeeeeeeeeeeeeeeeeeeep
-
-
-void notifyLowVoltage(); //Buzzer Sound: beeep beeep beeep
-
-
-//
-//
 // Pinmap //////////////////////////////////////////////////////////////////////////
 //
 // Control Pins
@@ -153,5 +97,61 @@ const int CELL_MEAS_PINS[] = {LOGIC_V_MEAS_PIN, C1_V_MEAS_PIN, C2_V_MEAS_PIN, C3
 #define LOGIC_SWITCH_REMINDER	60000 //msec
 #define IDLE_SHUTOFF_TIME		2400000 //msec or 40 minutes
 #define BLINK_ON_LOOP			5 //loops
+
+// Function Declarations ///////////////////////////////////////////////////////////
+
+void setInputPins();
+
+
+void setOutputPins();
+
+
+void setOutputStates();
+
+
+void getMainCurrent(uint16_t &main_current);
+
+
+void getCellVoltage(uint16_t cell_voltage[RC_BMSBOARD_VMEASmV_DATACOUNT], uint8_t error_report[RC_BMSBOARD_ERROR_DATACOUNT]);
+
+
+void getOutVoltage(int &pack_out_voltage);
+
+
+void getBattTemp(uint16_t &batt_temp);
+
+
+void reactOverCurrent(uint8_t error_report[RC_BMSBOARD_ERROR_DATACOUNT]);
+
+
+void reactUnderVoltage(uint8_t error_report[RC_BMSBOARD_ERROR_DATACOUNT]);
+
+
+void reactOverTemp();
+
+
+void reactForgottenLogicSwitch();
+
+
+void setEstop(uint8_t data);
+
+
+void notifyEstop(); //Buzzer sound: beeeeeeeeeeeeeeeeeeeep beeeeeeeeeep beeeeep beeep bep
+
+
+void notifyLogicSwitch(); //Buzzer sound: beeep beeep
+
+
+void notifyReboot(); //Buzzer sound: beeeeeeeeeep beeep beeep
+
+
+void notifyOverCurrent(); //Buzzer Sound: beeeeeeeeeeeeeeeeeeeeeeeeeeeeeep
+
+
+void notifyUnderVoltage(); //Buzzer Sound: beeep beeep beeep beeep beeeeeeeeeeeeeeeeeeeep
+
+
+void notifyLowVoltage(); //Buzzer Sound: beeep beeep beeep
+
 
 #endif
