@@ -12,6 +12,8 @@
 #include <Energia.h>
 #include "RoveComm.h"
 
+RoveCommEthernetUdp RoveComm; //extantiates a class
+
 // Pinmap //////////////////////////////////////////////////////////////////////////
 //
 // Control Pins
