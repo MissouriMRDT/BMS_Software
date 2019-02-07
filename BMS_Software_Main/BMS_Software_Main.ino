@@ -172,6 +172,9 @@ void getMainCurrent(uint16_t &main_current)
 {
   main_current = map(analogRead(PACK_I_MEAS_PIN), CURRENT_ADC_MIN, CURRENT_ADC_MAX, CURRENT_MIN, CURRENT_MAX);
 
+  Serial.print("Measuring Pack Current: ");
+  Serial.println(main_current);
+
   if(main_current > OVERCURRENT)
   {
     delay(DEBOUNCE_DELAY);
@@ -180,9 +183,13 @@ void getMainCurrent(uint16_t &main_current)
     {
       overcurrent_state = true;
 
+      Serial.println("Error: First Overcurrent");
+
       if(num_overcurrent == 1)
       {
         num_overcurrent++;
+
+        Serial.println("Error: Second Overcurrent");
       }//end if 
     }//end if 
   }//end if
@@ -191,6 +198,8 @@ void getMainCurrent(uint16_t &main_current)
 
 void getCellVoltage(uint16_t cell_voltage[RC_BMSBOARD_VMEASmV_DATACOUNT], uint8_t error_report[RC_BMSBOARD_ERROR_DATACOUNT])
 {   
+  Serial.println("Measuring Cell Voltages...Check RoveComm app for values");
+
   for(int i = 0; i<RC_BMSBOARD_VMEASmV_DATACOUNT; i++)
   {
     if (i == RC_BMSBOARD_VMEASmV_PACKENTRY)
@@ -208,6 +217,8 @@ void getCellVoltage(uint16_t cell_voltage[RC_BMSBOARD_VMEASmV_DATACOUNT], uint8_
           error_report[RC_BMSBOARD_ERROR_PACKENTRY] = RC_BMSBOARD_ERROR_UNDERVOLTAGE;
           RoveComm.write(RC_BMSBOARD_ERROR_HEADER, error_report);
           delay(DEBOUNCE_DELAY);
+
+          Serial.println("Error: Pack Undervoltage");
         }//end if
       }//end if
       if(cell_voltage[RC_BMSBOARD_VMEASmV_PACKENTRY] < PACK_EFFECTIVE_ZERO)
@@ -215,6 +226,8 @@ void getCellVoltage(uint16_t cell_voltage[RC_BMSBOARD_VMEASmV_DATACOUNT], uint8_
         error_report[RC_BMSBOARD_ERROR_PACKENTRY] = RC_BMSBOARD_ERROR_PINFAULT;
         RoveComm.write(RC_BMSBOARD_ERROR_HEADER, error_report);
         delay(DEBOUNCE_DELAY);
+
+        Serial.println("Error: Pack Pin Fault");
       }//end if
     }//end if
     else
@@ -232,6 +245,10 @@ void getCellVoltage(uint16_t cell_voltage[RC_BMSBOARD_VMEASmV_DATACOUNT], uint8_
           error_report[i] = RC_BMSBOARD_ERROR_UNDERVOLTAGE;
           RoveComm.write(RC_BMSBOARD_ERROR_HEADER, error_report);
           delay(DEBOUNCE_DELAY);
+
+          Serial.print("Error: Cell ");
+          Serial.print(i);
+          Serial.println(" Undervoltage");
         }//end if
       }//end if
       if(cell_voltage[i] < CELL_EFFECTIVE_ZERO)
@@ -239,6 +256,10 @@ void getCellVoltage(uint16_t cell_voltage[RC_BMSBOARD_VMEASmV_DATACOUNT], uint8_
         error_report[i] = RC_BMSBOARD_ERROR_PINFAULT;
         RoveComm.write(RC_BMSBOARD_ERROR_HEADER, error_report);
         delay(DEBOUNCE_DELAY);
+
+        Serial.print("Error: Cell ");
+        Serial.print(i);
+        Serial.println(" Pin Fault");
       }
     }//end if
     return;
@@ -248,6 +269,9 @@ void getCellVoltage(uint16_t cell_voltage[RC_BMSBOARD_VMEASmV_DATACOUNT], uint8_
 void getOutVoltage(int &pack_out_voltage)
 {
   pack_out_voltage = map(analogRead(PACK_V_MEAS_PIN), PACK_V_ADC_MIN, PACK_V_ADC_MAX, VOLTS_MIN, PACK_VOLTS_MAX);
+
+  Serial.print("Measuring Pack Out Voltage: ");
+  Serial.println(pack_out_voltage);
 
   if(pack_out_voltage > PACK_SAFETY_LOW)
   {
@@ -302,6 +326,8 @@ void reactOverCurrent(uint8_t error_report[RC_BMSBOARD_ERROR_DATACOUNT])
         error_report[RC_BMSBOARD_ERROR_PACKENTRY] = RC_BMSBOARD_ERROR_OVERCURRENT;
         RoveComm.write(RC_BMSBOARD_ERROR_HEADER, error_report);
         delay(ROVECOMM_DELAY);
+
+        Serial.println("Turning Rover OFF");
     
         digitalWrite(PACK_OUT_CTR_PIN, LOW);
         digitalWrite(PACK_OUT_IND_PIN, LOW);
@@ -315,11 +341,15 @@ void reactOverCurrent(uint8_t error_report[RC_BMSBOARD_ERROR_DATACOUNT])
       case 1:
         if(millis() >= (time_of_overcurrent + RESTART_DELAY))
         {
+          Serial.println("Turning Rover ON");
+
           digitalWrite(PACK_OUT_CTR_PIN, HIGH);
           digitalWrite(PACK_OUT_IND_PIN, HIGH);
         }//end if
         if(millis() >= (time_of_overcurrent + RESTART_DELAY + RECHECK_DELAY))
         {
+          Serial.println("No overcurrent within recheck delay");
+
           overcurrent_state = false;
           time_of_overcurrent = 0;
         }//end if
@@ -328,7 +358,9 @@ void reactOverCurrent(uint8_t error_report[RC_BMSBOARD_ERROR_DATACOUNT])
         error_report[RC_BMSBOARD_ERROR_PACKENTRY] = RC_BMSBOARD_ERROR_OVERCURRENT;
         RoveComm.write(RC_BMSBOARD_ERROR_HEADER, error_report);
         delay(ROVECOMM_DELAY);
-      
+        
+        Serial.println("Turning Rover & BMS OFF");
+
         digitalWrite(PACK_OUT_CTR_PIN, LOW);
         digitalWrite(PACK_OUT_IND_PIN, LOW);
 
@@ -369,6 +401,8 @@ void reactOverTemp()
 {
   if(overtemp_state == true && fans_on == false) 
   {   
+    Serial.println("Error: Overtemp...Turning fans on");
+
     fans_on = true;               
     digitalWrite(FAN_1_CTR_PIN, HIGH);
     digitalWrite(FAN_2_CTR_PIN, HIGH);
@@ -378,6 +412,8 @@ void reactOverTemp()
   }
   if(overtemp_state == false && fans_on == true)
   {
+    Serial.println("Turning fans off");
+
     fans_on = false;
     digitalWrite(FAN_1_CTR_PIN, LOW);
     digitalWrite(FAN_2_CTR_PIN, LOW);
@@ -396,6 +432,8 @@ void reactForgottenLogicSwitch()
     {
       time_switch_forgotten = millis();
       time_switch_reminder = millis();
+
+      Serial.println("Logic Switch Forgotten");
     }
     if(num_out_voltage_loops > 1)
     {
@@ -406,6 +444,8 @@ void reactForgottenLogicSwitch()
       }//end if
       if(millis() >= time_switch_forgotten + IDLE_SHUTOFF_TIME)
       {
+        Serial.println("Turning off BMS");
+
         digitalWrite(LOGIC_SWITCH_CTR_PIN, HIGH); //BMS Suicide 
       }//end if   
     }//end if 
@@ -419,6 +459,8 @@ void setEstop(uint8_t data)
   {
     digitalWrite(PACK_OUT_CTR_PIN, LOW);
     digitalWrite(PACK_OUT_IND_PIN, LOW);
+
+    Serial.println("Turning Rover & BMS OFF");
     
     notifyEstop();
 
@@ -430,9 +472,13 @@ void setEstop(uint8_t data)
     digitalWrite(PACK_OUT_CTR_PIN, LOW);
     digitalWrite(PACK_OUT_IND_PIN, LOW);
 
-    notifyReboot();
+    Serial.print("Rebooting Rover in: ");
+    Serial.print(data);
+    Serial.println(" sec");
 
-    delay(data);
+    notifyReboot();
+    
+    delay(data * 1000); //Receiving delay in seconds so it needs to be converted to msec.
 
     digitalWrite(PACK_OUT_CTR_PIN, HIGH);
     digitalWrite(PACK_OUT_IND_PIN, HIGH);
