@@ -32,7 +32,7 @@ RoveCommEthernetUdp RoveComm; //extantiates a class
 #define PACK_I_MEAS_PIN			PE_0
 #define PACK_V_MEAS_PIN			PE_1 //Measures voltage outputting to rover. Will read zero if PACK_OUT_CTR is LOW.
 #define LOGIC_V_MEAS_PIN		PE_2 //Measures total voltage of pack continuously while logic switch is on. 
-#define TEMP_degC_MEAS_PIN		PM_3
+#define TEMP_degC_MEAS_PIN		PE_3 //PM_3 is not an analog pin. Must fix is hardware design
 #define C1_V_MEAS_PIN			PK_3 //CELL 1 - GND
 #define C2_V_MEAS_PIN			PK_2 //CELL 2 - CELL 1
 #define C3_V_MEAS_PIN			PK_1 //CELL 3 - CELL 2
@@ -97,7 +97,7 @@ const int CELL_MEAS_PINS[] = {LOGIC_V_MEAS_PIN, C1_V_MEAS_PIN, C2_V_MEAS_PIN, C3
 #define RECHECK_DELAY			10000 //msec
 #define LOGIC_SWITCH_REMINDER	60000 //msec
 #define IDLE_SHUTOFF_TIME		2400000 //msec or 40 minutes
-#define BLINK_ON_LOOP			5 //loops
+#define BLINK_ON_LOOP			3 //loops
 
 // Function Declarations ///////////////////////////////////////////////////////////
 

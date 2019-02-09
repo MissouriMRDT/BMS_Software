@@ -30,7 +30,6 @@ void setup()
 
 void loop()
 {
-  Serial.println("Hello Mars");
 	int32_t main_current;
 	uint16_t cell_voltages[RC_BMSBOARD_VMEASmV_DATACOUNT];
 	int pack_out_voltage;
@@ -85,7 +84,7 @@ void loop()
         digitalWrite(SW_IND_PIN, HIGH);
         sw_ind_state = true;
       }//end if
-      if(sw_ind_state == true)
+      else
       {
         digitalWrite(SW_IND_PIN, LOW);
         sw_ind_state = false;
@@ -206,7 +205,7 @@ void getCellVoltage(uint16_t cell_voltage[RC_BMSBOARD_VMEASmV_DATACOUNT])
   {
     if (i == RC_BMSBOARD_VMEASmV_PACKENTRY)
     {
-      cell_voltage[RC_BMSBOARD_VMEASmV_PACKENTRY] = ((1078 * map(analogRead(CELL_MEAS_PINS[RC_BMSBOARD_VMEASmV_PACKENTRY]), PACK_V_ADC_MIN, PACK_V_ADC_MAX, VOLTS_MIN, PACK_VOLTS_MAX)) / 1000); //TODO: Fix voltage divider for pack meas so that we can remove this weird scaling.
+      cell_voltage[RC_BMSBOARD_VMEASmV_PACKENTRY] = ((1094 * map(analogRead(CELL_MEAS_PINS[RC_BMSBOARD_VMEASmV_PACKENTRY]), PACK_V_ADC_MIN, PACK_V_ADC_MAX, VOLTS_MIN, PACK_VOLTS_MAX)) / 1000); //TODO: Fix voltage divider for pack meas so that we can remove this weird scaling.
       
       error_report[RC_BMSBOARD_ERROR_PACKENTRY] = RC_BMSBOARD_ERROR_NOERROR;
 
@@ -214,8 +213,8 @@ void getCellVoltage(uint16_t cell_voltage[RC_BMSBOARD_VMEASmV_DATACOUNT])
       {
         delay(DEBOUNCE_DELAY);
 
-        if((((1078 * map(analogRead(CELL_MEAS_PINS[RC_BMSBOARD_VMEASmV_PACKENTRY]), PACK_V_ADC_MIN, PACK_V_ADC_MAX, VOLTS_MIN, PACK_VOLTS_MAX)) / 1000) < PACK_SAFETY_LOW)
-            && (((1078 * map(analogRead(CELL_MEAS_PINS[RC_BMSBOARD_VMEASmV_PACKENTRY]), PACK_V_ADC_MIN, PACK_V_ADC_MAX, VOLTS_MIN, PACK_VOLTS_MAX)) / 1000) > PACK_EFFECTIVE_ZERO))
+        if((((1094 * map(analogRead(CELL_MEAS_PINS[RC_BMSBOARD_VMEASmV_PACKENTRY]), PACK_V_ADC_MIN, PACK_V_ADC_MAX, VOLTS_MIN, PACK_VOLTS_MAX)) / 1000) < PACK_UNDERVOLTAGE)
+            && (((1094 * map(analogRead(CELL_MEAS_PINS[RC_BMSBOARD_VMEASmV_PACKENTRY]), PACK_V_ADC_MIN, PACK_V_ADC_MAX, VOLTS_MIN, PACK_VOLTS_MAX)) / 1000) > PACK_SAFETY_LOW))
         {
           pack_undervoltage_state = true;
   
@@ -246,8 +245,8 @@ void getCellVoltage(uint16_t cell_voltage[RC_BMSBOARD_VMEASmV_DATACOUNT])
       {
         delay(DEBOUNCE_DELAY);
 
-        if((map(analogRead(CELL_MEAS_PINS[i]), CELL_V_ADC_MIN, CELL_V_ADC_MAX, VOLTS_MIN, CELL_VOLTS_MAX) < CELL_SAFETY_LOW)
-            && (map(analogRead(CELL_MEAS_PINS[i]), CELL_V_ADC_MIN, CELL_V_ADC_MAX, VOLTS_MIN, CELL_VOLTS_MAX) > CELL_EFFECTIVE_ZERO))
+        if((map(analogRead(CELL_MEAS_PINS[i]), CELL_V_ADC_MIN, CELL_V_ADC_MAX, VOLTS_MIN, CELL_VOLTS_MAX) < CELL_UNDERVOLTAGE)
+            && (map(analogRead(CELL_MEAS_PINS[i]), CELL_V_ADC_MIN, CELL_V_ADC_MAX, VOLTS_MIN, CELL_VOLTS_MAX) > CELL_SAFETY_LOW))
         {
           cell_undervoltage_state = true;
   
@@ -276,7 +275,7 @@ void getCellVoltage(uint16_t cell_voltage[RC_BMSBOARD_VMEASmV_DATACOUNT])
 
 void getOutVoltage(int &pack_out_voltage)
 {
-  pack_out_voltage = ((1078 * map(analogRead(PACK_V_MEAS_PIN), PACK_V_ADC_MIN, PACK_V_ADC_MAX, VOLTS_MIN, PACK_VOLTS_MAX)) / 1000);
+  pack_out_voltage = ((1094 * map(analogRead(PACK_V_MEAS_PIN), PACK_V_ADC_MIN, PACK_V_ADC_MAX, VOLTS_MIN, PACK_VOLTS_MAX)) / 1000);
 
   Serial.print("Measuring Pack Out Voltage: ");
   Serial.println(pack_out_voltage);
@@ -290,7 +289,7 @@ void getOutVoltage(int &pack_out_voltage)
   {
     delay(DEBOUNCE_DELAY);
 
-    if(((1078 *map(analogRead(PACK_V_MEAS_PIN), PACK_V_ADC_MIN, PACK_V_ADC_MAX, VOLTS_MIN, PACK_VOLTS_MAX)) / 1000) < PACK_EFFECTIVE_ZERO)
+    if(((1094 *map(analogRead(PACK_V_MEAS_PIN), PACK_V_ADC_MIN, PACK_V_ADC_MAX, VOLTS_MIN, PACK_VOLTS_MAX)) / 1000) < PACK_EFFECTIVE_ZERO)
     {
       forgotten_logic_switch = true;
       num_out_voltage_loops++;
