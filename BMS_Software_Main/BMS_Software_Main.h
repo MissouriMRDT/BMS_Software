@@ -18,7 +18,6 @@ RoveCommEthernetUdp RoveComm; //extantiates a class
 //
 // Control Pins
 #define PACK_OUT_CTR_PIN 		PD_1
-#define PACK_OUT_IND_PIN 		PQ_2
 #define LOGIC_SWITCH_CTR_PIN	PD_0
 #define BUZZER_CTR_PIN			PN_2
 #define FAN_1_CTR_PIN			PH_2
@@ -50,7 +49,7 @@ const int CELL_MEAS_PINS[] = {LOGIC_V_MEAS_PIN, C1_V_MEAS_PIN, C2_V_MEAS_PIN, C3
 //
 // Tiva1294C RoveBoard Specs
 #define VCC                 	3300 //mV
-//#define TIVA_ADC_MAX            1024 //bits
+//#define TIVA_ADC_MAX            4096 //bits
 //#define TIVA_MIN            	0 //bits
 
 // ACS759ECB-200B-PFF-T Current Sensor Specs
@@ -63,7 +62,7 @@ const int CELL_MEAS_PINS[] = {LOGIC_V_MEAS_PIN, C1_V_MEAS_PIN, C2_V_MEAS_PIN, C3
 #define CURRENT_MIN         	-(SENSOR_BIAS - 330) / SENSOR_SENSITIVITY //mA
 #define OVERCURRENT				50000 //mA //TODO: This value should be lower, but where?
 #define CURRENT_ADC_MIN			0 //bits  TODO: Must test ADC MIN & MAX with hardware and adjust these values
-#define CURRENT_ADC_MAX			1024 //bits
+#define CURRENT_ADC_MAX			4096 //bits
 
 // Voltage Measurments
 #define VOLTS_MIN           	0 //mV
@@ -77,9 +76,9 @@ const int CELL_MEAS_PINS[] = {LOGIC_V_MEAS_PIN, C1_V_MEAS_PIN, C2_V_MEAS_PIN, C3
 #define PACK_EFFECTIVE_ZERO		5000 //mV
 #define CELL_EFFECTIVE_ZERO		1000 //mV		
 #define PACK_V_ADC_MIN			0 //bits  TODO: Must test ADC MIN & MAX with hardware and adjust these values
-#define PACK_V_ADC_MAX			1024 //bits
+#define PACK_V_ADC_MAX			4096 //bits
 #define CELL_V_ADC_MIN			0 //bits  TODO: Must test ADC MIN & MAX with hardware and adjust these values
-#define CELL_V_ADC_MAX			1024 //bits
+#define CELL_V_ADC_MAX			4096 //bits
 
 // TMP37 Temp Sensor Specs 
 	//Find at: https://www.digikey.com/products/en?mpart=TMP37FT9Z&v=505
@@ -89,7 +88,7 @@ const int CELL_MEAS_PINS[] = {LOGIC_V_MEAS_PIN, C1_V_MEAS_PIN, C2_V_MEAS_PIN, C3
 #define TEMP_MAX   				160000 //mdeg C
 #define TEMP_THRESHOLD			38000 //mdeg C  //About 100 degF
 #define TEMP_ADC_MIN			0 //bits  TODO: Must test ADC MIN & MAX with hardware and adjust these values
-#define TEMP_ADC_MAX			1024 //bits
+#define TEMP_ADC_MAX			4096 //bits
 
 // Delay Constants
 #define ROVECOMM_DELAY			5 //msec
@@ -114,7 +113,7 @@ void setOutputStates();
 void getMainCurrent(uint16_t &main_current);
 
 
-void getCellVoltage(uint16_t cell_voltage[RC_BMSBOARD_VMEASmV_DATACOUNT], uint8_t error_report[RC_BMSBOARD_ERROR_DATACOUNT]);
+void getCellVoltage(uint16_t cell_voltage[RC_BMSBOARD_VMEASmV_DATACOUNT]);
 
 
 void getOutVoltage(int &pack_out_voltage);
@@ -123,10 +122,10 @@ void getOutVoltage(int &pack_out_voltage);
 void getBattTemp(uint16_t &batt_temp);
 
 
-void reactOverCurrent(uint8_t error_report[RC_BMSBOARD_ERROR_DATACOUNT]);
+void reactOverCurrent();
 
 
-void reactUnderVoltage(uint8_t error_report[RC_BMSBOARD_ERROR_DATACOUNT]);
+void reactUnderVoltage();
 
 
 void reactOverTemp();
