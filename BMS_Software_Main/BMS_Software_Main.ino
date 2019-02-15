@@ -1,5 +1,5 @@
 // Battery Managment System (BMS) Software /////////////////////////////////////////
-	// Main cpp File
+  // Main cpp File
 //
 // Created for 2019 Valkyrie by: Jacob Lipina, jrlwd5
 //
@@ -16,56 +16,47 @@ bool sw_ind_state = false;
 
 void setup()
 {
-	Serial.begin(9600);
-	Serial3.begin(9600);
-	RoveComm.begin(RC_BMSBOARD_FOURTHOCTET);
-	delay(ROVECOMM_DELAY);
-	
-	setInputPins();
-	setOutputPins();
-	setOutputStates();
-
-	Serial.println("Setup Complete!");
+  Serial.begin(9600);
+  Serial3.begin(9600);
+  RoveComm.begin(RC_BMSBOARD_FOURTHOCTET);
+  delay(ROVECOMM_DELAY);
+  
+  setInputPins();
+  setOutputPins();
+  setOutputStates();
 } //end setup
 
 void loop()
 {
-	int32_t main_current;
-	uint16_t cell_voltages[RC_BMSBOARD_VMEASmV_DATACOUNT];
-	int pack_out_voltage;
+  int32_t main_current;
+  uint16_t cell_voltages[RC_BMSBOARD_VMEASmV_DATACOUNT];
+  int pack_out_voltage;
   uint16_t batt_temp;
-	rovecomm_packet packet;
+  rovecomm_packet packet;
 
-	getMainCurrent(main_current);
+  getMainCurrent(main_current);
   reactOverCurrent();
 
-	getCellVoltage(cell_voltages);
+  getCellVoltage(cell_voltages);
   reactUnderVoltage();
-  //reactLowVoltage();
+  reactLowVoltage(cell_voltages);
 
-	getOutVoltage(pack_out_voltage);
+  getOutVoltage(pack_out_voltage);
   reactForgottenLogicSwitch();
 
-	getBattTemp(batt_temp);
+  getBattTemp(batt_temp);
   reactOverTemp();
-	
-	RoveComm.write(RC_BMSBOARD_MAINIMEASmA_HEADER, main_current);
+  
+  RoveComm.write(RC_BMSBOARD_MAINIMEASmA_HEADER, main_current);
   delay(ROVECOMM_DELAY);
-	RoveComm.write(RC_BMSBOARD_VMEASmV_HEADER, cell_voltages);
+  RoveComm.write(RC_BMSBOARD_VMEASmV_HEADER, cell_voltages);
   delay(ROVECOMM_DELAY);
-	RoveComm.write(RC_BMSBOARD_TEMPMEASmDEGC_HEADER, batt_temp);
+  RoveComm.write(RC_BMSBOARD_TEMPMEASmDEGC_HEADER, batt_temp);
   delay(ROVECOMM_DELAY);
 
-	packet = RoveComm.read();
-  	if(packet.data_id!=0)
-  	{
-      Serial.println(packet.data_id);
-      Serial.println(packet.data_count);
-      for(int i = 0; i<packet.data_count; i++)
-      {
-        Serial.println(packet.data[i]);
-      } //end for
-    
+  packet = RoveComm.read();
+    if(packet.data_id!=0)
+    {
       switch(packet.data_id) //andrew needs to fix the type to int for the dataid
       {
         case RC_BMSBOARD_SWESTOPs_DATAID:
@@ -89,6 +80,7 @@ void loop()
         digitalWrite(SW_IND_PIN, LOW);
         sw_ind_state = false;
       }//end if
+      updateLCD(main_current, cell_voltages);
     }//end if
 
     num_loop++;
@@ -106,8 +98,10 @@ static float time_of_overcurrent = 0;
 //static int num_cell_undervoltage_measured = 0;
 static bool pack_undervoltage_state = false;
 static bool cell_undervoltage_state = false;
-//static bool low_voltage_state = false;
-//int static time_low_voltage_reminder = 0;
+static bool low_voltage_state = false;
+int static num_low_voltage_reminder = 0;
+static int time_of_low_voltage = 0;
+
   //Temp
 static bool overtemp_state = false;
 static bool fans_on = false;
@@ -173,24 +167,16 @@ void getMainCurrent(int32_t &main_current)
 {
   main_current = map(analogRead(PACK_I_MEAS_PIN), CURRENT_ADC_MIN, CURRENT_ADC_MAX, CURRENT_MIN, CURRENT_MAX);
 
-  Serial.print("Measuring Pack Current: ");
-  Serial.println(main_current);
-
   if(main_current > OVERCURRENT)
   {
     delay(DEBOUNCE_DELAY);
-
     if(map(analogRead(PACK_I_MEAS_PIN), CURRENT_ADC_MIN, CURRENT_ADC_MAX, CURRENT_MIN, CURRENT_MAX) > OVERCURRENT)
     {
       overcurrent_state = true;
 
-      Serial.println("Error: First Overcurrent*********************");
-
       if(num_overcurrent == 1)
       {
         num_overcurrent++;
-
-        Serial.println("Error: Second Overcurrent*************************");
       }//end if 
     }//end if 
   }//end if
@@ -199,14 +185,13 @@ void getMainCurrent(int32_t &main_current)
 
 void getCellVoltage(uint16_t cell_voltage[RC_BMSBOARD_VMEASmV_DATACOUNT])
 {   
-  Serial.println("Measuring Pack Voltage");
-
   for(int i = 0; i<RC_BMSBOARD_VMEASmV_DATACOUNT; i++)
   {
     if (i == RC_BMSBOARD_VMEASmV_PACKENTRY)
     {
-      cell_voltage[RC_BMSBOARD_VMEASmV_PACKENTRY] = ((1094 * map(analogRead(CELL_MEAS_PINS[RC_BMSBOARD_VMEASmV_PACKENTRY]), PACK_V_ADC_MIN, PACK_V_ADC_MAX, VOLTS_MIN, PACK_VOLTS_MAX)) / 1000); //TODO: Fix voltage divider for pack meas so that we can remove this weird scaling.
-      
+      int adc_read = analogRead(CELL_MEAS_PINS[RC_BMSBOARD_VMEASmV_PACKENTRY]);
+
+      cell_voltage[RC_BMSBOARD_VMEASmV_PACKENTRY] = (1215*map(adc_read, PACK_V_ADC_MIN, PACK_V_ADC_MAX, VOLTS_MIN, PACK_VOLTS_MAX)/1000); //TODO: Fix voltage divider for pack meas so that we can remove this weird scaling.
       error_report[RC_BMSBOARD_ERROR_PACKENTRY] = RC_BMSBOARD_ERROR_NOERROR;
 
       if((cell_voltage[RC_BMSBOARD_VMEASmV_PACKENTRY] > PACK_SAFETY_LOW) && (cell_voltage[RC_BMSBOARD_VMEASmV_PACKENTRY] < PACK_UNDERVOLTAGE))
@@ -219,51 +204,56 @@ void getCellVoltage(uint16_t cell_voltage[RC_BMSBOARD_VMEASmV_DATACOUNT])
           pack_undervoltage_state = true;
   
           error_report[RC_BMSBOARD_ERROR_PACKENTRY] = RC_BMSBOARD_ERROR_UNDERVOLTAGE;
-          
-          Serial.println("Error: Pack Undervoltage");
         }//end if
       }//end if
       if(cell_voltage[RC_BMSBOARD_VMEASmV_PACKENTRY] < PACK_EFFECTIVE_ZERO)
       {
         error_report[RC_BMSBOARD_ERROR_PACKENTRY] = RC_BMSBOARD_ERROR_PINFAULT;
-        
-        Serial.println("Error: Pack Pin Fault");
       }//end if
     }//end if
     
     if(i > RC_BMSBOARD_VMEASmV_PACKENTRY)
     {
-      cell_voltage[i] = map(analogRead(CELL_MEAS_PINS[i]), CELL_V_ADC_MIN, CELL_V_ADC_MAX, VOLTS_MIN, CELL_VOLTS_MAX);
+      int adc_reading = analogRead(CELL_MEAS_PINS[i]);
+      
+      if(adc_reading < CELL_V_ADC_MIN)
+      {
+        adc_reading = CELL_V_ADC_MIN;
+      }
+      if(adc_reading > CELL_V_ADC_MAX)
+      {
+        adc_reading = CELL_V_ADC_MAX;
+      }
+      cell_voltage[i] = map(adc_reading, CELL_V_ADC_MIN, CELL_V_ADC_MAX, CELL_VOLTS_MIN, CELL_VOLTS_MAX);
 
       error_report[i] = RC_BMSBOARD_ERROR_NOERROR;
 
-      Serial.print("Measuring Cell ");
-      Serial.print(i);
-      Serial.println(" Voltage");
-
-      if((cell_voltage[i] > CELL_SAFETY_LOW) && (cell_voltage[i] < CELL_UNDERVOLTAGE))
+      if((cell_voltage[i] > CELL_VOLTS_MIN) && (cell_voltage[i] < CELL_UNDERVOLTAGE))
       {
         delay(DEBOUNCE_DELAY);
 
-        if((map(analogRead(CELL_MEAS_PINS[i]), CELL_V_ADC_MIN, CELL_V_ADC_MAX, VOLTS_MIN, CELL_VOLTS_MAX) < CELL_UNDERVOLTAGE)
-            && (map(analogRead(CELL_MEAS_PINS[i]), CELL_V_ADC_MIN, CELL_V_ADC_MAX, VOLTS_MIN, CELL_VOLTS_MAX) > CELL_SAFETY_LOW))
+        adc_reading = analogRead(CELL_MEAS_PINS[i]);
+      
+        if(adc_reading < CELL_V_ADC_MIN)
+        {
+          adc_reading = CELL_V_ADC_MIN;
+        }
+        if(adc_reading > CELL_V_ADC_MAX)
+        {
+          adc_reading = CELL_V_ADC_MAX;
+        }
+        if((map(adc_reading, CELL_V_ADC_MIN, CELL_V_ADC_MAX, CELL_VOLTS_MIN, CELL_VOLTS_MAX) <= CELL_UNDERVOLTAGE)
+            && (map(adc_reading, CELL_V_ADC_MIN, CELL_V_ADC_MAX, CELL_VOLTS_MIN, CELL_VOLTS_MAX) > CELL_VOLTS_MIN))
         {
           cell_undervoltage_state = true;
   
           error_report[i] = RC_BMSBOARD_ERROR_UNDERVOLTAGE;
 
-          Serial.print("Error: Cell ");
-          Serial.print(i);
-          Serial.println(" Undervoltage");
         }//end if
       }//end if
-      if(cell_voltage[i] < CELL_EFFECTIVE_ZERO)
+      if(cell_voltage[i] == CELL_VOLTS_MIN)
       {
         error_report[i] = RC_BMSBOARD_ERROR_PINFAULT;
-
-        Serial.print("Error: Cell ");
-        Serial.print(i);
-        Serial.println(" Pin Fault");
       }
     }//end if
   }//end for
@@ -275,10 +265,8 @@ void getCellVoltage(uint16_t cell_voltage[RC_BMSBOARD_VMEASmV_DATACOUNT])
 
 void getOutVoltage(int &pack_out_voltage)
 {
-  pack_out_voltage = ((1094 * map(analogRead(PACK_V_MEAS_PIN), PACK_V_ADC_MIN, PACK_V_ADC_MAX, VOLTS_MIN, PACK_VOLTS_MAX)) / 1000);
-
-  Serial.print("Measuring Pack Out Voltage: ");
-  Serial.println(pack_out_voltage);
+  int adc_reading = analogRead(PACK_V_MEAS_PIN);
+  pack_out_voltage = ((1269 * map(analogRead(PACK_V_MEAS_PIN), PACK_V_ADC_MIN, PACK_V_ADC_MAX, VOLTS_MIN, PACK_VOLTS_MAX)) / 1000);
 
   if(pack_out_voltage > PACK_SAFETY_LOW)
   {
@@ -289,7 +277,7 @@ void getOutVoltage(int &pack_out_voltage)
   {
     delay(DEBOUNCE_DELAY);
 
-    if(((1094 *map(analogRead(PACK_V_MEAS_PIN), PACK_V_ADC_MIN, PACK_V_ADC_MAX, VOLTS_MIN, PACK_VOLTS_MAX)) / 1000) < PACK_EFFECTIVE_ZERO)
+    if(((1269 *map(analogRead(PACK_V_MEAS_PIN), PACK_V_ADC_MIN, PACK_V_ADC_MAX, VOLTS_MIN, PACK_VOLTS_MAX)) / 1000) < PACK_EFFECTIVE_ZERO)
     {
       forgotten_logic_switch = true;
       num_out_voltage_loops++;
@@ -300,11 +288,8 @@ void getOutVoltage(int &pack_out_voltage)
 
 void getBattTemp(uint16_t &batt_temp)
 {
-  batt_temp = map(analogRead(TEMP_degC_MEAS_PIN), TEMP_ADC_MIN, TEMP_ADC_MAX, TEMP_MIN, TEMP_MAX);
-
-  Serial.print("Measuring Temp: ");
-  Serial.println(batt_temp);
-
+  batt_temp = (1060 * (map(analogRead(TEMP_degC_MEAS_PIN), TEMP_ADC_MIN, TEMP_ADC_MAX, TEMP_MIN, TEMP_MAX))/1000);
+  
   if(batt_temp < TEMP_THRESHOLD)
   {
     overtemp_state = false;
@@ -322,6 +307,61 @@ void getBattTemp(uint16_t &batt_temp)
   return;
 }//end func
 
+/////////////////////////////////////
+
+void updateLCD(int32_t mainCurrent, uint16_t cellVoltages[])
+{
+  Serial.begin(9600); //Start serial communication at 9600
+  
+  Serial7.begin(9600); //Start communication with Serial7
+  
+  const int NUM_CELLS = 8; //this should be in header?
+  bool LCD_Update = false;
+  float time1 = 0;
+  float packVoltage = 0; //V not mV
+  float packCurrent = 0;//A not mA
+
+  packVoltage = (static_cast<float>(cellVoltages[0]) / 1000);
+  packCurrent = (static_cast<float>(mainCurrent) / 1000);
+
+  if(LCD_Update == false)
+  {
+    time1 = millis();
+    LCD_Update = true;
+  }
+
+  //Send the clear command to the display - this returns the cursor to the beginning of the display
+  Serial7.write('|'); //Setting character
+  Serial7.write('-'); //Clear display
+  
+  Serial7.print("Pack:");
+  Serial7.print(packVoltage, 1); //packVoltage from BMS, in V?
+  Serial7.print("V");
+  Serial7.print(" Cur:");
+  Serial7.print(packCurrent, 2); //packCurrent from BMS, in A?
+  Serial7.print("A");
+  
+  for(int i = 0; i < NUM_CELLS; i++)
+  {
+    float temp_cell_voltage = 0;
+    temp_cell_voltage = (static_cast<float>(cellVoltages[i]) / 1000);
+    Serial7.print(i+1);
+    Serial7.print(": ");
+    Serial7.print(temp_cell_voltage, 1); //cellVoltage from BMS in V?  shows one decimal place
+    if((i+1)%3 == 0)
+    {
+      Serial7.print("V");
+    }     
+    else
+    {
+      Serial7.print("V "); 
+    }
+  } 
+  LCD_Update = false;
+}
+
+/////////////////////////////////////////////
+
 void reactOverCurrent()
 { //TODO: RED will see overcurrent for 10sec before recheck time is up.
   if(overcurrent_state == false)
@@ -330,54 +370,45 @@ void reactOverCurrent()
   }//end if
   if(overcurrent_state == true)
   {
-    switch(num_overcurrent)
+    if(num_overcurrent == 0)
     {
-      case 0:
-        error_report[RC_BMSBOARD_ERROR_PACKENTRY] = RC_BMSBOARD_ERROR_OVERCURRENT;
-        RoveComm.write(RC_BMSBOARD_ERROR_HEADER, error_report);
-        delay(ROVECOMM_DELAY);
-
-        Serial.println("Turning Rover OFF");
-    
-        digitalWrite(PACK_OUT_CTR_PIN, LOW);
-    
-        time_of_overcurrent = millis(); 
-        num_overcurrent++;
-    
-        notifyOverCurrent();
-        break;
+      error_report[RC_BMSBOARD_ERROR_PACKENTRY] = RC_BMSBOARD_ERROR_OVERCURRENT;
+      RoveComm.write(RC_BMSBOARD_ERROR_HEADER, error_report);
+      delay(ROVECOMM_DELAY);
       
-      case 1:
-        if(millis() >= (time_of_overcurrent + RESTART_DELAY))
-        {
-          Serial.println("Turning Rover ON");
-
-          digitalWrite(PACK_OUT_CTR_PIN, HIGH);
-        }//end if
-        if(millis() >= (time_of_overcurrent + RESTART_DELAY + RECHECK_DELAY))
-        {
-          Serial.println("No overcurrent within recheck delay");
-
-          overcurrent_state = false;
-          time_of_overcurrent = 0;
-        }//end if
+      digitalWrite(PACK_OUT_CTR_PIN, LOW);
+    
+      time_of_overcurrent = millis(); 
+      num_overcurrent++;
+    
+      notifyOverCurrent();
+    }
+    else if(num_overcurrent == 1)
+    {
+      if(millis() >= (time_of_overcurrent + RESTART_DELAY))
+      {
+        digitalWrite(PACK_OUT_CTR_PIN, HIGH);
+      }//end if
+      if(millis() >= (time_of_overcurrent + RESTART_DELAY + RECHECK_DELAY))
+      {
+        overcurrent_state = false;
+        num_overcurrent = 0;
+        time_of_overcurrent = 0;
+      }//end if
+    }
+    else
+    {
+      error_report[RC_BMSBOARD_ERROR_PACKENTRY] = RC_BMSBOARD_ERROR_OVERCURRENT;
+      RoveComm.write(RC_BMSBOARD_ERROR_HEADER, error_report);
+      delay(ROVECOMM_DELAY);
       
-      case 2:
-        error_report[RC_BMSBOARD_ERROR_PACKENTRY] = RC_BMSBOARD_ERROR_OVERCURRENT;
-        RoveComm.write(RC_BMSBOARD_ERROR_HEADER, error_report);
-        delay(ROVECOMM_DELAY);
-        
-        Serial.println("Turning Rover & BMS OFF");
+      digitalWrite(PACK_OUT_CTR_PIN, LOW);
 
-        digitalWrite(PACK_OUT_CTR_PIN, LOW);
+      notifyOverCurrent();
 
-        notifyOverCurrent();
-
-        digitalWrite(LOGIC_SWITCH_CTR_PIN, HIGH); //BMS Suicide
-        break;
-    break;
-    }//end switch
-  }//end if
+      digitalWrite(LOGIC_SWITCH_CTR_PIN, HIGH); //BMS Suicide   
+    }
+  }
   return;
 }//end func
 
@@ -386,29 +417,16 @@ void reactUnderVoltage()
   if(pack_undervoltage_state == true || cell_undervoltage_state == true)
   {
     digitalWrite(PACK_OUT_CTR_PIN, LOW);
-
     notifyUnderVoltage();
-
     digitalWrite(LOGIC_SWITCH_CTR_PIN, HIGH); //BMS Suicide
   }
   return;
 }//end func
 
-/*void reactLowVoltage(uint16_t cell_voltage[RC_BMSBOARD_VMEASmV_DATACOUNT], bool &low_voltage_state, int &time_low_voltage_reminder)
-{
-  if(low_voltage_state == false && (cell_voltage[RC_BMSBOARD_VMEASmV_PACKENTRY] <= PACK_UNDERVOLTAGE) && (cell_voltage[RC_BMSBOARD_VMEASmV_PACKENTRY] > PACK_UNDERVOLTAGE))
-  {
-
-  }
-  break;
-}//end func*/
-
 void reactOverTemp()
 {
   if(overtemp_state == true && fans_on == false) 
-  {   
-    Serial.println("Error: Overtemp...Turning fans on");
-
+  { 
     fans_on = true;               
     digitalWrite(FAN_1_CTR_PIN, HIGH);
     digitalWrite(FAN_2_CTR_PIN, HIGH);
@@ -418,8 +436,6 @@ void reactOverTemp()
   }
   if(overtemp_state == false && fans_on == true)
   {
-    Serial.println("Turning fans off");
-
     fans_on = false;
     digitalWrite(FAN_1_CTR_PIN, LOW);
     digitalWrite(FAN_2_CTR_PIN, LOW);
@@ -438,8 +454,6 @@ void reactForgottenLogicSwitch()
     {
       time_switch_forgotten = millis();
       time_switch_reminder = millis();
-
-      Serial.println("Logic Switch Forgotten");
     }
     if(num_out_voltage_loops > 1)
     {
@@ -450,8 +464,6 @@ void reactForgottenLogicSwitch()
       }//end if
       if(millis() >= time_switch_forgotten + IDLE_SHUTOFF_TIME)
       {
-        Serial.println("Turning off BMS");
-
         digitalWrite(LOGIC_SWITCH_CTR_PIN, HIGH); //BMS Suicide 
       }//end if   
     }//end if 
@@ -459,14 +471,32 @@ void reactForgottenLogicSwitch()
   return;
 }//end func
 
+void reactLowVoltage( uint16_t cell_voltage[RC_BMSBOARD_VMEASmV_DATACOUNT])
+{
+  if((cell_voltage[0] > PACK_UNDERVOLTAGE) && (cell_voltage[0] <= PACK_LOWVOLTAGE) && (low_voltage_state = false))//first instance of low voltage
+  { 
+    low_voltage_state = true;
+    notifyLowVoltage();
+    time_of_low_voltage = millis();
+    num_low_voltage_reminder = 1;
+  }
+  else if((cell_voltage[0] > PACK_UNDERVOLTAGE) && (cell_voltage[0] <= PACK_LOWVOLTAGE) && (low_voltage_state = true))//following instances of low voltage
+  {
+    if(millis() >= (time_of_low_voltage + (num_low_voltage_reminder * LOGIC_SWITCH_REMINDER)))
+    { 
+      notifyLowVoltage();
+      num_low_voltage_reminder++;
+    }
+  }
+}
+
+
 void setEstop(uint8_t data)
 {
   if(data == 0)
   {
     digitalWrite(PACK_OUT_CTR_PIN, LOW);
 
-    Serial.println("Turning Rover & BMS OFF");
-    
     notifyEstop();
 
     digitalWrite(LOGIC_SWITCH_CTR_PIN, HIGH); //BMS Suicide
@@ -475,13 +505,7 @@ void setEstop(uint8_t data)
   else
   {
     digitalWrite(PACK_OUT_CTR_PIN, LOW);
-
-    Serial.print("Rebooting Rover in: ");
-    Serial.print(data);
-    Serial.println(" sec");
-
-    notifyReboot();
-    
+    notifyReboot();  
     delay(data * 1000); //Receiving delay in seconds so it needs to be converted to msec.
 
     digitalWrite(PACK_OUT_CTR_PIN, HIGH);
@@ -491,157 +515,187 @@ void setEstop(uint8_t data)
 
 void notifyEstop() //Buzzer sound: beeeeeeeeeeeeeeeeeeeep beeeeeeeeeep beeeeep beeep bep
 {
-  Serial.println("notifyEstop();");
-
-  /*digitalWrite(BUZZER_CTR_PIN, HIGH);
-  digitalWrite(SW_ERR_PIN, HIGH);
-  delay(2000);
-  digitalWrite(BUZZER_CTR_PIN, LOW);
-  digitalWrite(SW_ERR_PIN, LOW);
-  delay(250);
-
-  digitalWrite(BUZZER_CTR_PIN, HIGH);
-  digitalWrite(SW_ERR_PIN, HIGH);
-  delay(1000);
-  digitalWrite(BUZZER_CTR_PIN, LOW);
-  digitalWrite(SW_ERR_PIN, LOW);
-  delay(250);
-
   digitalWrite(BUZZER_CTR_PIN, HIGH);
   digitalWrite(SW_ERR_PIN, HIGH);
   delay(500);
   digitalWrite(BUZZER_CTR_PIN, LOW);
   digitalWrite(SW_ERR_PIN, LOW);
-  delay(250);
+  delay(100);
 
   digitalWrite(BUZZER_CTR_PIN, HIGH);
   digitalWrite(SW_ERR_PIN, HIGH);
   delay(250);
   digitalWrite(BUZZER_CTR_PIN, LOW);
   digitalWrite(SW_ERR_PIN, LOW);
-  delay(250);
+  delay(100);
 
   digitalWrite(BUZZER_CTR_PIN, HIGH);
   digitalWrite(SW_ERR_PIN, HIGH);
   delay(100);
   digitalWrite(BUZZER_CTR_PIN, LOW);
-  digitalWrite(SW_ERR_PIN, LOW);*/
+  digitalWrite(SW_ERR_PIN, LOW);
+  delay(100);
+
+  digitalWrite(BUZZER_CTR_PIN, HIGH);
+  digitalWrite(SW_ERR_PIN, HIGH);
+  delay(50);
+  digitalWrite(BUZZER_CTR_PIN, LOW);
+  digitalWrite(SW_ERR_PIN, LOW);
+  delay(100);
+
+  digitalWrite(BUZZER_CTR_PIN, HIGH);
+  digitalWrite(SW_ERR_PIN, HIGH);
+  delay(25);
+  digitalWrite(BUZZER_CTR_PIN, LOW);
+  digitalWrite(SW_ERR_PIN, LOW);
 
   return;
 }//end func
 
 void notifyLogicSwitch() //Buzzer sound: beeep beeep
 {
-  Serial.println("notifyLogicSwitch();");
-
-  /*digitalWrite(BUZZER_CTR_PIN, HIGH);
+  digitalWrite(BUZZER_CTR_PIN, HIGH);
   digitalWrite(SW_ERR_PIN, HIGH);
-  delay(250);
+  delay(100);
   digitalWrite(BUZZER_CTR_PIN, LOW);
   digitalWrite(SW_ERR_PIN, LOW);
-  delay(250);
+  delay(100);
 
   digitalWrite(BUZZER_CTR_PIN, HIGH);
   digitalWrite(SW_ERR_PIN, HIGH);
-  delay(250);
+  delay(100);
   digitalWrite(BUZZER_CTR_PIN, LOW);
-  digitalWrite(SW_ERR_PIN, LOW);*/
+  digitalWrite(SW_ERR_PIN, LOW);
 
   return;
 }//end func
 
 void notifyReboot() //Buzzer sound: beeeeeeeeeep beeep beeep
 {
-  Serial.println("notifyReboot();");
-
-  /*digitalWrite(BUZZER_CTR_PIN, HIGH);
+  digitalWrite(BUZZER_CTR_PIN, HIGH);
   digitalWrite(SW_ERR_PIN, HIGH);
-  delay(1000);
+  delay(500);
   digitalWrite(BUZZER_CTR_PIN, LOW);
   digitalWrite(SW_ERR_PIN, LOW);
-  delay(250);
+  delay(100);
 
   digitalWrite(BUZZER_CTR_PIN, HIGH);
   digitalWrite(SW_ERR_PIN, HIGH);
   delay(250);
   digitalWrite(BUZZER_CTR_PIN, LOW);
   digitalWrite(SW_ERR_PIN, LOW);
-  delay(250);
+  delay(100);
+
+  digitalWrite(BUZZER_CTR_PIN, HIGH);
+  digitalWrite(SW_ERR_PIN, HIGH);
+  delay(100);
+  digitalWrite(BUZZER_CTR_PIN, LOW);
+  digitalWrite(SW_ERR_PIN, LOW);
+  delay(100);
+
+  digitalWrite(BUZZER_CTR_PIN, HIGH);
+  digitalWrite(SW_ERR_PIN, HIGH);
+  delay(50);
+  digitalWrite(BUZZER_CTR_PIN, LOW);
+  digitalWrite(SW_ERR_PIN, LOW);
+  delay(100);
+
+  digitalWrite(BUZZER_CTR_PIN, HIGH);
+  digitalWrite(SW_ERR_PIN, HIGH);
+  delay(25);
+  digitalWrite(BUZZER_CTR_PIN, LOW);
+  digitalWrite(SW_ERR_PIN, LOW);
+  delay(100);
+
+  digitalWrite(BUZZER_CTR_PIN, HIGH);
+  digitalWrite(SW_ERR_PIN, HIGH);
+  delay(25);
+  digitalWrite(BUZZER_CTR_PIN, LOW);
+  digitalWrite(SW_ERR_PIN, LOW);
+  delay(100);
+
+  digitalWrite(BUZZER_CTR_PIN, HIGH);
+  digitalWrite(SW_ERR_PIN, HIGH);
+  delay(50);
+  digitalWrite(BUZZER_CTR_PIN, LOW);
+  digitalWrite(SW_ERR_PIN, LOW);
+  delay(100);
+
+  digitalWrite(BUZZER_CTR_PIN, HIGH);
+  digitalWrite(SW_ERR_PIN, HIGH);
+  delay(100);
+  digitalWrite(BUZZER_CTR_PIN, LOW);
+  digitalWrite(SW_ERR_PIN, LOW);
+  delay(100);
 
   digitalWrite(BUZZER_CTR_PIN, HIGH);
   digitalWrite(SW_ERR_PIN, HIGH);
   delay(250);
   digitalWrite(BUZZER_CTR_PIN, LOW);
-  digitalWrite(SW_ERR_PIN, LOW);*/
+  digitalWrite(SW_ERR_PIN, LOW);
+  delay(100);
 
+  digitalWrite(BUZZER_CTR_PIN, HIGH);
+  digitalWrite(SW_ERR_PIN, HIGH);
+  delay(500);
+  digitalWrite(BUZZER_CTR_PIN, LOW);
+  digitalWrite(SW_ERR_PIN, LOW);
+  
   return;
 }//end func
 
 void notifyOverCurrent() //Buzzer Sound: beeeeeeeeeeeeeeeeeeeeeeeeeeeeeep
 {
-  Serial.println("notifyOverCurrent();");
-
-  /*digitalWrite(BUZZER_CTR_PIN, HIGH);
+  digitalWrite(BUZZER_CTR_PIN, HIGH);
   digitalWrite(SW_ERR_PIN, HIGH);
   delay(3000);
   digitalWrite(BUZZER_CTR_PIN, LOW);
-  digitalWrite(SW_ERR_PIN, LOW);*/
+  digitalWrite(SW_ERR_PIN, LOW);
 
   return;
 }//end func
 
 void notifyUnderVoltage() //Buzzer Sound: beeep beeep beeep beeep beeeeeeeeeeeeeeeeeeeep
 {
-  Serial.println("notifyUnderVoltage();");
-
-  /*digitalWrite(BUZZER_CTR_PIN, HIGH);
+  digitalWrite(BUZZER_CTR_PIN, HIGH);
   digitalWrite(SW_ERR_PIN, HIGH);
-  delay(250);
+  delay(150);
   digitalWrite(BUZZER_CTR_PIN, LOW);
   digitalWrite(SW_ERR_PIN, LOW);
-  delay(250);
+  delay(150);
 
   digitalWrite(BUZZER_CTR_PIN, HIGH);
   digitalWrite(SW_ERR_PIN, HIGH);
-  delay(250);
+  delay(150);
   digitalWrite(BUZZER_CTR_PIN, LOW);
   digitalWrite(SW_ERR_PIN, LOW);
-  delay(250);
+  delay(150);
 
   digitalWrite(BUZZER_CTR_PIN, HIGH);
   digitalWrite(SW_ERR_PIN, HIGH);
-  delay(250);
+  delay(150);
   digitalWrite(BUZZER_CTR_PIN, LOW);
   digitalWrite(SW_ERR_PIN, LOW);
-  delay(250);
+  delay(150);
 
   digitalWrite(BUZZER_CTR_PIN, HIGH);
   digitalWrite(SW_ERR_PIN, HIGH);
-  delay(250);
+  delay(150);
   digitalWrite(BUZZER_CTR_PIN, LOW);
   digitalWrite(SW_ERR_PIN, LOW);
-  delay(250);
+  delay(150);
 
   digitalWrite(BUZZER_CTR_PIN, HIGH);
   digitalWrite(SW_ERR_PIN, HIGH);
   delay(2000);
   digitalWrite(BUZZER_CTR_PIN, LOW);
-  digitalWrite(SW_ERR_PIN, LOW);*/
+  digitalWrite(SW_ERR_PIN, LOW);
 
   return;
 }//end func
 
 void notifyLowVoltage() //Buzzer Sound: beeep beeep beeep
 {
-  Serial.println("notifyLowVoltage();");
-
-  /*digitalWrite(BUZZER_CTR_PIN, HIGH);
-  digitalWrite(SW_ERR_PIN, HIGH);
-  delay(250);
-  digitalWrite(BUZZER_CTR_PIN, LOW);
-  digitalWrite(SW_ERR_PIN, LOW);
-  delay(250);
-
   digitalWrite(BUZZER_CTR_PIN, HIGH);
   digitalWrite(SW_ERR_PIN, HIGH);
   delay(250);
@@ -653,7 +707,14 @@ void notifyLowVoltage() //Buzzer Sound: beeep beeep beeep
   digitalWrite(SW_ERR_PIN, HIGH);
   delay(250);
   digitalWrite(BUZZER_CTR_PIN, LOW);
-  digitalWrite(SW_ERR_PIN, LOW);*/
+  digitalWrite(SW_ERR_PIN, LOW);
+  delay(250);
+
+  digitalWrite(BUZZER_CTR_PIN, HIGH);
+  digitalWrite(SW_ERR_PIN, HIGH);
+  delay(250);
+  digitalWrite(BUZZER_CTR_PIN, LOW);
+  digitalWrite(SW_ERR_PIN, LOW);
 
   return;
 }//end func
