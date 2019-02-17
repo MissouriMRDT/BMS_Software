@@ -18,6 +18,8 @@ void setup()
 {
   Serial.begin(9600);
   Serial3.begin(9600);
+  Serial3.begin(9600);
+  startScreen();
   RoveComm.begin(RC_BMSBOARD_FOURTHOCTET);
   delay(ROVECOMM_DELAY);
   
@@ -747,3 +749,323 @@ void notifyLowVoltage() //Buzzer Sound: beeep beeep beeep
 }//end func
 
 //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+void startScreen()
+{
+  
+  // put your main code here, to run repeatedly: 
+  delay(1000);
+  //Send the clear command to the display - this returns the cursor to the beginning of the display
+  Serial3.write('|'); //Setting character
+  Serial3.write('-'); //Clear display
+  
+  Serial3.write(0x20);
+  Serial3.write(0x20);
+  
+  movingRover();
+  Serial3.write('|'); //Setting character
+  Serial3.write('-'); //Clear display
+  for(int i = 0; i<4; i++)
+  {
+    asterisks();
+    stars();
+  }
+  delay(1000);
+
+  Serial3.write('|'); //Setting character
+  Serial3.write('-'); //Clear display
+}
+
+void movingRover()
+{
+for(int i = 0; i<14;i++)
+{
+    delay(450);
+   // Serial3.write(0x20);
+   // Serial3.write(0x20);
+   
+    Serial3.write(0x20);
+    Serial3.write(0x20);
+    Serial3.write(0x20);
+    Serial3.write(0x20);
+    Serial3.write(0x20);
+    Serial3.write(0x20);
+    Serial3.write(0x20);
+    Serial3.write(0x20);
+    Serial3.write(0x20);
+    Serial3.write(0x20);
+    Serial3.write(0x20);
+    Serial3.write(0x20);
+    Serial3.write(0x20);
+    Serial3.write(0x20);
+    Serial3.write(0x20);
+    Serial3.write(0x20);
+    Serial3.write(0x20);
+    Serial3.write(0x20);
+    Serial3.write(0x20);
+    Serial3.write(0x20);
+    Serial3.write(0x20);
+    
+    Serial3.write(0xA1);
+    
+    Serial3.write(0x20);
+    Serial3.write(0x20);
+    Serial3.write(0x20);
+    Serial3.write(0x20);
+    Serial3.write(0x20);
+    Serial3.write(0x20);
+    Serial3.write(0x20);
+    Serial3.write(0x20);
+    Serial3.write(0x20);
+    Serial3.write(0x20);
+    Serial3.write(0x20);
+    Serial3.write(0x20);
+    Serial3.write(0x20);
+    Serial3.write(0x20);
+    Serial3.write(0x20);
+    Serial3.write(0x20);
+    Serial3.write(0x20);
+    
+      Serial3.write(0xDB);
+      Serial3.write(0xBA);
+      Serial3.write(0xDA);
+      Serial3.write(0xCD);
+   
+    Serial3.write(0x20);
+    Serial3.write(0x20);
+    Serial3.write(0x20);
+    Serial3.write(0x20);
+    Serial3.write(0x20); 
+    Serial3.write(0x20);
+    Serial3.write(0x20);
+    Serial3.write(0x20);
+    Serial3.write(0x20);
+    Serial3.write(0x20);
+    Serial3.write(0x20);
+    Serial3.write(0x20);
+    Serial3.write(0x20);
+    Serial3.write(0x20);
+    Serial3.write(0x20);
+       
+      Serial3.write(0x6F);
+      Serial3.write(0x5E);
+      Serial3.write(0x6F);
+      Serial3.write(0x5E);
+      Serial3.write(0x6F);
+      
+    Serial3.write(0x20);
+    Serial3.write(0x20);
+    Serial3.write(0x20);
+    Serial3.write(0x20);
+    Serial3.write(0x20);
+    Serial3.write(0x20);
+    Serial3.write(0x20);
+    Serial3.write(0x20);
+    Serial3.write(0x20);
+    Serial3.write(0x20);
+    Serial3.write(0x20);
+    Serial3.write(0x20);
+    Serial3.write(0x20);
+    Serial3.write(0x20);
+    Serial3.write(0x20);
+    Serial3.write(0x20);
+    Serial3.write(0x20);
+    Serial3.write(0x20);
+  /*  
+    Serial3.write(0x23);//#
+    Serial3.write(0x52);//R
+    Serial3.write(0x4F);//O
+    Serial3.write(0x56);//V
+    Serial3.write(0x45);//E
+    Serial3.write(0x53);//S
+    Serial3.write(0x4F);//O
+    Serial3.write(0x48);//H
+    Serial3.write(0x41);//A
+    Serial3.write(0x52);//R
+    Serial3.write(0x44);//D*/
+  }
+  Serial3.write('|'); //Setting character
+  Serial3.write('-'); //Clear display
+}
+
+void asterisks()
+{
+  Serial3.write(0x56);//V
+  Serial3.write(0x41);//A
+  Serial3.write(0x4C);//L
+  Serial3.write(0x4B);//K
+  Serial3.write(0x52);//R
+  Serial3.write(0x49);//I
+  Serial3.write(0x45);//E
+  Serial3.write(0x20);
+  Serial3.write(0x49);//I
+  Serial3.write(0x4E);//N
+  Serial3.write(0x49);//I
+  Serial3.write(0x54);//T
+  Serial3.write(0x49);//I
+  Serial3.write(0x41);//A
+  Serial3.write(0x4C);//L
+  Serial3.write(0x49);//I
+  Serial3.write(0x5A);//Z
+  Serial3.write(0x49);//I
+  Serial3.write(0x4E);//N
+  Serial3.write(0x47);//G
+ 
+  Serial3.write(0x20);
+  Serial3.write(0x2A);
+  Serial3.write(0x20);
+  Serial3.write(0x2A);
+  Serial3.write(0x20);
+  Serial3.write(0x2A);
+  Serial3.write(0x20);
+  Serial3.write(0x2A);
+  Serial3.write(0x20);
+  Serial3.write(0x2A);
+  Serial3.write(0x20);
+  Serial3.write(0x2A);
+  Serial3.write(0x20);
+  Serial3.write(0x2A);
+  Serial3.write(0x20);
+    Serial3.write(0xA1);
+  Serial3.write(0x20);
+  Serial3.write(0x2A);
+  Serial3.write(0x20);
+  Serial3.write(0x2A);
+  Serial3.write(0x2A);
+  Serial3.write(0x20);
+  Serial3.write(0x2A);
+  Serial3.write(0x20);
+  Serial3.write(0x2A);
+  Serial3.write(0x20);
+  Serial3.write(0x2A);
+  Serial3.write(0x20);
+  Serial3.write(0x2A);
+  Serial3.write(0x20);
+  Serial3.write(0x2A);
+  Serial3.write(0x20);
+  Serial3.write(0x2A);
+  Serial3.write(0x20);
+    Serial3.write(0xDB);
+    Serial3.write(0xBA);
+    Serial3.write(0xDA);
+    Serial3.write(0xCD);
+  Serial3.write(0x20);
+  Serial3.write(0x20);
+  Serial3.write(0x20);
+  Serial3.write(0x2A);
+  Serial3.write(0x20); 
+  Serial3.write(0x2A);
+  Serial3.write(0x20);
+  Serial3.write(0x2A);
+  Serial3.write(0x20);
+  Serial3.write(0x2A);
+  Serial3.write(0x20);
+  Serial3.write(0x2A);
+  Serial3.write(0x20);
+  Serial3.write(0x20);
+  Serial3.write(0x20);   
+    Serial3.write(0x6F);
+    Serial3.write(0x5E);
+    Serial3.write(0x6F);
+    Serial3.write(0x5E);
+    Serial3.write(0x6F);
+  Serial3.write(0x20);
+  Serial3.write(0x2A);
+  //Serial3.write(0x2A);
+
+  delay(500);
+  
+  Serial3.write('|'); //Setting character
+  Serial3.write('-'); //Clear display
+}
+
+void stars()
+{
+   Serial3.write(0x56);//V
+  Serial3.write(0x41);//A
+  Serial3.write(0x4C);//L
+  Serial3.write(0x4B);//K
+  Serial3.write(0x52);//R
+  Serial3.write(0x49);//I
+  Serial3.write(0x45);//E
+  Serial3.write(0x20);
+  Serial3.write(0x49);//I
+  Serial3.write(0x4E);//N
+  Serial3.write(0x49);//I
+  Serial3.write(0x54);//T
+  Serial3.write(0x49);//I
+  Serial3.write(0x41);//A
+  Serial3.write(0x4C);//L
+  Serial3.write(0x49);//I
+  Serial3.write(0x5A);//Z
+  Serial3.write(0x49);//I
+  Serial3.write(0x4E);//N
+  Serial3.write(0x47);//G
+ 
+  Serial3.write(0x20);
+  Serial3.write(0x2B);
+  
+  Serial3.write(0x20);
+  Serial3.write(0x2B);
+  Serial3.write(0x20);
+  Serial3.write(0x2B);
+  Serial3.write(0x20);
+  Serial3.write(0x2B);
+  Serial3.write(0x20);
+  Serial3.write(0x2B);
+  Serial3.write(0x20);
+  Serial3.write(0x2B);
+  Serial3.write(0x20);
+  Serial3.write(0x2B);
+  Serial3.write(0x20);
+    Serial3.write(0xA1);
+  Serial3.write(0x20);
+  Serial3.write(0x2B);
+  Serial3.write(0x20);
+  Serial3.write(0x2B);
+    Serial3.write(0x2B);
+  Serial3.write(0x20);
+  Serial3.write(0x2B);
+  Serial3.write(0x20);
+  Serial3.write(0x2B);
+  Serial3.write(0x20);
+  Serial3.write(0x2B);
+  Serial3.write(0x20);
+  Serial3.write(0x2B);
+  Serial3.write(0x20);
+  Serial3.write(0x2B);
+  Serial3.write(0x20);
+  Serial3.write(0x2B);
+  Serial3.write(0x20);
+    Serial3.write(0xDB);
+    Serial3.write(0xBA);
+    Serial3.write(0xDA);
+    Serial3.write(0xCD);
+  Serial3.write(0x20);
+  Serial3.write(0x20);
+  Serial3.write(0x20);
+  Serial3.write(0x2B);
+  Serial3.write(0x20); 
+  Serial3.write(0x2B);
+  Serial3.write(0x20);
+  Serial3.write(0x2B);
+  Serial3.write(0x20);
+  Serial3.write(0x2B);
+  Serial3.write(0x20);
+  Serial3.write(0x2B);
+  Serial3.write(0x20);
+  Serial3.write(0x20);
+  Serial3.write(0x20);   
+    Serial3.write(0x6F);
+    Serial3.write(0x5E);
+    Serial3.write(0x6F);
+    Serial3.write(0x5E);
+    Serial3.write(0x6F);
+  Serial3.write(0x20);
+  Serial3.write(0x2B);
+  //Serial3.write(0x2B);
+
+  delay(500);
+
+  Serial3.write('|'); //Setting character
+  Serial3.write('-'); //Clear display
+}

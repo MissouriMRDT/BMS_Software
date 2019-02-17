@@ -160,5 +160,14 @@ void notifyUnderVoltage(); //Buzzer Sound: beeep beeep beeep beeep beeeeeeeeeeee
 
 void notifyLowVoltage(); //Buzzer Sound: beeep beeep beeep
 
+void startScreen();
+
+void stars();
+
+void asterisks();
+
+void movingRover();
+
+
 
 #endif
