@@ -1,14 +1,14 @@
-// Battery Managment System (BMS) Software /////////////////////////////////////////
+// Battery Managment System (BMS) Software //////////////////////////////////////////////////////////////////////////////////////////////////////////
   // Main cpp File
 //
 // Created for 2019 Valkyrie by: Jacob Lipina, jrlwd5
 //
 //
-// Libraries ///////////////////////////////////////////////////////////////////////
+// Libraries ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 #include "BMS_Software_Main.h"
 
-// Setup & Main Loop ////////////////////////////////////////////////////////////
+// Setup & Main Loop ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 //
 uint8_t error_report[RC_BMSBOARD_ERROR_DATACOUNT] = {0,0,0,0,0,0,0,0,0};
 int num_loop = 0;
@@ -57,7 +57,7 @@ void loop()
   packet = RoveComm.read();
     if(packet.data_id!=0)
     {
-      switch(packet.data_id) //andrew needs to fix the type to int for the dataid
+      switch(packet.data_id)
       {
         case RC_BMSBOARD_SWESTOPs_DATAID:
         {
@@ -68,7 +68,7 @@ void loop()
       } //end switch
     } //end if
 
-    if((num_loop % BLINK_ON_LOOP) == 0) //SW_IND led will blink while the code is looping
+    if((num_loop % UPDATE_ON_LOOP) == 0) //SW_IND led will blink while the code is looping and LCD will update
     {
       if(sw_ind_state == false)
       {
@@ -87,19 +87,16 @@ void loop()
 } //end loop
 
 
-
-// Static Variables for Below Functions ////////////////////////////////////////////////////////////////
+// Static Variables for Below Functions /////////////////////////////////////////////////////////////////////////////////////////////////////////////
   //Current 
 static int num_overcurrent = 0;
 static bool overcurrent_state = false;
 static float time_of_overcurrent = 0;
   //Voltage
-//static int num_pack_undervoltage_measured = 0;
-//static int num_cell_undervoltage_measured = 0;
 static bool pack_undervoltage_state = false;
 static bool cell_undervoltage_state = false;
 static bool low_voltage_state = false;
-int static num_low_voltage_reminder = 0;
+static int num_low_voltage_reminder = 0;
 static int time_of_low_voltage = 0;
 
   //Temp
@@ -111,7 +108,7 @@ static int num_out_voltage_loops = 0;
 static int time_switch_forgotten = 0;
 static int time_switch_reminder = 0;
 
-// Functions ///////////////////////////////////////////////////////////////////////
+// Functions /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 void setInputPins()
 {
@@ -131,6 +128,8 @@ void setInputPins()
   return;
 }//end func
 
+//////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
 void setOutputPins()
 {
   pinMode(PACK_OUT_CTR_PIN,     OUTPUT);
@@ -147,6 +146,8 @@ void setOutputPins()
   return;
 }//end func
 
+//////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
 void setOutputStates()
 {
   digitalWrite(PACK_OUT_CTR_PIN,      HIGH);
@@ -162,6 +163,8 @@ void setOutputStates()
   
   return;
 }//end func
+
+//////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 void getMainCurrent(int32_t &main_current)
 {
@@ -182,6 +185,8 @@ void getMainCurrent(int32_t &main_current)
   }//end if
   return;
 }//end func
+
+//////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 void getCellVoltage(uint16_t cell_voltage[RC_BMSBOARD_VMEASmV_DATACOUNT])
 {   
@@ -219,11 +224,11 @@ void getCellVoltage(uint16_t cell_voltage[RC_BMSBOARD_VMEASmV_DATACOUNT])
       if(adc_reading < CELL_V_ADC_MIN)
       {
         adc_reading = CELL_V_ADC_MIN;
-      }
+      }//end if
       if(adc_reading > CELL_V_ADC_MAX)
       {
         adc_reading = CELL_V_ADC_MAX;
-      }
+      }//end if
       cell_voltage[i] = map(adc_reading, CELL_V_ADC_MIN, CELL_V_ADC_MAX, CELL_VOLTS_MIN, CELL_VOLTS_MAX);
 
       error_report[i] = RC_BMSBOARD_ERROR_NOERROR;
@@ -237,11 +242,11 @@ void getCellVoltage(uint16_t cell_voltage[RC_BMSBOARD_VMEASmV_DATACOUNT])
         if(adc_reading < CELL_V_ADC_MIN)
         {
           adc_reading = CELL_V_ADC_MIN;
-        }
+        }//end if
         if(adc_reading > CELL_V_ADC_MAX)
         {
           adc_reading = CELL_V_ADC_MAX;
-        }
+        }//end if
         if((map(adc_reading, CELL_V_ADC_MIN, CELL_V_ADC_MAX, CELL_VOLTS_MIN, CELL_VOLTS_MAX) <= CELL_UNDERVOLTAGE)
             && (map(adc_reading, CELL_V_ADC_MIN, CELL_V_ADC_MAX, CELL_VOLTS_MIN, CELL_VOLTS_MAX) > CELL_VOLTS_MIN))
         {
@@ -254,7 +259,7 @@ void getCellVoltage(uint16_t cell_voltage[RC_BMSBOARD_VMEASmV_DATACOUNT])
       if(cell_voltage[i] == CELL_VOLTS_MIN)
       {
         error_report[i] = RC_BMSBOARD_ERROR_PINFAULT;
-      }
+      }//end if
     }//end if
   }//end for
   RoveComm.write(RC_BMSBOARD_ERROR_HEADER, error_report);
@@ -262,6 +267,8 @@ void getCellVoltage(uint16_t cell_voltage[RC_BMSBOARD_VMEASmV_DATACOUNT])
 
   return;
 }//end func
+
+//////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 void getOutVoltage(int &pack_out_voltage)
 {
@@ -272,7 +279,7 @@ void getOutVoltage(int &pack_out_voltage)
   {
     forgotten_logic_switch = false;
     time_switch_forgotten = 0;
-  }
+  }//end if
   if(pack_out_voltage < PACK_EFFECTIVE_ZERO)
   {
     delay(DEBOUNCE_DELAY);
@@ -281,10 +288,12 @@ void getOutVoltage(int &pack_out_voltage)
     {
       forgotten_logic_switch = true;
       num_out_voltage_loops++;
-    } 
-  }
+    }//end if 
+  }//end if
   return;
 }//end func
+
+//////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 void getBattTemp(uint16_t &batt_temp)
 {
@@ -294,7 +303,7 @@ void getBattTemp(uint16_t &batt_temp)
   {
     overtemp_state = false;
 
-  }
+  }//end if
   if(batt_temp > TEMP_THRESHOLD)
   {
     delay(DEBOUNCE_DELAY);
@@ -302,19 +311,15 @@ void getBattTemp(uint16_t &batt_temp)
     if(map(analogRead(TEMP_degC_MEAS_PIN), TEMP_ADC_MIN, TEMP_ADC_MAX, TEMP_MIN, TEMP_MAX) > TEMP_THRESHOLD)
     {
       overtemp_state = true;
-    } 
-  }
+    }//end if
+  }//end if
   return;
 }//end func
 
-/////////////////////////////////////
+//////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 void updateLCD(int32_t mainCurrent, uint16_t cellVoltages[])
-{
-  Serial.begin(9600); //Start serial communication at 9600
-  
-  Serial7.begin(9600); //Start communication with Serial7
-  
+{  
   const int NUM_CELLS = 8; //this should be in header?
   bool LCD_Update = false;
   float time1 = 0;
@@ -331,39 +336,39 @@ void updateLCD(int32_t mainCurrent, uint16_t cellVoltages[])
   }
 
   //Send the clear command to the display - this returns the cursor to the beginning of the display
-  Serial7.write('|'); //Setting character
-  Serial7.write('-'); //Clear display
+  Serial3.write('|'); //Setting character
+  Serial3.write('-'); //Clear display
   
-  Serial7.print("Pack:");
-  Serial7.print(packVoltage, 1); //packVoltage from BMS, in V?
-  Serial7.print("V");
-  Serial7.print(" Cur:");
-  Serial7.print(packCurrent, 2); //packCurrent from BMS, in A?
-  Serial7.print("A");
+  Serial3.print("Pack:");
+  Serial3.print(packVoltage, 1); //packVoltage from BMS, in V?
+  Serial3.print("V");
+  Serial3.print(" Cur:");
+  Serial3.print(packCurrent, 2); //packCurrent from BMS, in A?
+  Serial3.print("A");
   
   for(int i = 0; i < NUM_CELLS; i++)
   {
     float temp_cell_voltage = 0;
-    temp_cell_voltage = (static_cast<float>(cellVoltages[i]) / 1000);
-    Serial7.print(i+1);
-    Serial7.print(": ");
-    Serial7.print(temp_cell_voltage, 1); //cellVoltage from BMS in V?  shows one decimal place
+    temp_cell_voltage = (static_cast<float>(cellVoltages[i+1]) / 1000);
+    Serial3.print(i+1);
+    Serial3.print(":");
+    Serial3.print(temp_cell_voltage, 1); //cellVoltage from BMS in V?  shows one decimal place
     if((i+1)%3 == 0)
     {
-      Serial7.print("V");
-    }     
+      Serial3.print("V");
+    }//end if     
     else
     {
-      Serial7.print("V "); 
-    }
-  } 
+      Serial3.print("V "); 
+    }//end else
+  }//end for
   LCD_Update = false;
-}
+}//end func
 
-/////////////////////////////////////////////
+//////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 void reactOverCurrent()
-{ //TODO: RED will see overcurrent for 10sec before recheck time is up.
+{
   if(overcurrent_state == false)
   {
     error_report[RC_BMSBOARD_ERROR_PACKENTRY] = RC_BMSBOARD_ERROR_OVERCURRENT;
@@ -382,7 +387,7 @@ void reactOverCurrent()
       num_overcurrent++;
     
       notifyOverCurrent();
-    }
+    }//end if
     else if(num_overcurrent == 1)
     {
       if(millis() >= (time_of_overcurrent + RESTART_DELAY))
@@ -395,7 +400,7 @@ void reactOverCurrent()
         num_overcurrent = 0;
         time_of_overcurrent = 0;
       }//end if
-    }
+    }//end else if
     else
     {
       error_report[RC_BMSBOARD_ERROR_PACKENTRY] = RC_BMSBOARD_ERROR_OVERCURRENT;
@@ -407,10 +412,12 @@ void reactOverCurrent()
       notifyOverCurrent();
 
       digitalWrite(LOGIC_SWITCH_CTR_PIN, HIGH); //BMS Suicide   
-    }
-  }
+    }//end else
+  }//end if
   return;
 }//end func
+
+//////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 void reactUnderVoltage()
 {
@@ -419,9 +426,11 @@ void reactUnderVoltage()
     digitalWrite(PACK_OUT_CTR_PIN, LOW);
     notifyUnderVoltage();
     digitalWrite(LOGIC_SWITCH_CTR_PIN, HIGH); //BMS Suicide
-  }
+  }//end if
   return;
 }//end func
+
+//////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 void reactOverTemp()
 {
@@ -433,7 +442,7 @@ void reactOverTemp()
     digitalWrite(FAN_3_CTR_PIN, HIGH);
     digitalWrite(FAN_4_CTR_PIN, HIGH);
     digitalWrite(FAN_PWR_IND_PIN, HIGH);
-  }
+  }//end if
   if(overtemp_state == false && fans_on == true)
   {
     fans_on = false;
@@ -442,9 +451,11 @@ void reactOverTemp()
     digitalWrite(FAN_3_CTR_PIN, LOW);
     digitalWrite(FAN_4_CTR_PIN, LOW);
     digitalWrite(FAN_PWR_IND_PIN, LOW);
-  }
+  }//end if
   return;
 }//end func
+
+//////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 void reactForgottenLogicSwitch()
 {
@@ -454,7 +465,7 @@ void reactForgottenLogicSwitch()
     {
       time_switch_forgotten = millis();
       time_switch_reminder = millis();
-    }
+    }//end if
     if(num_out_voltage_loops > 1)
     {
       if(millis() >= time_switch_reminder + LOGIC_SWITCH_REMINDER)
@@ -471,6 +482,8 @@ void reactForgottenLogicSwitch()
   return;
 }//end func
 
+//////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
 void reactLowVoltage( uint16_t cell_voltage[RC_BMSBOARD_VMEASmV_DATACOUNT])
 {
   if((cell_voltage[0] > PACK_UNDERVOLTAGE) && (cell_voltage[0] <= PACK_LOWVOLTAGE) && (low_voltage_state = false))//first instance of low voltage
@@ -479,17 +492,19 @@ void reactLowVoltage( uint16_t cell_voltage[RC_BMSBOARD_VMEASmV_DATACOUNT])
     notifyLowVoltage();
     time_of_low_voltage = millis();
     num_low_voltage_reminder = 1;
-  }
+  }//end if
   else if((cell_voltage[0] > PACK_UNDERVOLTAGE) && (cell_voltage[0] <= PACK_LOWVOLTAGE) && (low_voltage_state = true))//following instances of low voltage
   {
     if(millis() >= (time_of_low_voltage + (num_low_voltage_reminder * LOGIC_SWITCH_REMINDER)))
     { 
       notifyLowVoltage();
       num_low_voltage_reminder++;
-    }
-  }
-}
+    }//end if
+  }//end else if
+  return;
+}//end func
 
+//////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 void setEstop(uint8_t data)
 {
@@ -501,7 +516,7 @@ void setEstop(uint8_t data)
 
     digitalWrite(LOGIC_SWITCH_CTR_PIN, HIGH); //BMS Suicide
     //If BMS is not turned off here, the PACK_OUT_CTR_PIN would be low and there would be no way to get it high again without reseting BMS anyway.
-  }
+  }//end if
   else
   {
     digitalWrite(PACK_OUT_CTR_PIN, LOW);
@@ -509,9 +524,11 @@ void setEstop(uint8_t data)
     delay(data * 1000); //Receiving delay in seconds so it needs to be converted to msec.
 
     digitalWrite(PACK_OUT_CTR_PIN, HIGH);
-  } //end if
+  }//end else
   return;
 }//end func
+
+//////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 void notifyEstop() //Buzzer sound: beeeeeeeeeeeeeeeeeeeep beeeeeeeeeep beeeeep beeep bep
 {
@@ -552,6 +569,8 @@ void notifyEstop() //Buzzer sound: beeeeeeeeeeeeeeeeeeeep beeeeeeeeeep beeeeep b
   return;
 }//end func
 
+//////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
 void notifyLogicSwitch() //Buzzer sound: beeep beeep
 {
   digitalWrite(BUZZER_CTR_PIN, HIGH);
@@ -569,6 +588,8 @@ void notifyLogicSwitch() //Buzzer sound: beeep beeep
 
   return;
 }//end func
+
+//////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 void notifyReboot() //Buzzer sound: beeeeeeeeeep beeep beeep
 {
@@ -644,6 +665,8 @@ void notifyReboot() //Buzzer sound: beeeeeeeeeep beeep beeep
   return;
 }//end func
 
+//////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
 void notifyOverCurrent() //Buzzer Sound: beeeeeeeeeeeeeeeeeeeeeeeeeeeeeep
 {
   digitalWrite(BUZZER_CTR_PIN, HIGH);
@@ -654,6 +677,8 @@ void notifyOverCurrent() //Buzzer Sound: beeeeeeeeeeeeeeeeeeeeeeeeeeeeeep
 
   return;
 }//end func
+
+//////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 void notifyUnderVoltage() //Buzzer Sound: beeep beeep beeep beeep beeeeeeeeeeeeeeeeeeeep
 {
@@ -694,6 +719,8 @@ void notifyUnderVoltage() //Buzzer Sound: beeep beeep beeep beeep beeeeeeeeeeeee
   return;
 }//end func
 
+//////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
 void notifyLowVoltage() //Buzzer Sound: beeep beeep beeep
 {
   digitalWrite(BUZZER_CTR_PIN, HIGH);
@@ -718,3 +745,5 @@ void notifyLowVoltage() //Buzzer Sound: beeep beeep beeep
 
   return;
 }//end func
+
+//////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
