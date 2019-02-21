@@ -753,7 +753,7 @@ void startScreen()
 {
   
   // put your main code here, to run repeatedly: 
-  delay(1000);
+  delay(350);
   //Send the clear command to the display - this returns the cursor to the beginning of the display
   Serial3.write('|'); //Setting character
   Serial3.write('-'); //Clear display
@@ -769,7 +769,7 @@ void startScreen()
     asterisks();
     stars();
   }
-  delay(1000);
+  delay(10);
 
   Serial3.write('|'); //Setting character
   Serial3.write('-'); //Clear display
@@ -779,7 +779,8 @@ void movingRover()
 {
 for(int i = 0; i<14;i++)
 {
-    delay(450);
+    //delay(450);
+   delay(200);
    // Serial3.write(0x20);
    // Serial3.write(0x20);
    
@@ -893,6 +894,7 @@ void asterisks()
   Serial3.write(0x41);//A
   Serial3.write(0x4C);//L
   Serial3.write(0x4B);//K
+    ////////////////////////////////////////////////////////////////need a y
   Serial3.write(0x52);//R
   Serial3.write(0x49);//I
   Serial3.write(0x45);//E
@@ -925,9 +927,11 @@ void asterisks()
   Serial3.write(0x20);
   Serial3.write(0x2A);
   Serial3.write(0x20);
-    Serial3.write(0xA1);
   Serial3.write(0x20);
-  Serial3.write(0x2A);
+  
+    Serial3.write(0xA1);
+  
+  Serial3.write(0x20);
   Serial3.write(0x20);
   Serial3.write(0x2A);
   Serial3.write(0x2A);
@@ -984,6 +988,7 @@ void stars()
   Serial3.write(0x41);//A
   Serial3.write(0x4C);//L
   Serial3.write(0x4B);//K
+  ////////////////////////////////////////////////////////////////need a y
   Serial3.write(0x52);//R
   Serial3.write(0x49);//I
   Serial3.write(0x45);//E
@@ -1017,8 +1022,8 @@ void stars()
   Serial3.write(0x20);
   Serial3.write(0x2B);
   Serial3.write(0x20);
-    Serial3.write(0xA1);
   Serial3.write(0x20);
+     Serial3.write(0xA1);
   Serial3.write(0x2B);
   Serial3.write(0x20);
   Serial3.write(0x2B);
