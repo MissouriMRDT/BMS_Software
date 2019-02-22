@@ -13,6 +13,7 @@
 uint8_t error_report[RC_BMSBOARD_ERROR_DATACOUNT] = {0,0,0,0,0,0,0,0,0};
 int num_loop = 0;
 bool sw_ind_state = false;
+uint32_t time_since_update;
 
 void setup()
 {
@@ -22,7 +23,8 @@ void setup()
   startScreen();
   RoveComm.begin(RC_BMSBOARD_FOURTHOCTET);
   delay(ROVECOMM_DELAY);
-  
+
+  time_since_update = 0;
   setInputPins();
   setOutputPins();
   setOutputStates();
@@ -33,8 +35,9 @@ void loop()
   int32_t main_current;
   uint16_t cell_voltages[RC_BMSBOARD_VMEASmV_DATACOUNT];
   int pack_out_voltage;
-  uint16_t batt_temp;
+  uint32_t batt_temp;
   rovecomm_packet packet;
+
 
   getMainCurrent(main_current);
   reactOverCurrent();
@@ -48,14 +51,19 @@ void loop()
 
   getBattTemp(batt_temp);
   reactOverTemp();
-  
-  RoveComm.write(RC_BMSBOARD_MAINIMEASmA_HEADER, main_current);
-  delay(ROVECOMM_DELAY);
-  RoveComm.write(RC_BMSBOARD_VMEASmV_HEADER, cell_voltages);
-  delay(ROVECOMM_DELAY);
-  RoveComm.write(RC_BMSBOARD_TEMPMEASmDEGC_HEADER, batt_temp);
-  delay(ROVECOMM_DELAY);
 
+  if((millis() - time_since_update) >= 420)
+  {  
+   // batt_temp = 23456;//just for fixin reds temp values
+    RoveComm.write(RC_BMSBOARD_MAINIMEASmA_HEADER, main_current);
+    delay(ROVECOMM_DELAY);
+    RoveComm.write(RC_BMSBOARD_VMEASmV_HEADER, cell_voltages);
+    delay(ROVECOMM_DELAY);
+    RoveComm.write(RC_BMSBOARD_TEMPMEASmDEGC_HEADER, batt_temp);
+    delay(ROVECOMM_DELAY);
+    Serial.println(batt_temp);
+    time_since_update = millis();
+  }
   packet = RoveComm.read();
     if(packet.data_id!=0)
     {
@@ -84,7 +92,6 @@ void loop()
       }//end if
       updateLCD(main_current, cell_voltages);
     }//end if
-
     num_loop++;
 } //end loop
 
@@ -297,7 +304,7 @@ void getOutVoltage(int &pack_out_voltage)
 
 //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-void getBattTemp(uint16_t &batt_temp)
+void getBattTemp(uint32_t &batt_temp)
 {
   batt_temp = (1060 * (map(analogRead(TEMP_degC_MEAS_PIN), TEMP_ADC_MIN, TEMP_ADC_MAX, TEMP_MIN, TEMP_MAX))/1000);
   
@@ -758,8 +765,13 @@ void startScreen()
   Serial3.write('|'); //Setting character
   Serial3.write('-'); //Clear display
   
+  /*Serial3.write(0x20);
   Serial3.write(0x20);
   Serial3.write(0x20);
+  Serial3.write(0x20);
+  Serial3.write(0x20);
+  Serial3.write(0x20);*/
+  
   
   movingRover();
   Serial3.write('|'); //Setting character
@@ -777,11 +789,13 @@ void startScreen()
 
 void movingRover()
 {
+  Serial3.write('|'); //Setting character
+  Serial3.write('-'); //Clear display
 for(int i = 0; i<14;i++)
 {
-    //delay(450);
-   delay(200);
-   // Serial3.write(0x20);
+    delay(450);
+   //delay(200);
+    //Serial3.write(0x20);
    // Serial3.write(0x20);
    
     Serial3.write(0x20);
@@ -890,10 +904,13 @@ for(int i = 0; i<14;i++)
 
 void asterisks()
 {
+  Serial3.write('|'); //Setting character
+  Serial3.write('-'); //Clear display
   Serial3.write(0x56);//V
   Serial3.write(0x41);//A
   Serial3.write(0x4C);//L
   Serial3.write(0x4B);//K
+  Serial3.write(0x59);//Y
     ////////////////////////////////////////////////////////////////need a y
   Serial3.write(0x52);//R
   Serial3.write(0x49);//I
@@ -910,20 +927,20 @@ void asterisks()
   Serial3.write(0x5A);//Z
   Serial3.write(0x49);//I
   Serial3.write(0x4E);//N
-  Serial3.write(0x47);//G
+  //Serial3.write(0x47);//G
  
   Serial3.write(0x20);
   Serial3.write(0x2A);
   Serial3.write(0x20);
-  Serial3.write(0x2A);
+  Serial3.write(0x2B);
   Serial3.write(0x20);
   Serial3.write(0x2A);
   Serial3.write(0x20);
-  Serial3.write(0x2A);
+  Serial3.write(0x2B);
   Serial3.write(0x20);
   Serial3.write(0x2A);
   Serial3.write(0x20);
-  Serial3.write(0x2A);
+  Serial3.write(0x2B);
   Serial3.write(0x20);
   Serial3.write(0x2A);
   Serial3.write(0x20);
@@ -933,18 +950,18 @@ void asterisks()
   
   Serial3.write(0x20);
   Serial3.write(0x20);
+  Serial3.write(0x2B);
   Serial3.write(0x2A);
-  Serial3.write(0x2A);
+  Serial3.write(0x20);
+  Serial3.write(0x2B);
   Serial3.write(0x20);
   Serial3.write(0x2A);
   Serial3.write(0x20);
-  Serial3.write(0x2A);
+  Serial3.write(0x2B);
   Serial3.write(0x20);
   Serial3.write(0x2A);
   Serial3.write(0x20);
-  Serial3.write(0x2A);
-  Serial3.write(0x20);
-  Serial3.write(0x2A);
+  Serial3.write(0x2B);
   Serial3.write(0x20);
   Serial3.write(0x2A);
   Serial3.write(0x20);
@@ -957,11 +974,11 @@ void asterisks()
   Serial3.write(0x20);
   Serial3.write(0x2A);
   Serial3.write(0x20); 
-  Serial3.write(0x2A);
+  Serial3.write(0x2B);
   Serial3.write(0x20);
   Serial3.write(0x2A);
   Serial3.write(0x20);
-  Serial3.write(0x2A);
+  Serial3.write(0x2B);
   Serial3.write(0x20);
   Serial3.write(0x2A);
   Serial3.write(0x20);
@@ -984,10 +1001,13 @@ void asterisks()
 
 void stars()
 {
-   Serial3.write(0x56);//V
+  Serial3.write('|'); //Setting character
+  Serial3.write('-'); //Clear display
+  Serial3.write(0x56);//V
   Serial3.write(0x41);//A
   Serial3.write(0x4C);//L
   Serial3.write(0x4B);//K
+  Serial3.write(0x59);//Y
   ////////////////////////////////////////////////////////////////need a y
   Serial3.write(0x52);//R
   Serial3.write(0x49);//I
@@ -1004,40 +1024,40 @@ void stars()
   Serial3.write(0x5A);//Z
   Serial3.write(0x49);//I
   Serial3.write(0x4E);//N
-  Serial3.write(0x47);//G
+  //Serial3.write(0x47);//G
  
   Serial3.write(0x20);
   Serial3.write(0x2B);
   
   Serial3.write(0x20);
-  Serial3.write(0x2B);
+  Serial3.write(0x2A);
   Serial3.write(0x20);
   Serial3.write(0x2B);
   Serial3.write(0x20);
-  Serial3.write(0x2B);
+  Serial3.write(0x2A);
   Serial3.write(0x20);
   Serial3.write(0x2B);
   Serial3.write(0x20);
-  Serial3.write(0x2B);
+  Serial3.write(0x2A);
   Serial3.write(0x20);
   Serial3.write(0x2B);
   Serial3.write(0x20);
   Serial3.write(0x20);
      Serial3.write(0xA1);
+  Serial3.write(0x20);
+  Serial3.write(0x20);
+  Serial3.write(0x2A);
   Serial3.write(0x2B);
   Serial3.write(0x20);
-  Serial3.write(0x2B);
-    Serial3.write(0x2B);
-  Serial3.write(0x20);
-  Serial3.write(0x2B);
-  Serial3.write(0x20);
-  Serial3.write(0x2B);
-  Serial3.write(0x20);
-  Serial3.write(0x2B);
+  Serial3.write(0x2A);
   Serial3.write(0x20);
   Serial3.write(0x2B);
   Serial3.write(0x20);
+  Serial3.write(0x2A);
+  Serial3.write(0x20);
   Serial3.write(0x2B);
+  Serial3.write(0x20);
+  Serial3.write(0x2A);
   Serial3.write(0x20);
   Serial3.write(0x2B);
   Serial3.write(0x20);
@@ -1050,11 +1070,11 @@ void stars()
   Serial3.write(0x20);
   Serial3.write(0x2B);
   Serial3.write(0x20); 
-  Serial3.write(0x2B);
+  Serial3.write(0x2A);
   Serial3.write(0x20);
   Serial3.write(0x2B);
   Serial3.write(0x20);
-  Serial3.write(0x2B);
+  Serial3.write(0x2A);
   Serial3.write(0x20);
   Serial3.write(0x2B);
   Serial3.write(0x20);

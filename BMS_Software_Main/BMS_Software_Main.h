@@ -119,7 +119,7 @@ void getCellVoltage(uint16_t cell_voltage[RC_BMSBOARD_VMEASmV_DATACOUNT]);
 void getOutVoltage(int &pack_out_voltage);
 
 
-void getBattTemp(uint16_t &batt_temp);
+void getBattTemp(uint32_t &batt_temp);
 
 
 void updateLCD(int32_t mainCurrent, uint16_t cellVoltages[]);
