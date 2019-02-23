@@ -11,9 +11,10 @@
 // Setup & Main Loop ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 //
 uint8_t error_report[RC_BMSBOARD_ERROR_DATACOUNT] = {0,0,0,0,0,0,0,0,0};
+bool pinfault_state = false;
 int num_loop = 0;
 bool sw_ind_state = false;
-uint32_t time_since_update;
+uint32_t time_since_Rovecomm_update = 0;
 
 void setup()
 {
@@ -24,7 +25,6 @@ void setup()
   RoveComm.begin(RC_BMSBOARD_FOURTHOCTET);
   delay(ROVECOMM_DELAY);
 
-  time_since_update = 0;
   setInputPins();
   setOutputPins();
   setOutputStates();
@@ -52,18 +52,26 @@ void loop()
   getBattTemp(batt_temp);
   reactOverTemp();
 
-  if((millis() - time_since_update) >= 420)
+  if((millis() - time_since_Rovecomm_update) >= ROVECOMM_UPDATE_DELAY)
   {  
-   // batt_temp = 23456;//just for fixin reds temp values
+    // batt_temp = 23456;//just for fixin reds temp values
+    //Serial.println(batt_temp);
     RoveComm.write(RC_BMSBOARD_MAINIMEASmA_HEADER, main_current);
     delay(ROVECOMM_DELAY);
     RoveComm.write(RC_BMSBOARD_VMEASmV_HEADER, cell_voltages);
     delay(ROVECOMM_DELAY);
     RoveComm.write(RC_BMSBOARD_TEMPMEASmDEGC_HEADER, batt_temp);
     delay(ROVECOMM_DELAY);
-    Serial.println(batt_temp);
-    time_since_update = millis();
+
+    if(pinfault_state == true)
+    {
+      RoveComm.write(RC_BMSBOARD_ERROR_HEADER, error_report);
+      delay(DEBOUNCE_DELAY);
+    }
+    
+    time_since_Rovecomm_update = millis();
   }
+
   packet = RoveComm.read();
     if(packet.data_id!=0)
     {
@@ -198,7 +206,9 @@ void getMainCurrent(int32_t &main_current)
 //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 void getCellVoltage(uint16_t cell_voltage[RC_BMSBOARD_VMEASmV_DATACOUNT])
-{   
+{  
+  pinfault_state = false;
+
   for(int i = 0; i<RC_BMSBOARD_VMEASmV_DATACOUNT; i++)
   {
     if (i == RC_BMSBOARD_VMEASmV_PACKENTRY)
@@ -223,6 +233,7 @@ void getCellVoltage(uint16_t cell_voltage[RC_BMSBOARD_VMEASmV_DATACOUNT])
       if(cell_voltage[RC_BMSBOARD_VMEASmV_PACKENTRY] < PACK_EFFECTIVE_ZERO)
       {
         error_report[RC_BMSBOARD_ERROR_PACKENTRY] = RC_BMSBOARD_ERROR_PINFAULT;
+        pinfault_state = true;
       }//end if
     }//end if
     
@@ -268,12 +279,10 @@ void getCellVoltage(uint16_t cell_voltage[RC_BMSBOARD_VMEASmV_DATACOUNT])
       if(cell_voltage[i] == CELL_VOLTS_MIN)
       {
         error_report[i] = RC_BMSBOARD_ERROR_PINFAULT;
+        pinfault_state = true;
       }//end if
     }//end if
   }//end for
-  RoveComm.write(RC_BMSBOARD_ERROR_HEADER, error_report);
-  delay(DEBOUNCE_DELAY);
-
   return;
 }//end func
 
@@ -432,6 +441,9 @@ void reactUnderVoltage()
 {
   if(pack_undervoltage_state == true || cell_undervoltage_state == true)
   {
+    RoveComm.write(RC_BMSBOARD_ERROR_HEADER, error_report);
+    delay(DEBOUNCE_DELAY);
+
     digitalWrite(PACK_OUT_CTR_PIN, LOW);
     notifyUnderVoltage();
     digitalWrite(LOGIC_SWITCH_CTR_PIN, HIGH); //BMS Suicide

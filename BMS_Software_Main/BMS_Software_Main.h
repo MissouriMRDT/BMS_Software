@@ -98,6 +98,7 @@ const int CELL_MEAS_PINS[] = {LOGIC_V_MEAS_PIN, C1_V_MEAS_PIN, C2_V_MEAS_PIN, C3
 #define LOGIC_SWITCH_REMINDER 	60000 //msec 	//Every cycle of this period of time, the buzzer notifys someone that logic switch was forgotten.
 #define IDLE_SHUTOFF_TIME   	2400000 //msec or 40 minutes	//After this period of time passes, the BMS will commit suicide.
 #define UPDATE_ON_LOOP     		69 //loops		//Each time this number of loops passes, SW_IND will blink and LCD will update.
+#define ROVECOMM_UPDATE_DELAY	420 //ms
 
 // Function Declarations ///////////////////////////////////////////////////////////
 
