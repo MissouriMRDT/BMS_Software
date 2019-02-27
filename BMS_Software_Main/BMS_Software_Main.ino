@@ -785,7 +785,7 @@ void startScreen()
   Serial3.write(0x20);*/
   
   
-  movingRover();
+  //movingRover();
   Serial3.write('|'); //Setting character
   Serial3.write('-'); //Clear display
   for(int i = 0; i<4; i++)
