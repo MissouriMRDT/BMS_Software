@@ -78,7 +78,7 @@ const int CELL_MEAS_PINS[] = {LOGIC_V_MEAS_PIN, C1_V_MEAS_PIN, C2_V_MEAS_PIN, C3
 #define PACK_V_ADC_MIN      	0 //bits
 #define PACK_V_ADC_MAX      	4096 //bits
 #define CELL_V_ADC_MIN      	2320 //bits
-#define CELL_V_ADC_MAX      	2871 //bits
+#define CELL_V_ADC_MAX      	3790 //bits
 
 // TMP37 Temp Sensor Specs 
   //Find at: https://www.digikey.com/products/en?mpart=TMP37FT9Z&v=505

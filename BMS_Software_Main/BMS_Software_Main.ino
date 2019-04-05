@@ -208,13 +208,13 @@ void getMainCurrent(int32_t &main_current)
 void getCellVoltage(uint16_t cell_voltage[RC_BMSBOARD_VMEASmV_DATACOUNT])
 {  
   pinfault_state = false;
-Serial.println("ADC Cell values: ");
+Serial.println();  
+Serial.println("///////////////////Cell values/////////////////////// ");
   for(int i = 0; i<RC_BMSBOARD_VMEASmV_DATACOUNT; i++)
   { 
     if (i == RC_BMSBOARD_VMEASmV_PACKENTRY)
     {
       int adc_read = analogRead(CELL_MEAS_PINS[RC_BMSBOARD_VMEASmV_PACKENTRY]);
-
 
  
       cell_voltage[RC_BMSBOARD_VMEASmV_PACKENTRY] = (1215*map(adc_read, PACK_V_ADC_MIN, PACK_V_ADC_MAX, VOLTS_MIN, PACK_VOLTS_MAX)/1000); //TODO: Fix voltage divider for pack meas so that we can remove this weird scaling.
@@ -242,7 +242,8 @@ Serial.println("ADC Cell values: ");
     if(i > RC_BMSBOARD_VMEASmV_PACKENTRY)
     {
       int adc_reading = analogRead(CELL_MEAS_PINS[i]);
-  Serial.println(adc_reading);
+Serial.print("acd reading : ");
+Serial.println(adc_reading);
       if(adc_reading < CELL_V_ADC_MIN)
       {
         adc_reading = CELL_V_ADC_MIN;
@@ -251,9 +252,10 @@ Serial.println("ADC Cell values: ");
       {
         adc_reading = CELL_V_ADC_MAX;
       }//end if
-      cell_voltage[i] = ((map(analogRead(CELL_MEAS_PINS[i]), CELL_V_ADC_MIN, CELL_V_ADC_MAX, CELL_VOLTS_MIN, CELL_VOLTS_MAX))*1000)/1000;
+      cell_voltage[i] = ((map(analogRead(CELL_MEAS_PINS[i]), CELL_V_ADC_MIN, CELL_V_ADC_MAX, CELL_VOLTS_MIN, CELL_VOLTS_MAX))*972)/1000;
+Serial.print("cell voltage : ");
 Serial.println(cell_voltage[i]);
-Serial.println();
+
       error_report[i] = RC_BMSBOARD_ERROR_NOERROR;
 
       if((cell_voltage[i] > CELL_VOLTS_MIN) && (cell_voltage[i] < CELL_UNDERVOLTAGE))
@@ -319,7 +321,8 @@ void getOutVoltage(int &pack_out_voltage)
 void getBattTemp(uint32_t &batt_temp)
 {
   batt_temp = (1060 * (map(analogRead(TEMP_degC_MEAS_PIN), TEMP_ADC_MIN, TEMP_ADC_MAX, TEMP_MIN, TEMP_MAX))/1000);
-  
+  Serial.print("temp:  ");
+  Serial.println(batt_temp);
   if(batt_temp < TEMP_THRESHOLD)
   {
     overtemp_state = false;
