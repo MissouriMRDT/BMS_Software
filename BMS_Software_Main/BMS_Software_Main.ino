@@ -43,7 +43,7 @@ void loop()
   reactOverCurrent();
 
   getCellVoltage(cell_voltages);
-  //reactUnderVoltage();
+  reactUnderVoltage();
   reactLowVoltage(cell_voltages);
 
   getOutVoltage(pack_out_voltage);
@@ -185,8 +185,13 @@ void setOutputStates()
 
 void getMainCurrent(int32_t &main_current)
 {
-  main_current = map(analogRead(PACK_I_MEAS_PIN), CURRENT_ADC_MIN, CURRENT_ADC_MAX, CURRENT_MIN, CURRENT_MAX);
+Serial.print("adc current:  ");
+Serial.println(analogRead(PACK_I_MEAS_PIN));
+ 
+  main_current = ((map(analogRead(PACK_I_MEAS_PIN), CURRENT_ADC_MIN, CURRENT_ADC_MAX, CURRENT_MIN, CURRENT_MAX)*950)/1000);
 
+Serial.print("current:  ");
+Serial.println(main_current);
   if(main_current > OVERCURRENT)
   {
     delay(DEBOUNCE_DELAY);
@@ -208,27 +213,33 @@ void getMainCurrent(int32_t &main_current)
 void getCellVoltage(uint16_t cell_voltage[RC_BMSBOARD_VMEASmV_DATACOUNT])
 {  
   pinfault_state = false;
-Serial.println();  
-Serial.println("///////////////////Cell values/////////////////////// ");
+//Serial.println();  
+//Serial.println("///////////////////Cell values/////////////////////// ");
   for(int i = 0; i<RC_BMSBOARD_VMEASmV_DATACOUNT; i++)
   { 
     if (i == RC_BMSBOARD_VMEASmV_PACKENTRY)
     {
       int adc_read = analogRead(CELL_MEAS_PINS[RC_BMSBOARD_VMEASmV_PACKENTRY]);
-
+//Serial.print("adc pack voltage : ");
+//Serial.println(adc_read);
  
-      cell_voltage[RC_BMSBOARD_VMEASmV_PACKENTRY] = (1215*map(adc_read, PACK_V_ADC_MIN, PACK_V_ADC_MAX, VOLTS_MIN, PACK_VOLTS_MAX)/1000); //TODO: Fix voltage divider for pack meas so that we can remove this weird scaling.
+      cell_voltage[RC_BMSBOARD_VMEASmV_PACKENTRY] = (1095*map(adc_read, PACK_V_ADC_MIN, PACK_V_ADC_MAX, VOLTS_MIN, PACK_VOLTS_MAX)/1000); //TODO: Fix voltage divider for pack meas so that we can remove this weird scaling.
       error_report[RC_BMSBOARD_ERROR_PACKENTRY] = RC_BMSBOARD_ERROR_NOERROR;
-
-      if((cell_voltage[RC_BMSBOARD_VMEASmV_PACKENTRY] > PACK_SAFETY_LOW) && (cell_voltage[RC_BMSBOARD_VMEASmV_PACKENTRY] < PACK_UNDERVOLTAGE))
+//Serial.print("mapped pack voltage : ");
+//Serial.println(cell_voltage[RC_BMSBOARD_VMEASmV_PACKENTRY]);
+//Serial.print("mapped pack voltages2 : ");
+//Serial.println(((1095 * map(analogRead(CELL_MEAS_PINS[RC_BMSBOARD_VMEASmV_PACKENTRY]), PACK_V_ADC_MIN, PACK_V_ADC_MAX, VOLTS_MIN, PACK_VOLTS_MAX)) / 1000));
+      if((cell_voltage[RC_BMSBOARD_VMEASmV_PACKENTRY] > PACK_SAFETY_LOW) && 
+      (cell_voltage[RC_BMSBOARD_VMEASmV_PACKENTRY] < PACK_UNDERVOLTAGE))
       {
+       
         delay(DEBOUNCE_DELAY);
 
-        if((((1094 * map(analogRead(CELL_MEAS_PINS[RC_BMSBOARD_VMEASmV_PACKENTRY]), PACK_V_ADC_MIN, PACK_V_ADC_MAX, VOLTS_MIN, PACK_VOLTS_MAX)) / 1000) < PACK_UNDERVOLTAGE)
-            && (((1094 * map(analogRead(CELL_MEAS_PINS[RC_BMSBOARD_VMEASmV_PACKENTRY]), PACK_V_ADC_MIN, PACK_V_ADC_MAX, VOLTS_MIN, PACK_VOLTS_MAX)) / 1000) > PACK_SAFETY_LOW))
+        if((((1095 * map(analogRead(CELL_MEAS_PINS[RC_BMSBOARD_VMEASmV_PACKENTRY]), PACK_V_ADC_MIN, PACK_V_ADC_MAX, VOLTS_MIN, PACK_VOLTS_MAX)) / 1000) < PACK_UNDERVOLTAGE)
+            && (((1095 * map(analogRead(CELL_MEAS_PINS[RC_BMSBOARD_VMEASmV_PACKENTRY]), PACK_V_ADC_MIN, PACK_V_ADC_MAX, VOLTS_MIN, PACK_VOLTS_MAX)) / 1000) > PACK_SAFETY_LOW))
         {
+//Serial.println("whkfhkshfkjd");
           pack_undervoltage_state = true;
-  
           error_report[RC_BMSBOARD_ERROR_PACKENTRY] = RC_BMSBOARD_ERROR_UNDERVOLTAGE;
         }//end if
       }//end if
@@ -242,8 +253,8 @@ Serial.println("///////////////////Cell values/////////////////////// ");
     if(i > RC_BMSBOARD_VMEASmV_PACKENTRY)
     {
       int adc_reading = analogRead(CELL_MEAS_PINS[i]);
-Serial.print("acd reading : ");
-Serial.println(adc_reading);
+//Serial.print("adc reading : ");
+//Serial.println(adc_reading);
       if(adc_reading < CELL_V_ADC_MIN)
       {
         adc_reading = CELL_V_ADC_MIN;
@@ -251,8 +262,8 @@ Serial.println(adc_reading);
       if(adc_reading > CELL_V_ADC_MAX)
       {
         adc_reading = CELL_V_ADC_MAX;
-      }//end if
-      cell_voltage[i] = ((map(analogRead(CELL_MEAS_PINS[i]), CELL_V_ADC_MIN, CELL_V_ADC_MAX, CELL_VOLTS_MIN, CELL_VOLTS_MAX))*972)/1000;
+      }//end if////////////////HERE/////////////////////////////////////////////////////////////////
+      cell_voltage[i] = ((map(adc_reading, CELL_V_ADC_MIN, CELL_V_ADC_MAX, CELL_VOLTS_MIN, CELL_VOLTS_MAX))*972)/1000;
 Serial.print("cell voltage : ");
 Serial.println(cell_voltage[i]);
 
@@ -281,7 +292,7 @@ Serial.println(cell_voltage[i]);
 
         }//end if
       }//end if
-      if(cell_voltage[i] == CELL_VOLTS_MIN)
+      if(adc_reading == CELL_V_ADC_MIN)
       {
         error_report[i] = RC_BMSBOARD_ERROR_PINFAULT;
         pinfault_state = true;
@@ -320,16 +331,18 @@ void getOutVoltage(int &pack_out_voltage)
 
 void getBattTemp(uint32_t &batt_temp)
 {
-  batt_temp = (1060 * (map(analogRead(TEMP_degC_MEAS_PIN), TEMP_ADC_MIN, TEMP_ADC_MAX, TEMP_MIN, TEMP_MAX))/1000);
-  Serial.print("temp:  ");
-  Serial.println(batt_temp);
+  batt_temp = (925 * (map(analogRead(TEMP_degC_MEAS_PIN), TEMP_ADC_MIN, TEMP_ADC_MAX, TEMP_MIN, TEMP_MAX))/1000);
+//Serial.print("temp adc:  ");
+//Serial.println(analogRead(TEMP_degC_MEAS_PIN));
+//Serial.print("temp:  ");
+//Serial.println(batt_temp);
   if(batt_temp < TEMP_THRESHOLD)
   {
     overtemp_state = false;
 
   }//end if
   if(batt_temp > TEMP_THRESHOLD)
-  {
+  {//
     delay(DEBOUNCE_DELAY);
 
     if(map(analogRead(TEMP_degC_MEAS_PIN), TEMP_ADC_MIN, TEMP_ADC_MAX, TEMP_MIN, TEMP_MAX) > TEMP_THRESHOLD)
@@ -445,7 +458,8 @@ void reactOverCurrent()
 
 void reactUnderVoltage()
 {
-  if(pack_undervoltage_state == true || cell_undervoltage_state == true)
+Serial.println("reactUnderVoltage");
+  if(pack_undervoltage_state == true) //|| cell_undervoltage_state == true)
   {
     RoveComm.write(RC_BMSBOARD_ERROR_HEADER, error_report);
     delay(DEBOUNCE_DELAY);
@@ -513,6 +527,7 @@ void reactForgottenLogicSwitch()
 
 void reactLowVoltage( uint16_t cell_voltage[RC_BMSBOARD_VMEASmV_DATACOUNT])
 {
+Serial.println("reactLowVoltage");
   if((cell_voltage[0] > PACK_UNDERVOLTAGE) && (cell_voltage[0] <= PACK_LOWVOLTAGE) && (low_voltage_state = false))//first instance of low voltage
   { 
     low_voltage_state = true;
