@@ -38,7 +38,7 @@ void loop()
   uint32_t batt_temp;
   rovecomm_packet packet;
 
-
+Serial.println();
   getMainCurrent(main_current);
   reactOverCurrent();
 
@@ -217,18 +217,18 @@ void getCellVoltage(uint16_t cell_voltage[RC_BMSBOARD_VMEASmV_DATACOUNT])
 //Serial.println("///////////////////Cell values/////////////////////// ");
   for(int i = 0; i<RC_BMSBOARD_VMEASmV_DATACOUNT; i++)
   { 
+//////////////////////PACK/////////////////////////////////
     if (i == RC_BMSBOARD_VMEASmV_PACKENTRY)
     {
       int adc_read = analogRead(CELL_MEAS_PINS[RC_BMSBOARD_VMEASmV_PACKENTRY]);
-//Serial.print("adc pack voltage : ");
-//Serial.println(adc_read);
+Serial.print("adc log voltage : ");
+Serial.println(adc_read);
  
       cell_voltage[RC_BMSBOARD_VMEASmV_PACKENTRY] = (1095*map(adc_read, PACK_V_ADC_MIN, PACK_V_ADC_MAX, VOLTS_MIN, PACK_VOLTS_MAX)/1000); //TODO: Fix voltage divider for pack meas so that we can remove this weird scaling.
       error_report[RC_BMSBOARD_ERROR_PACKENTRY] = RC_BMSBOARD_ERROR_NOERROR;
-//Serial.print("mapped pack voltage : ");
-//Serial.println(cell_voltage[RC_BMSBOARD_VMEASmV_PACKENTRY]);
-//Serial.print("mapped pack voltages2 : ");
-//Serial.println(((1095 * map(analogRead(CELL_MEAS_PINS[RC_BMSBOARD_VMEASmV_PACKENTRY]), PACK_V_ADC_MIN, PACK_V_ADC_MAX, VOLTS_MIN, PACK_VOLTS_MAX)) / 1000));
+Serial.print("mapped log voltage : ");
+Serial.println(cell_voltage[RC_BMSBOARD_VMEASmV_PACKENTRY]);
+
       if((cell_voltage[RC_BMSBOARD_VMEASmV_PACKENTRY] > PACK_SAFETY_LOW) && 
       (cell_voltage[RC_BMSBOARD_VMEASmV_PACKENTRY] < PACK_UNDERVOLTAGE))
       {
@@ -238,7 +238,6 @@ void getCellVoltage(uint16_t cell_voltage[RC_BMSBOARD_VMEASmV_DATACOUNT])
         if((((1095 * map(analogRead(CELL_MEAS_PINS[RC_BMSBOARD_VMEASmV_PACKENTRY]), PACK_V_ADC_MIN, PACK_V_ADC_MAX, VOLTS_MIN, PACK_VOLTS_MAX)) / 1000) < PACK_UNDERVOLTAGE)
             && (((1095 * map(analogRead(CELL_MEAS_PINS[RC_BMSBOARD_VMEASmV_PACKENTRY]), PACK_V_ADC_MIN, PACK_V_ADC_MAX, VOLTS_MIN, PACK_VOLTS_MAX)) / 1000) > PACK_SAFETY_LOW))
         {
-//Serial.println("whkfhkshfkjd");
           pack_undervoltage_state = true;
           error_report[RC_BMSBOARD_ERROR_PACKENTRY] = RC_BMSBOARD_ERROR_UNDERVOLTAGE;
         }//end if
@@ -250,11 +249,13 @@ void getCellVoltage(uint16_t cell_voltage[RC_BMSBOARD_VMEASmV_DATACOUNT])
       }//end if
     }//end if
     
+//////////////////////////CELLS//////////////////////////////
+   
     if(i > RC_BMSBOARD_VMEASmV_PACKENTRY)
     {
       int adc_reading = analogRead(CELL_MEAS_PINS[i]);
-//Serial.print("adc reading : ");
-//Serial.println(adc_reading);
+Serial.print("adc reading : ");
+Serial.println(adc_reading);
       if(adc_reading < CELL_V_ADC_MIN)
       {
         adc_reading = CELL_V_ADC_MIN;
@@ -263,7 +264,7 @@ void getCellVoltage(uint16_t cell_voltage[RC_BMSBOARD_VMEASmV_DATACOUNT])
       {
         adc_reading = CELL_V_ADC_MAX;
       }//end if////////////////HERE/////////////////////////////////////////////////////////////////
-      cell_voltage[i] = ((map(adc_reading, CELL_V_ADC_MIN, CELL_V_ADC_MAX, CELL_VOLTS_MIN, CELL_VOLTS_MAX))*972)/1000;
+      cell_voltage[i] = ((map(adc_reading, CELL_V_ADC_MIN, CELL_V_ADC_MAX, CELL_VOLTS_MIN, CELL_VOLTS_MAX))*980)/1000;
 Serial.print("cell voltage : ");
 Serial.println(cell_voltage[i]);
 
@@ -307,8 +308,12 @@ Serial.println(cell_voltage[i]);
 void getOutVoltage(int &pack_out_voltage)
 {
   int adc_reading = analogRead(PACK_V_MEAS_PIN);
-  pack_out_voltage = ((1269 * map(analogRead(PACK_V_MEAS_PIN), PACK_V_ADC_MIN, PACK_V_ADC_MAX, VOLTS_MIN, PACK_VOLTS_MAX)) / 1000);
-
+//Serial.print("adc vout : ");
+//Serial.println(adc_reading);
+////////////////////////////////////HERE////////////////////////////////////////////////
+  pack_out_voltage = ((1369 * map(adc_reading, PACK_V_ADC_MIN, PACK_V_ADC_MAX, VOLTS_MIN, PACK_VOLTS_MAX)) / 1000);
+//Serial.print("mapped vout : ");
+//Serial.println(pack_out_voltage);
   if(pack_out_voltage > PACK_SAFETY_LOW)
   {
     forgotten_logic_switch = false;

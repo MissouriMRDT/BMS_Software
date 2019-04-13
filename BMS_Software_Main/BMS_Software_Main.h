@@ -80,7 +80,7 @@ const int CELL_MEAS_PINS[] = {LOGIC_V_MEAS_PIN, C1_V_MEAS_PIN, C2_V_MEAS_PIN, C3
 #define PACK_V_ADC_MIN      	0 //bits
 #define PACK_V_ADC_MAX      	4096 //bits
 #define CELL_V_ADC_MIN      	2320 //bits
-#define CELL_V_ADC_MAX      	3790 //bits
+#define CELL_V_ADC_MAX      	4050 //bits
 
 // TMP37 Temp Sensor Specs 
   //Find at: https://www.digikey.com/products/en?mpart=TMP37FT9Z&v=505
@@ -96,7 +96,7 @@ const int CELL_MEAS_PINS[] = {LOGIC_V_MEAS_PIN, C1_V_MEAS_PIN, C2_V_MEAS_PIN, C3
 #define ROVECOMM_DELAY      	5 //msec		//Used after RoveComm.Write() to give data time to send.
 #define DEBOUNCE_DELAY      	10 //msec		//After an overcurrent or undervoltage is detected, delay by this and measure the pin again to confirm whether error is occurring.
 #define RESTART_DELAY     		5000 //msec		//Used after first overcurrent as delay before turning rover back on.
-#define RECHECK_DELAY    		10000 //msec	//Used to measure time since first overcurrent. If second overcurrent occurs within this delay time, BMS commits suicide.
+#define RECHECK_DELAY    		  10000 //msec	//Used to measure time since first overcurrent. If second overcurrent occurs within this delay time, BMS commits suicide.
 #define LOGIC_SWITCH_REMINDER 	60000 //msec 	//Every cycle of this period of time, the buzzer notifys someone that logic switch was forgotten.
 #define IDLE_SHUTOFF_TIME   	2400000 //msec or 40 minutes	//After this period of time passes, the BMS will commit suicide.
 #define UPDATE_ON_LOOP     		69 //loops		//Each time this number of loops passes, SW_IND will blink and LCD will update.
