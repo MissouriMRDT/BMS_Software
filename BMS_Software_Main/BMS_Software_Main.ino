@@ -15,6 +15,7 @@ bool pinfault_state = false;
 int num_loop = 0;
 bool sw_ind_state = false;
 uint32_t time_since_Rovecomm_update = 0;
+uint32_t meas_batt_temp[NUM_TEMP_AVERAGE];
 
 void setup()
 {
@@ -27,7 +28,8 @@ void setup()
 
   setInputPins();
   setOutputPins();
-  setOutputStates();
+  setOutputStates(); 
+  Serial.println("Setup Complete.");
 } //end setup
 
 void loop()
@@ -43,10 +45,11 @@ Serial.println();
   reactOverCurrent();
 
   getCellVoltage(cell_voltages);
-  reactUnderVoltage();
+  //reactUnderVoltage();
   reactLowVoltage(cell_voltages);
 
   getOutVoltage(pack_out_voltage);
+  reactEstopReleased();
   reactForgottenLogicSwitch();
 
   getBattTemp(batt_temp);
@@ -117,6 +120,8 @@ static int num_low_voltage_reminder = 0;
 static int time_of_low_voltage = 0;
 
   //Temp
+static int num_meas_batt_temp = 0;
+static bool batt_temp_avail = false;
 static bool overtemp_state = false;
 static bool fans_on = false;
   //Logic Switch
@@ -124,6 +129,8 @@ static bool forgotten_logic_switch = false;
 static int num_out_voltage_loops = 0;
 static int time_switch_forgotten = 0;
 static int time_switch_reminder = 0;
+static bool estop_released_beep = false;
+
 
 // Functions /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
@@ -188,7 +195,7 @@ void getMainCurrent(int32_t &main_current)
 Serial.print("adc current:  ");
 Serial.println(analogRead(PACK_I_MEAS_PIN));
  
-  main_current = ((map(analogRead(PACK_I_MEAS_PIN), CURRENT_ADC_MIN, CURRENT_ADC_MAX, CURRENT_MIN, CURRENT_MAX)*950)/1000);
+  main_current = ((map(analogRead(PACK_I_MEAS_PIN), CURRENT_ADC_MIN, CURRENT_ADC_MAX, CURRENT_MIN, CURRENT_MAX)*1069)/1000);//*950)/1000);
 
 Serial.print("current:  ");
 Serial.println(main_current);
@@ -213,8 +220,8 @@ Serial.println(main_current);
 void getCellVoltage(uint16_t cell_voltage[RC_BMSBOARD_VMEASmV_DATACOUNT])
 {  
   pinfault_state = false;
-//Serial.println();  
-//Serial.println("///////////////////Cell values/////////////////////// ");
+Serial.println();  
+Serial.println("///////////////////Cell values/////////////////////// ");
   for(int i = 0; i<RC_BMSBOARD_VMEASmV_DATACOUNT; i++)
   { 
 //////////////////////PACK/////////////////////////////////
@@ -224,7 +231,7 @@ void getCellVoltage(uint16_t cell_voltage[RC_BMSBOARD_VMEASmV_DATACOUNT])
 Serial.print("adc log voltage : ");
 Serial.println(adc_read);
  
-      cell_voltage[RC_BMSBOARD_VMEASmV_PACKENTRY] = (1095*map(adc_read, PACK_V_ADC_MIN, PACK_V_ADC_MAX, VOLTS_MIN, PACK_VOLTS_MAX)/1000); //TODO: Fix voltage divider for pack meas so that we can remove this weird scaling.
+      cell_voltage[RC_BMSBOARD_VMEASmV_PACKENTRY] = (/*1095*/1215*map(adc_read, PACK_V_ADC_MIN, PACK_V_ADC_MAX, VOLTS_MIN, PACK_VOLTS_MAX)/1000); //TODO: Fix voltage divider for pack meas so that we can remove this weird scaling.
       error_report[RC_BMSBOARD_ERROR_PACKENTRY] = RC_BMSBOARD_ERROR_NOERROR;
 Serial.print("mapped log voltage : ");
 Serial.println(cell_voltage[RC_BMSBOARD_VMEASmV_PACKENTRY]);
@@ -235,8 +242,8 @@ Serial.println(cell_voltage[RC_BMSBOARD_VMEASmV_PACKENTRY]);
        
         delay(DEBOUNCE_DELAY);
 
-        if((((1095 * map(analogRead(CELL_MEAS_PINS[RC_BMSBOARD_VMEASmV_PACKENTRY]), PACK_V_ADC_MIN, PACK_V_ADC_MAX, VOLTS_MIN, PACK_VOLTS_MAX)) / 1000) < PACK_UNDERVOLTAGE)
-            && (((1095 * map(analogRead(CELL_MEAS_PINS[RC_BMSBOARD_VMEASmV_PACKENTRY]), PACK_V_ADC_MIN, PACK_V_ADC_MAX, VOLTS_MIN, PACK_VOLTS_MAX)) / 1000) > PACK_SAFETY_LOW))
+        if((((1094 * map(analogRead(CELL_MEAS_PINS[RC_BMSBOARD_VMEASmV_PACKENTRY]), PACK_V_ADC_MIN, PACK_V_ADC_MAX, VOLTS_MIN, PACK_VOLTS_MAX)) / 1000) < PACK_UNDERVOLTAGE)
+            && (((1094 * map(analogRead(CELL_MEAS_PINS[RC_BMSBOARD_VMEASmV_PACKENTRY]), PACK_V_ADC_MIN, PACK_V_ADC_MAX, VOLTS_MIN, PACK_VOLTS_MAX)) / 1000) > PACK_SAFETY_LOW))
         {
           pack_undervoltage_state = true;
           error_report[RC_BMSBOARD_ERROR_PACKENTRY] = RC_BMSBOARD_ERROR_UNDERVOLTAGE;
@@ -264,7 +271,9 @@ Serial.println(adc_reading);
       {
         adc_reading = CELL_V_ADC_MAX;
       }//end if////////////////HERE/////////////////////////////////////////////////////////////////
-      cell_voltage[i] = ((map(adc_reading, CELL_V_ADC_MIN, CELL_V_ADC_MAX, CELL_VOLTS_MIN, CELL_VOLTS_MAX))*980)/1000;
+      cell_voltage[i] = ((map(adc_reading, CELL_V_ADC_MIN, CELL_V_ADC_MAX, CELL_VOLTS_MIN, CELL_VOLTS_MAX))*1030)/1000;//980
+      if(i > 2)
+        cell_voltage[i] -= 100;
 Serial.print("cell voltage : ");
 Serial.println(cell_voltage[i]);
 
@@ -311,13 +320,14 @@ void getOutVoltage(int &pack_out_voltage)
 //Serial.print("adc vout : ");
 //Serial.println(adc_reading);
 ////////////////////////////////////HERE////////////////////////////////////////////////
-  pack_out_voltage = ((1369 * map(adc_reading, PACK_V_ADC_MIN, PACK_V_ADC_MAX, VOLTS_MIN, PACK_VOLTS_MAX)) / 1000);
+  pack_out_voltage = ((1269 * map(adc_reading, PACK_V_ADC_MIN, PACK_V_ADC_MAX, VOLTS_MIN, PACK_VOLTS_MAX)) / 1000);//previously1369
 //Serial.print("mapped vout : ");
 //Serial.println(pack_out_voltage);
   if(pack_out_voltage > PACK_SAFETY_LOW)
   {
     forgotten_logic_switch = false;
     time_switch_forgotten = 0;
+    num_out_voltage_loops = 0;
   }//end if
   if(pack_out_voltage < PACK_EFFECTIVE_ZERO)
   {
@@ -326,6 +336,7 @@ void getOutVoltage(int &pack_out_voltage)
     if(((1269 *map(analogRead(PACK_V_MEAS_PIN), PACK_V_ADC_MIN, PACK_V_ADC_MAX, VOLTS_MIN, PACK_VOLTS_MAX)) / 1000) < PACK_EFFECTIVE_ZERO)
     {
       forgotten_logic_switch = true;
+      estop_released_beep = false;
       num_out_voltage_loops++;
     }//end if 
   }//end if
@@ -336,42 +347,74 @@ void getOutVoltage(int &pack_out_voltage)
 
 void getBattTemp(uint32_t &batt_temp)
 {
+  int adc_reading = analogRead(TEMP_degC_MEAS_PIN);
+  if(adc_reading > TEMP_ADC_MAX)
+  {
+    adc_reading = TEMP_ADC_MAX;
+  }
+  if(adc_reading < TEMP_ADC_MIN)
+  {
+    adc_reading = TEMP_ADC_MIN;
+  } 
+
+  meas_batt_temp[num_meas_batt_temp] = (1060 * (map(adc_reading, TEMP_ADC_MIN, TEMP_ADC_MAX, TEMP_MIN, TEMP_MAX))/1000);
+  num_meas_batt_temp ++;
+  
   batt_temp = (925 * (map(analogRead(TEMP_degC_MEAS_PIN), TEMP_ADC_MIN, TEMP_ADC_MAX, TEMP_MIN, TEMP_MAX))/1000);
-//Serial.print("temp adc:  ");
-//Serial.println(analogRead(TEMP_degC_MEAS_PIN));
+Serial.print("temp adc:  ");
+Serial.println(analogRead(TEMP_degC_MEAS_PIN));
 //Serial.print("temp:  ");
 //Serial.println(batt_temp);
-  if(batt_temp < TEMP_THRESHOLD)
+  if(num_meas_batt_temp % NUM_TEMP_AVERAGE == 0)
   {
-    overtemp_state = false;
-
-  }//end if
-  if(batt_temp > TEMP_THRESHOLD)
-  {//
-    delay(DEBOUNCE_DELAY);
-
-    if(map(analogRead(TEMP_degC_MEAS_PIN), TEMP_ADC_MIN, TEMP_ADC_MAX, TEMP_MIN, TEMP_MAX) > TEMP_THRESHOLD)
+    for(int i = 0; i < NUM_TEMP_AVERAGE; i++)
     {
-      overtemp_state = true;
+      batt_temp += meas_batt_temp[i];
+    }//end for
+    batt_temp /= NUM_TEMP_AVERAGE; //batt_temp is the average of all the measurments in the meas_batt_temp[] array.
+    num_meas_batt_temp = 0;
+    batt_temp_avail = true; //Set to true after first batt_temp value is avail. Avoids acting on overtemp before the first average is computed.
+  
+    Serial.print("batt_temp: ");
+    Serial.println(batt_temp);
+  }//end if
+  
+  if(batt_temp_avail == true)
+  {
+    if(batt_temp < TEMP_THRESHOLD)
+    {
+      overtemp_state = false;
+    }//end if
+    if(batt_temp > TEMP_THRESHOLD)
+    {
+      delay(DEBOUNCE_DELAY);
+  
+      if(map(analogRead(TEMP_degC_MEAS_PIN), TEMP_ADC_MIN, TEMP_ADC_MAX, TEMP_MIN, TEMP_MAX) > TEMP_THRESHOLD)
+      {
+        overtemp_state = true;
+      }//end if
     }//end if
   }//end if
+  
   return;
 }//end func
 
 //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-void updateLCD(int32_t mainCurrent, uint16_t cellVoltages[])
+void updateLCD(int32_t batt_temp, uint16_t cellVoltages[])
 {  
   const int NUM_CELLS = 8; //this should be in header?
   bool LCD_Update = false;
   float time1 = 0;
   float packVoltage = 0; //V not mV
-  float packCurrent = 0;//A not mA
+  float packTemp = 0;//degC
 
   packVoltage = (static_cast<float>(cellVoltages[0]) / 1000);
-  packCurrent = (static_cast<float>(mainCurrent) / 1000);
+  packTemp = (static_cast<float>(batt_temp) / 1000);
+  packTemp = roundf(packTemp * 10) / 10; //Rounds temp to closest tenth of a degree
 
-  if(LCD_Update == false)
+
+if(LCD_Update == false)
   {
     time1 = millis();
     LCD_Update = true;
@@ -382,11 +425,11 @@ void updateLCD(int32_t mainCurrent, uint16_t cellVoltages[])
   Serial3.write('-'); //Clear display
   
   Serial3.print("Pack:");
-  Serial3.print(packVoltage, 1); //packVoltage from BMS, in V?
+  Serial3.print(packVoltage, 1); //packVoltage from BMS, in V
   Serial3.print("V");
-  Serial3.print(" Cur:");
-  Serial3.print(packCurrent, 2); //packCurrent from BMS, in A?
-  Serial3.print("A");
+  Serial3.print(" Tmp:");
+  Serial3.print(packTemp, 1); //packTemp from BMS, in C
+  Serial3.print("C");
   
   for(int i = 0; i < NUM_CELLS; i++)
   {
@@ -411,7 +454,7 @@ void updateLCD(int32_t mainCurrent, uint16_t cellVoltages[])
 
 void reactOverCurrent()
 {
-  if(overcurrent_state == false)
+ if(overcurrent_state == false)
   {
     error_report[RC_BMSBOARD_ERROR_PACKENTRY] = RC_BMSBOARD_ERROR_OVERCURRENT;
   }//end if
@@ -464,7 +507,7 @@ void reactOverCurrent()
 void reactUnderVoltage()
 {
 Serial.println("reactUnderVoltage");
-  if(pack_undervoltage_state == true) //|| cell_undervoltage_state == true)
+  if((pack_undervoltage_state == true) || cell_undervoltage_state == true)
   {
     RoveComm.write(RC_BMSBOARD_ERROR_HEADER, error_report);
     delay(DEBOUNCE_DELAY);
@@ -528,6 +571,14 @@ void reactForgottenLogicSwitch()
   return;
 }//end func
 
+void reactEstopReleased()
+{
+  if(forgotten_logic_switch == false && estop_released_beep == false)
+  {
+    estop_released_beep = true;
+    notifyEstopReleased();
+  }
+}
 //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 void reactLowVoltage( uint16_t cell_voltage[RC_BMSBOARD_VMEASmV_DATACOUNT])
@@ -637,6 +688,17 @@ void notifyLogicSwitch() //Buzzer sound: beeep beeep
 }//end func
 
 //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+void notifyEstopReleased() //Buzzer sound: beep
+{
+  digitalWrite(BUZZER_CTR_PIN, HIGH);
+  digitalWrite(SW_ERR_PIN, HIGH);
+  delay(75);
+  digitalWrite(BUZZER_CTR_PIN, LOW);
+  digitalWrite(SW_ERR_PIN, LOW);
+
+  return;
+}//end func
 
 void notifyReboot() //Buzzer sound: beeeeeeeeeep beeep beeep
 {

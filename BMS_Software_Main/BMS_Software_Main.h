@@ -80,7 +80,7 @@ const int CELL_MEAS_PINS[] = {LOGIC_V_MEAS_PIN, C1_V_MEAS_PIN, C2_V_MEAS_PIN, C3
 #define PACK_V_ADC_MIN      	0 //bits
 #define PACK_V_ADC_MAX      	4096 //bits
 #define CELL_V_ADC_MIN      	2320 //bits
-#define CELL_V_ADC_MAX      	4050 //bits
+#define CELL_V_ADC_MAX      	3800  //bits3790//
 
 // TMP37 Temp Sensor Specs 
   //Find at: https://www.digikey.com/products/en?mpart=TMP37FT9Z&v=505
@@ -91,6 +91,8 @@ const int CELL_MEAS_PINS[] = {LOGIC_V_MEAS_PIN, C1_V_MEAS_PIN, C2_V_MEAS_PIN, C3
 #define TEMP_THRESHOLD      	38000 //mdeg C  //About 100 degF
 #define TEMP_ADC_MIN      		0 //bits
 #define TEMP_ADC_MAX      		4096 //bits
+#define NUM_TEMP_AVERAGE    10 //batt_temp will be average of this many measurements
+
 
 // Delay Constants
 #define ROVECOMM_DELAY      	5 //msec		//Used after RoveComm.Write() to give data time to send.
@@ -99,7 +101,7 @@ const int CELL_MEAS_PINS[] = {LOGIC_V_MEAS_PIN, C1_V_MEAS_PIN, C2_V_MEAS_PIN, C3
 #define RECHECK_DELAY    		  10000 //msec	//Used to measure time since first overcurrent. If second overcurrent occurs within this delay time, BMS commits suicide.
 #define LOGIC_SWITCH_REMINDER 	60000 //msec 	//Every cycle of this period of time, the buzzer notifys someone that logic switch was forgotten.
 #define IDLE_SHUTOFF_TIME   	2400000 //msec or 40 minutes	//After this period of time passes, the BMS will commit suicide.
-#define UPDATE_ON_LOOP     		69 //loops		//Each time this number of loops passes, SW_IND will blink and LCD will update.
+#define UPDATE_ON_LOOP     		169 //loops		//Each time this number of loops passes, SW_IND will blink and LCD will update.
 #define ROVECOMM_UPDATE_DELAY	420 //ms
 
 // Function Declarations ///////////////////////////////////////////////////////////
@@ -125,7 +127,7 @@ void getOutVoltage(int &pack_out_voltage);
 void getBattTemp(uint32_t &batt_temp);
 
 
-void updateLCD(int32_t mainCurrent, uint16_t cellVoltages[]);
+void updateLCD(int32_t batt_temp, uint16_t cellVoltages[]);
 
 
 void reactOverCurrent();
@@ -140,6 +142,9 @@ void reactOverTemp();
 void reactForgottenLogicSwitch();
 
 
+void reactEstopReleased();
+
+
 void reactLowVoltage(uint16_t cell_voltage[RC_BMSBOARD_VMEASmV_DATACOUNT]);
 
 
@@ -150,6 +155,9 @@ void notifyEstop(); //Buzzer sound: beeeeeeeeeeeeeeeeeeeep beeeeeeeeeep beeeeep 
 
 
 void notifyLogicSwitch(); //Buzzer sound: beeep beeep
+
+
+void notifyEstopReleased(); //Buzzer sound: beep
 
 
 void notifyReboot(); //Buzzer sound: beeeeeeeeeep beeep beeep
@@ -163,14 +171,17 @@ void notifyUnderVoltage(); //Buzzer Sound: beeep beeep beeep beeep beeeeeeeeeeee
 
 void notifyLowVoltage(); //Buzzer Sound: beeep beeep beeep
 
+
 void startScreen();
+
 
 void stars();
 
+
 void asterisks();
 
-void movingRover();
 
+void movingRover();
 
 
 #endif
