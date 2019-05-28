@@ -1,5 +1,5 @@
 // Battery Managment System (BMS) Software //////////////////////////////////////////////////////////////////////////////////////////////////////////
-  // Main cpp File
+// Main cpp File
 //
 // Created for 2019 Valkyrie by: Jacob Lipina, jrlwd5
 //
@@ -29,7 +29,7 @@ void setup()
   setInputPins();
   setOutputPins();
   setOutputStates(); 
- // Serial.println("Setup Complete.");
+ // //Serial.println("Setup Complete.");
 } //end setup
 
 void loop()
@@ -40,7 +40,7 @@ void loop()
   uint32_t batt_temp;
   rovecomm_packet packet;
 
-Serial.println();
+//Serial.println();
   getMainCurrent(main_current);
   reactOverCurrent();
 
@@ -58,7 +58,7 @@ Serial.println();
   if((millis() - time_since_Rovecomm_update) >= ROVECOMM_UPDATE_DELAY)
   {  
     // batt_temp = 23456;//just for fixin reds temp values
-    //Serial.println(batt_temp);
+    ////Serial.println(batt_temp);
     RoveComm.write(RC_BMSBOARD_MAINIMEASmA_HEADER, main_current);
     delay(ROVECOMM_DELAY);
     RoveComm.write(RC_BMSBOARD_VMEASmV_HEADER, cell_voltages);
@@ -101,9 +101,10 @@ Serial.println();
         digitalWrite(SW_IND_PIN, LOW);
         sw_ind_state = false;
       }//end if
-      updateLCD(main_current, cell_voltages);
+      updateLCD(batt_temp, cell_voltages);
     }//end if
     num_loop++;
+    
 } //end loop
 
 
@@ -192,13 +193,13 @@ void setOutputStates()
 
 void getMainCurrent(int32_t &main_current)
 {
-//Serial.print("adc current:  ");
-//Serial.println(analogRead(PACK_I_MEAS_PIN));
+////Serial.print("adc current:  ");
+////Serial.println(analogRead(PACK_I_MEAS_PIN));
  
   main_current = ((map(analogRead(PACK_I_MEAS_PIN), CURRENT_ADC_MIN, CURRENT_ADC_MAX, CURRENT_MIN, CURRENT_MAX)*1069)/1000);//*950)/1000);
 
-//Serial.print("current:  ");
-//Serial.println(main_current);
+////Serial.print("current:  ");
+////Serial.println(main_current);
   if(main_current > OVERCURRENT)
   {
     delay(DEBOUNCE_DELAY);
@@ -221,7 +222,7 @@ void getCellVoltage(uint16_t cell_voltage[RC_BMSBOARD_VMEASmV_DATACOUNT])
 {  
   pinfault_state = false;
 //Serial.println();  
-//Serial.println("///////////////////Cell values/////////////////////// ");
+////Serial.println("///////////////////Cell values/////////////////////// ");
   for(int i = 0; i<RC_BMSBOARD_VMEASmV_DATACOUNT; i++)
   { 
 //////////////////////PACK/////////////////////////////////
@@ -273,7 +274,7 @@ void getCellVoltage(uint16_t cell_voltage[RC_BMSBOARD_VMEASmV_DATACOUNT])
       }//end if////////////////HERE/////////////////////////////////////////////////////////////////
       cell_voltage[i] = ((map(adc_reading, CELL_V_ADC_MIN, CELL_V_ADC_MAX, CELL_VOLTS_MIN, CELL_VOLTS_MAX))*1030)/1000;//980
       if(i > 2)
-        cell_voltage[i] -= 100;
+        cell_voltage[i] -= 00;
 //Serial.print("cell voltage : ");
 //Serial.println(cell_voltage[i]);
 
@@ -317,12 +318,12 @@ void getCellVoltage(uint16_t cell_voltage[RC_BMSBOARD_VMEASmV_DATACOUNT])
 void getOutVoltage(int &pack_out_voltage)
 {
   int adc_reading = analogRead(PACK_V_MEAS_PIN);
-//Serial.print("adc vout : ");
-//Serial.println(adc_reading);
+////Serial.print("adc vout : ");
+////Serial.println(adc_reading);
 ////////////////////////////////////HERE////////////////////////////////////////////////
   pack_out_voltage = ((1269 * map(adc_reading, PACK_V_ADC_MIN, PACK_V_ADC_MAX, VOLTS_MIN, PACK_VOLTS_MAX)) / 1000);//previously1369
-//Serial.print("mapped vout : ");
-//Serial.println(pack_out_voltage);
+////Serial.print("mapped vout : ");
+////Serial.println(pack_out_voltage);
   if(pack_out_voltage > PACK_SAFETY_LOW)
   {
     forgotten_logic_switch = false;
@@ -361,10 +362,10 @@ void getBattTemp(uint32_t &batt_temp)
   num_meas_batt_temp ++;
   
   batt_temp = (925 * (map(analogRead(TEMP_degC_MEAS_PIN), TEMP_ADC_MIN, TEMP_ADC_MAX, TEMP_MIN, TEMP_MAX))/1000);
-//Serial.print("temp adc:  ");
-//Serial.println(analogRead(TEMP_degC_MEAS_PIN));
-//Serial.print("temp:  ");
-//Serial.println(batt_temp);
+////Serial.print("temp adc:  ");
+////Serial.println(analogRead(TEMP_degC_MEAS_PIN));
+////Serial.print("temp:  ");
+////Serial.println(batt_temp);
   if(num_meas_batt_temp % NUM_TEMP_AVERAGE == 0)
   {
     for(int i = 0; i < NUM_TEMP_AVERAGE; i++)
@@ -375,8 +376,8 @@ void getBattTemp(uint32_t &batt_temp)
     num_meas_batt_temp = 0;
     batt_temp_avail = true; //Set to true after first batt_temp value is avail. Avoids acting on overtemp before the first average is computed.
   
-//    Serial.print("batt_temp: ");
-//    Serial.println(batt_temp);
+    //Serial.print("batt_temp: ");
+    //Serial.println(batt_temp);
   }//end if
   
   if(batt_temp_avail == true)
@@ -403,6 +404,8 @@ void getBattTemp(uint32_t &batt_temp)
 
 void updateLCD(int32_t batt_temp, uint16_t cellVoltages[])
 {  
+    //Serial.print("**************************************************************************");
+
   const int NUM_CELLS = 8; //this should be in header?
   bool LCD_Update = false;
   float time1 = 0;
@@ -410,6 +413,8 @@ void updateLCD(int32_t batt_temp, uint16_t cellVoltages[])
   float packTemp = 0;//degC
 
   packVoltage = (static_cast<float>(cellVoltages[0]) / 1000);
+  //Serial.print("temp   ");
+  //Serial.println(batt_temp);
   packTemp = (static_cast<float>(batt_temp) / 1000);
   packTemp = roundf(packTemp * 10) / 10; //Rounds temp to closest tenth of a degree
 
@@ -506,7 +511,7 @@ void reactOverCurrent()
 
 void reactUnderVoltage()
 {
-//Serial.println("reactUnderVoltage");
+////Serial.println("reactUnderVoltage");
   if((pack_undervoltage_state == true) || cell_undervoltage_state == true)
   {
     RoveComm.write(RC_BMSBOARD_ERROR_HEADER, error_report);
@@ -583,7 +588,7 @@ void reactEstopReleased()
 
 void reactLowVoltage( uint16_t cell_voltage[RC_BMSBOARD_VMEASmV_DATACOUNT])
 {
-//Serial.println("reactLowVoltage");
+////Serial.println("reactLowVoltage");
   if((cell_voltage[0] > PACK_UNDERVOLTAGE) && (cell_voltage[0] <= PACK_LOWVOLTAGE) && (low_voltage_state = false))//first instance of low voltage
   { 
     low_voltage_state = true;

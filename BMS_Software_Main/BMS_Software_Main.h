@@ -62,7 +62,7 @@ const int CELL_MEAS_PINS[] = {LOGIC_V_MEAS_PIN, C1_V_MEAS_PIN, C2_V_MEAS_PIN, C3
                           						 // Noise is 2mV, meaning the smallest current that the device is able to resolve is 0.3A
 #define CURRENT_MAX           	200000//mA; Current values must be sent over RoveComm as mA
 #define CURRENT_MIN           	-196207//mA
-#define OVERCURRENT           50000 //mA
+#define OVERCURRENT           100000 //mA
 #define CURRENT_ADC_MIN     	0 //bits
 #define CURRENT_ADC_MAX     	4096 //bits
 
@@ -101,7 +101,7 @@ const int CELL_MEAS_PINS[] = {LOGIC_V_MEAS_PIN, C1_V_MEAS_PIN, C2_V_MEAS_PIN, C3
 #define RECHECK_DELAY    		  10000 //msec	//Used to measure time since first overcurrent. If second overcurrent occurs within this delay time, BMS commits suicide.
 #define LOGIC_SWITCH_REMINDER 	60000 //msec 	//Every cycle of this period of time, the buzzer notifys someone that logic switch was forgotten.
 #define IDLE_SHUTOFF_TIME   	2400000 //msec or 40 minutes	//After this period of time passes, the BMS will commit suicide.
-#define UPDATE_ON_LOOP     		169 //loops		//Each time this number of loops passes, SW_IND will blink and LCD will update.
+#define UPDATE_ON_LOOP     		69 //loops		//Each time this number of loops passes, SW_IND will blink and LCD will update.
 #define ROVECOMM_UPDATE_DELAY	420 //ms
 
 // Function Declarations ///////////////////////////////////////////////////////////
