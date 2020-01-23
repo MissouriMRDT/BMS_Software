@@ -9,10 +9,10 @@
 // Pinmap // 
 
 //Control Pins
-#define BUZZER_CTL_PIN        PM_1    // change after new tiva
-#define FAN_CTL_PIN           PK_0
-#define PACK_OUT_CTL_PIN      PB_1
-#define LOGIC_SWITCH_CTL_PIN  PA_4
+#define BUZZER_CTR_PIN        PM_1    // change after new tiva
+#define FAN_CTR_PIN           PK_0
+#define PACK_OUT_CTR_PIN      PB_1
+#define LOGIC_SWITCH_CTR_PIN  PA_4
 
 //Indicator Pins
 #define FAN_PWR_IND_PIN       PM_2    // change after new tiva
@@ -51,6 +51,10 @@ const int CELL_MEAS_PINS[] = {LOGIC_V_MEAS_PIN,C1_V_MEAS_PIN,C2_V_MEAS_PIN,C3_V_
 #define CURRENT_ADC_MIN       0      //bits
 #define CURRENT_ADC_MAX       4096   //bits
 
+static int num_overcurrent = 0;
+static bool overcurrent_state = false;
+static float time_of_overcurrent = 0;
+
 //Voltage measurements
 #define VOLTS_MIN             0      //mV
 #define CELL_VOLTS_MIN        2400   //mV
@@ -62,8 +66,45 @@ const int CELL_MEAS_PINS[] = {LOGIC_V_MEAS_PIN,C1_V_MEAS_PIN,C2_V_MEAS_PIN,C3_V_
 #define CELL_UNDERVOLTAGE     2650   //mV
 #define PACK_EFFECTIVE_ZERO   5000   //mV
 #define CELL_EFFECTIVE_ZERO   1000   //mV
-#define PACK_V_ADC_MIN        0      //
-#define PACK_V_ADC_MAX        4096
-#define CELL_V_ADC_MIN        2320
-#define CELL_V_ADC_MAX        3800
+#define PACK_V_ADC_MIN        0      //bits
+#define PACK_V_ADC_MAX        4096   //bits 
+#define CELL_V_ADC_MIN        2320   //bits
+#define CELL_V_ADC_MAX        3800   //bits3790
+
+static bool pack_undervoltage_state = false;
+static bool cell_undervoltage_state = false;
+static bool low_voltage_state = false;
+static int num_low_voltage_reminder = 0;
+static int time_of_low_voltage = 0;
+
+//Temp 
+#define TEMP_MIN              0      //mdeg C
+#define TEMP_MAX              160000 //mdeg
+#define TEMP_THRESHOLD        38000  //mdeg C
+#define TEMP_ADC_MIN          0      //bits 
+#define TEMP_ADC_MAX          4096   //bits
+#define NUM_TEMP_AVERAGE      10     //batt_temp will be average of this many measurements
+
+static int num_meas_batt_temp = 0;
+static bool batt_temp_avail = false;
+static bool overtemp_state = false;
+static bool fans_on = false;
+
+//Delay Constants
+#define ROVECOMM_DELAY        5        //msec    
+#define DEBOUNCE_DELAY        10       //msec  
+#define RESTART_DELAY         5000     //msec   
+#define RECHECK_DELAY         10000    //msec  
+#define LOGIC_SWITCH_REMINDER   60000  //msec 
+#define IDLE_SHUTOFF_TIME     2400000  //msec 
+#define UPDATE_ON_LOOP        69       //loops   
+#define ROVECOMM_UPDATE_DELAY 420      //ms
+
+//Logic Switch
+static bool forgotten_logic_switch = false;
+static int num_out_voltage_loops = 0;
+static int time_switch_forgotten = 0;
+static int time_switch_reminder = 0;
+static bool estop_released_beep = false;
+
  
