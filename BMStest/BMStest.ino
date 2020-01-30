@@ -13,7 +13,7 @@ void setup()
 void loop() 
 {
   // put your main code here, to run repeatedly:
-  getCellVoltage();
+ getCellVoltage(cell_voltage);
  delay(1000);  
 }
 
@@ -49,8 +49,8 @@ void setOutputPins()
 
 void setOutputStates()
 {
-  digitalWrite(PACK_OUT_CTRL_PIN,      HIGH);
-  digitalWrite(LOGIC_SWITCH_CTRL_PIN,  LOW);
+  digitalWrite(PACK_OUT_CTRL_PIN,      LOW);
+  digitalWrite(LOGIC_SWITCH_CTRL_PIN,  HIGH);
   digitalWrite(BUZZER_CTRL_PIN,        LOW);
   digitalWrite(FAN_CTRL_PIN,           LOW);
   digitalWrite(FAN_PWR_IND_PIN,       LOW);
@@ -60,9 +60,9 @@ void setOutputStates()
   return;
 }
 
-void getCellVoltage()
+void getCellVoltage(float cell_voltage[])
 {
-  Serial.println("Cell Voltages :");
+  Serial.println("Cell Voltages ADC:");
   Serial.println(analogRead(C1_V_MEAS_PIN));
   Serial.println(analogRead(C2_V_MEAS_PIN));
   Serial.println(analogRead(C3_V_MEAS_PIN));
@@ -72,6 +72,21 @@ void getCellVoltage()
   Serial.println(analogRead(C7_V_MEAS_PIN));
   Serial.println(analogRead(C8_V_MEAS_PIN));
   Serial.println();
+
+  for(int i = 0; i < 8 ; i++)
+  {
+    int adc_reading = analogRead(CELL_MEAS_PINS[i]);
+    if(adc_reading < CELL_V_ADC_MIN)
+    {
+      adc_reading = CELL_V_ADC_MIN;
+    }
+    if(adc_reading > CELL_V_ADC_MAX)
+    {
+      adc_reading = CELL_V_ADC_MAX;
+    }
+    cell_voltage[i] = (map(adc_reading, CELL_V_ADC_MIN, CELL_V_ADC_MAX, CELL_VOLTS_MIN, CELL_VOLTS_MAX));
+    Serial.println(cell_voltage[i]);
+  }
   return;
 }
 
