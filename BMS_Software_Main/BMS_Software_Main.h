@@ -107,6 +107,8 @@ static int time_switch_forgotten = 0;
 static int time_switch_reminder = 0;
 static bool estop_released_beep = false;
 
+//Error
+
 void setInputPins();
 
 void setOutputPins();
@@ -114,6 +116,8 @@ void setOutputPins();
 void setOutputStates();
 
 void getMainCurrent(float &main_current);
+
+void OverCurrentCheck(float &main_current)
 
 void getCellVoltage(float cell_voltage[RC_BMSBOARD_CELL_VMEAS_DATACOUNT]);
 

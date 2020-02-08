@@ -28,6 +28,7 @@ void loop()
 
   //Serial.println();
   getMainCurrent(main_current);
+  OverCurrentCheck();
   reactOverCurrent();
 
   getCellVoltage(cell_voltages);
@@ -80,19 +81,21 @@ void setOutputStates()
   digitalWrite(SW_ERR_IND_PIN,        LOW);
 }
 
-
+//Main Current Read and Send to Basestation
 void getMainCurrent(float &main_current)
 {
-  main_current = ((map(analogRead(PACK_I_MEAS_PIN), CURRENT_ADC_MIN, CURRENT_ADC_MAX, CURRENT_MIN, CURRENT_MAX)));//*950)/1000);
+  main_current = ((map(analogRead(PACK_I_MEAS_PIN), CURRENT_ADC_MIN, CURRENT_ADC_MAX, CURRENT_MIN, CURRENT_MAX)));
+  Rovecomm.write(RC_BMSBOARD_MAINIMEASmA_DATAID, main_current);
   
   if(main_current > OVERCURRENT)
   {
     delay(DEBOUNCE_DELAY);
     if(map(analogRead(PACK_I_MEAS_PIN), CURRENT_ADC_MIN, CURRENT_ADC_MAX, CURRENT_MIN, CURRENT_MAX) > OVERCURRENT)
     {
-      overcurrent_state = 1;
+     
+      overcurrent_state = true;
 
-      if(num_overcurrent == 1)
+     if(num_overcurrent == 1)
       {
         num_overcurrent++;
       }
@@ -103,8 +106,6 @@ void getMainCurrent(float &main_current)
 
 void getCellVoltage(float &cell_voltage[RC_BMSBOARD_CELL_VMEAS_DATACOUNT])   //CellV_Meas
 {
-  //pinfault_state = false;
-
   for(int i = 0; i < RC_BMSBOARD_CELL_VMEAS_DATACOUNT ; i++)
   {
     int adc_reading = analogRead(CELL_MEAS_PINS[i]);
@@ -118,12 +119,11 @@ void getCellVoltage(float &cell_voltage[RC_BMSBOARD_CELL_VMEAS_DATACOUNT])   //C
     }
    
     cell_voltage[i] = ((map(adc_reading, CELL_V_ADC_MIN, CELL_V_ADC_MAX, CELL_VOLTS_MIN, CELL_VOLTS_MAX)));
+    
     if(i > 1)
     {
       cell_voltage[i] -= 00;
     }
-    //error_report[i] = RC_BMSBOARD_ERROR_NOERROR;
-
     if ((cell_voltage[i] > CELL_VOLTS_MIN) && (cell_voltage[i] < CELL_UNDERVOLTAGE))
     {
       delay(DEBOUNCE_DELAY);
@@ -141,17 +141,12 @@ void getCellVoltage(float &cell_voltage[RC_BMSBOARD_CELL_VMEAS_DATACOUNT])   //C
       if((map(adc_reading, CELL_V_ADC_MIN, CELL_V_ADC_MAX, CELL_VOLTS_MIN, CELL_VOLTS_MAX) <= CELL_UNDERVOLTAGE)
             && (map(adc_reading, CELL_V_ADC_MIN, CELL_V_ADC_MAX, CELL_VOLTS_MIN, CELL_VOLTS_MAX) > CELL_VOLTS_MIN))
       {
-        cell_undervoltage_state = 1;
-        //RoveComm.write(RC_BMSBOARD_CELL_UNDERVOLTAGE_DATAID, cell_undervoltage_state);z
-         //Cell UnderVoltage
+        cell_undervoltage_state = 1
+        RoveComm.write(RC_BMSBOARD_CELL_UNDERVOLTAGE_DATAID, cell_undervoltage_state);
       }
     }
-    /*if(adc_reading == CELL_V_ADC_MIN)
-    {
-      error_report[i] = RC_BMSBOARD_ERROR_PINFAULT;
-      pinfault_state = true;
-    }*/
   }
+  Rovecomm.write(RC_BMSBOARD_CELL_VMEAS_DATAID, cell_voltages[RC_BMSBOARD_CELL_VMEAS_DATACOUNT]);
   return;
 }
 
@@ -320,14 +315,13 @@ void reactEstopReleased()
 
 void reactLowVoltage(float &cell_voltage[RC_BMSBOARD_VMEASmV_DATACOUNT])
 {
-////Serial.println("reactLowVoltage");
   if((cell_voltage[0] > PACK_UNDERVOLTAGE) && (cell_voltage[0] <= PACK_LOWVOLTAGE) && (low_voltage_state = false))//first instance of low voltage
   { 
     low_voltage_state = true;
     //notifyLowVoltage();
     time_of_low_voltage = millis();
     num_low_voltage_reminder = 1;
-  }//end if
+  }/
   else if((cell_voltage[0] > PACK_UNDERVOLTAGE) && (cell_voltage[0] <= PACK_LOWVOLTAGE) && (low_voltage_state = true))//following instances of low voltage
   {
     if(millis() >= (time_of_low_voltage + (num_low_voltage_reminder * LOGIC_SWITCH_REMINDER)))

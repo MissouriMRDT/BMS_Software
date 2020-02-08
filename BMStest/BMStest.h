@@ -42,8 +42,8 @@ const int CELL_MEAS_PINS[] = {C1_V_MEAS_PIN,C2_V_MEAS_PIN,C3_V_MEAS_PIN,C4_V_MEA
 #define CELL_EFFECTIVE_ZERO   1000   //mV
 #define PACK_V_ADC_MIN        0      //bits
 #define PACK_V_ADC_MAX        4096   //bits 
-#define CELL_V_ADC_MIN        2320   //bits
-#define CELL_V_ADC_MAX        3800   //bits3790
+#define CELL_V_ADC_MIN        2880   //bits
+#define CELL_V_ADC_MAX        3400   //bits3790
 static float cell_voltage[8];
 
 void setInputPins();
