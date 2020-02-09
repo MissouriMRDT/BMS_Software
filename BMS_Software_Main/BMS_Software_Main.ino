@@ -25,10 +25,8 @@ void loop()
   float batt_temp;
   
   rovecomm_packet packet;
-
-  //Serial.println();
+  
   getMainCurrent(main_current);
-  OverCurrentCheck();
   reactOverCurrent();
 
   getCellVoltage(cell_voltages);
@@ -98,6 +96,7 @@ void getMainCurrent(float &main_current)
      if(num_overcurrent == 1)
       {
         num_overcurrent++;
+        reactOverCurrent();
       }
     }
   }
@@ -141,8 +140,8 @@ void getCellVoltage(float &cell_voltage[RC_BMSBOARD_CELL_VMEAS_DATACOUNT])   //C
       if((map(adc_reading, CELL_V_ADC_MIN, CELL_V_ADC_MAX, CELL_VOLTS_MIN, CELL_VOLTS_MAX) <= CELL_UNDERVOLTAGE)
             && (map(adc_reading, CELL_V_ADC_MIN, CELL_V_ADC_MAX, CELL_VOLTS_MIN, CELL_VOLTS_MAX) > CELL_VOLTS_MIN))
       {
-        cell_undervoltage_state = 1
-        RoveComm.write(RC_BMSBOARD_CELL_UNDERVOLTAGE_DATAID, cell_undervoltage_state);
+        cell_undervoltage_state = 1; 
+        //RoveComm.write(RC_BMSBOARD_CELL_UNDERVOLTAGE_DATAID, cell_undervoltage_state);
       }
     }
   }
@@ -242,7 +241,7 @@ void reactOverCurrent()
       time_of_overcurrent = millis(); 
       num_overcurrent++;
     
-      //notifyOverCurrent();
+      notifyOverCurrent();
     }
     else if(num_overcurrent == 1)
     {
