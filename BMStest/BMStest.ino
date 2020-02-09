@@ -95,19 +95,24 @@ void getCellVoltage(float cell_voltage[], float test_average[], int count)
     }*/
     cell_voltage[i] = (map(adc_reading, CELL_V_ADC_MIN, CELL_V_ADC_MAX, CELL_VOLTS_MIN, CELL_VOLTS_MAX));
     //Serial.println(cell_voltage[i]);
-    if(i==1)
+    if(i==2)
     {
       test_average[count] = cell_voltage[i];
-      //test_average[count]= analogRead(C2_V_MEAS_PIN);
+      //test_average[count]= analogRead(C3_V_MEAS_PIN);
     }
   }
   //Serial.println();
   if (count == 9)
   {
+    int average = 0;
+    for(int i = 0; i < count ; i++)
+    {
     //Serial.println();
-   // Serial.println("Cell 2 average:");
-    Serial.println((test_average[0]+test_average[1]+test_average[2]+test_average[3]+test_average[4]+test_average[5]+test_average[6]+test_average[7]+test_average[8]+test_average[9])/10);
+    //Serial.println("Cell 2 average:");
+      average += test_average[i];
+    }
   }
+  Serial.println(average/(count+1));
   return;
 }
 

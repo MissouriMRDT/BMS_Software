@@ -9,6 +9,7 @@
 
 static float test_average[10];
 int count;
+int average;
 
 //Indicator Pins
 #define FAN_PWR_IND_PIN       PM_2    // change after new tiva
