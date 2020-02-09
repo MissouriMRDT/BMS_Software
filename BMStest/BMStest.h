@@ -7,9 +7,11 @@
 #define PACK_OUT_CTRL_PIN      PB_1
 #define LOGIC_SWITCH_CTRL_PIN  PA_4
 
+//Average 
 static float test_average[20];
-int count;
-int average;
+static float adc_average[20];
+static int count;
+
 
 //Indicator Pins
 #define FAN_PWR_IND_PIN       PM_2    // change after new tiva
@@ -33,6 +35,7 @@ int average;
 #define C7_V_MEAS_PIN         PD_1    //CELL 7 - CELL 6
 #define C8_V_MEAS_PIN         PD_0    //CELL 8 - CELL 7
 const int CELL_MEAS_PINS[] = {C1_V_MEAS_PIN,C2_V_MEAS_PIN,C3_V_MEAS_PIN,C4_V_MEAS_PIN,C5_V_MEAS_PIN,C6_V_MEAS_PIN,C7_V_MEAS_PIN,C8_V_MEAS_PIN};
+
 //Voltage measurements
 #define VOLTS_MIN             0      //mV
 #define CELL_VOLTS_MIN        2400   //mV
@@ -56,6 +59,9 @@ void setOutputPins();
 
 void setOutputStates();
 
-void getCellVoltage(float &cell_voltage, float test_average, int count, int average);
-  
+void getCellVoltage(float &cell_voltage, float &test_average, int count, float &adc_average);
+
+void printAverageVoltage( float test_average[], int count);
+
+void printAverageADC(float adc_average[], int count);
 #endif
