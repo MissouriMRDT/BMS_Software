@@ -7,7 +7,7 @@
 #define PACK_OUT_CTRL_PIN      PB_1
 #define LOGIC_SWITCH_CTRL_PIN  PA_4
 
-static float test_average[10];
+static float test_average[20];
 int count;
 int average;
 
@@ -46,8 +46,8 @@ const int CELL_MEAS_PINS[] = {C1_V_MEAS_PIN,C2_V_MEAS_PIN,C3_V_MEAS_PIN,C4_V_MEA
 #define CELL_EFFECTIVE_ZERO   1000   //mV
 #define PACK_V_ADC_MIN        0      //bits
 #define PACK_V_ADC_MAX        4096   //bits 
-#define CELL_V_ADC_MIN        2880   //bits
-#define CELL_V_ADC_MAX        3450   //bits3430
+#define CELL_V_ADC_MIN        2755   //bits2725
+#define CELL_V_ADC_MAX        3245   //bits3450
 static float cell_voltage[8];
 
 void setInputPins();
@@ -56,6 +56,6 @@ void setOutputPins();
 
 void setOutputStates();
 
-void getCellVoltage(float &cell_voltage, float test_average, int count);
+void getCellVoltage(float &cell_voltage, float test_average, int count, int average);
   
 #endif
