@@ -81,7 +81,7 @@ void getCellVoltage(float cell_voltage[],int count, float adc_average[])
   //Serial.println();
   //Serial.println("Cell Voltages mapped:");
   
-  for(int i = 1; i < 8 ; i++)
+  for(int i = 0; i < 8 ; i++)
   {
     int adc_reading = analogRead(CELL_MEAS_PINS[i]);   //Serial.println(analogRead(CELL_MEAS_PINS[1]));
     
@@ -100,7 +100,7 @@ void getCellVoltage(float cell_voltage[],int count, float adc_average[])
   //Serial.println();
   if (count == 19)
   {
-    for(int i = 1; i < 8 ; i++)
+    for(int i = 0; i < 8 ; i++)
     { 
       adc_average[i]= adc_average[i]/(count + 1);
       cell_voltage[i]= map(adc_average[i],CELL_V_ADC_MIN, CELL_V_ADC_MAX, CELL_VOLTS_MIN, CELL_VOLTS_MAX);
