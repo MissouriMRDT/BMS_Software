@@ -14,9 +14,8 @@ void setup()
 void loop() 
 {
   // put your main code here, to run repeatedly:
- getCellVoltage(cell_voltage,test_average,count,adc_average);
- //Serial.println(count);
- //Serial.println();
+  
+ getCellVoltage(cell_voltage,count,adc_average);
  count++;
  if(count ==20)
  {
@@ -68,7 +67,7 @@ void setOutputStates()
   return;
 }
 
-void getCellVoltage(float cell_voltage[], float test_average[], int count, float adc_average[])
+void getCellVoltage(float cell_voltage[],int count, float adc_average[])
 {
   //Serial.println("Cell Voltages ADC:");
   //Serial.println(analogRead(C1_V_MEAS_PIN));
@@ -84,12 +83,9 @@ void getCellVoltage(float cell_voltage[], float test_average[], int count, float
   
   for(int i = 1; i < 8 ; i++)
   {
-    int adc_reading = analogRead(CELL_MEAS_PINS[i]);
-    //Serial.println(analogRead(CELL_MEAS_PINS[1]));
-    if(i==2)
-    {
-      adc_average[count]= adc_reading; 
-    }
+    int adc_reading = analogRead(CELL_MEAS_PINS[i]);   //Serial.println(analogRead(CELL_MEAS_PINS[1]));
+    
+     adc_average[i]+= adc_reading; // adds cell voltages to an array of 8 (for average to be taken later)
    /* if(adc_reading < CELL_V_ADC_MIN)
     {
       adc_reading = CELL_V_ADC_MIN;
@@ -100,42 +96,39 @@ void getCellVoltage(float cell_voltage[], float test_average[], int count, float
     }*/
     //cell_voltage[i] = (map(adc_reading, CELL_V_ADC_MIN, CELL_V_ADC_MAX, CELL_VOLTS_MIN, CELL_VOLTS_MAX));
     //Serial.println(cell_voltage[i]);
-    if(i==2)
-    { 
-      test_average[count] = (map(adc_reading, CELL_V_ADC_MIN, CELL_V_ADC_MAX, CELL_VOLTS_MIN, CELL_VOLTS_MAX));;  //mapped value
-    }
   }
   //Serial.println();
   if (count == 19)
   {
+    for(int i = 1; i < 8 ; i++)
+    { 
+      adc_average[i]= adc_average[i]/(count + 1);
+      cell_voltage[i]= map(adc_average[i],CELL_V_ADC_MIN, CELL_V_ADC_MAX, CELL_VOLTS_MIN, CELL_VOLTS_MAX);
+    }
     printAverageADC(adc_average,count);
-    printAverageVoltage(test_average,count);
+    printAverageVoltage(cell_voltage,count);
   }
   return;
 }
 
 void printAverageADC(float adc_average[], int count)
 {
-  int average = 0;
-  for(int i = 0; i < count ; i++) //accumulates all values in test_average
-  {
-    average += adc_average[i];
-  }
   Serial.println();
-  Serial.println("ADC");
-  Serial.println(average/(count+1));  //prints the average
+  Serial.println("ADC:");
+  for(int i = 0; i < 8 ; i++) //prints every cell average adc value
+  {
+    Serial.println(adc_average[i]);  //prints the average
+  }
 }
 
-void printAverageVoltage(float test_average[], int count)
+void printAverageVoltage(float cell_voltage[],int count)
 {
-  int average = 0;
-  for(int i = 0; i < count ; i++) //accumulates all values in test_average
-  {
-    average += test_average[i];
-  }
   Serial.println();
   Serial.println("VOLTS:");
-  Serial.println(average/(count+1));  //prints the average 
+  for(int i = 0; i < 8 ; i++) //accumulates all values in test_average
+  {
+    Serial.println(cell_voltage[i]);
+  }
 }
 
 void getPackVoltage()

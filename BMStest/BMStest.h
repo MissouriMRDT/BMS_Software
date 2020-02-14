@@ -8,8 +8,7 @@
 #define LOGIC_SWITCH_CTRL_PIN  PA_4
 
 //Average 
-static float test_average[20];
-static float adc_average[20];
+static float adc_average[8];
 static int count;
 
 
@@ -59,9 +58,9 @@ void setOutputPins();
 
 void setOutputStates();
 
-void getCellVoltage(float &cell_voltage, float &test_average, int count, float &adc_average);
+void getCellVoltage(float cell_voltage[],int count, float &adc_average);
 
-void printAverageVoltage( float test_average[], int count);
+void printAverageVoltage(float cell_voltage[], int count);
 
 void printAverageADC(float adc_average[], int count);
 #endif
