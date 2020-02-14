@@ -18,7 +18,7 @@ void loop()
  getCellVoltage(cell_voltage,count,adc_average);
  Serial.println(count);
  count++;
- if(count ==20)
+ if(count ==21)
  {
   count = 0;
  }
@@ -99,12 +99,12 @@ void getCellVoltage(float cell_voltage[],int count, float adc_average[])
     //Serial.println(cell_voltage[i]);
   }
   //Serial.println();
-  if (count == 19)
+  if (count == 20)
   {
     for(int i = 0; i < 8 ; i++)
     { 
       adc_average[i]= adc_average[i]/(count + 1);
-      Serial.println("bla");/
+      Serial.println("bla");//
       Serial.println(adc_average[i]);
       cell_voltage[i]= map(adc_average[i],CELL_V_ADC_MIN, CELL_V_ADC_MAX, CELL_VOLTS_MIN, CELL_VOLTS_MAX);
     }
