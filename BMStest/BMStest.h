@@ -60,7 +60,5 @@ void setOutputStates();
 
 void getCellVoltage(float cell_voltage[],int count, float &adc_average);
 
-void printAverageVoltage(float cell_voltage[], int count);
 
-void printAverageADC(float adc_average[], int count);
 #endif
