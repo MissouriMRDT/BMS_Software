@@ -9,16 +9,20 @@ void setup()
   setOutputPins();
   setOutputStates();
   int count = 0;
+  int countMax = 20; //amount of averages to be taken
 }
 
 void loop() 
 {
   // put your main code here, to run repeatedly:
   
- getCellVoltage(cell_voltage,count,adc_average);
+ getCellVoltage(cell_voltage,count,countMax,cell_adc_average);
+ getPackVoltage(pack_adc_v_average, count, countMax);
+ getPackCurrent(pack_adc_i_average, count, countMax);
+ getTemperature(temp_adc_average, count, countMax);
  
  count++;
- if(count ==21)
+ if(count == (countMax+1))
  {
   count = 0;
  }
@@ -68,40 +72,31 @@ void setOutputStates()
   return;
 }
 
-void getCellVoltage(float cell_voltage[],int count, float adc_average[])
+void getCellVoltage(float cell_voltage[],int count, int countMax, float cell_adc_average[])
 {
   for(int i = 0; i < 8 ; i++)
   {
     int adc_reading = analogRead(CELL_MEAS_PINS[i]);   //Serial.println(analogRead(CELL_MEAS_PINS[1]));
-    
-     adc_average[i]+= adc_reading; // adds cell voltages to an array of 8 (for average to be taken later)
-   /* if(adc_reading < CELL_V_ADC_MIN)
-    {
-      adc_reading = CELL_V_ADC_MIN;
-    }
-    if(adc_reading > CELL_V_ADC_MAX)
-    {
-      adc_reading = CELL_V_ADC_MAX;
-    }*/
+    cell_adc_average[i]+= adc_reading; // adds cell voltages to an array of 8 (for average to be taken later)
   }
-  if (count == 20)
+  if (count == countMax)
   {
     //take average
     for(int i = 0; i < 8 ; i++)
     { 
-      adc_average[i]= adc_average[i]/(count + 1);
-      cell_voltage[i]= map(adc_average[i],CELL_V_ADC_MIN, CELL_V_ADC_MAX, CELL_VOLTS_MIN, CELL_VOLTS_MAX);
+      cell_adc_average[i]= cell_adc_average[i]/(count + 1);
+      cell_voltage[i]= map(cell_adc_average[i],CELL_V_ADC_MIN, CELL_V_ADC_MAX, CELL_VOLTS_MIN, CELL_VOLTS_MAX);
     }
     
-    //print adc
-    Serial.println();
+    //prints a table of adc and voltage average values
+    Serial.println("CELL");
     Serial.print("ADC:");
     Serial.print("      ");
     Serial.print("VOLTS:");
     Serial.println();
-    for(int i = 0; i < 8 ; i++) //prints every cell average adc value
+    for(int i = 0; i < 8 ; i++) 
     {
-      Serial.print(adc_average[i]);//prints the average
+      Serial.print(cell_adc_average[i]);
       Serial.print("      ");
       Serial.print(cell_voltage[i]);
       Serial.println();
@@ -111,26 +106,71 @@ void getCellVoltage(float cell_voltage[],int count, float adc_average[])
   return;
 }
 
-void getPackVoltage()
+void getPackVoltage(float pack_adc_v_average, int count, int countMax)
 {
-  Serial.println("PackVoltage :");
-  Serial.println(analogRead(PACK_V_MEAS_PIN));
-  Serial.println();
-  return;
-}
+  int adc_reading = analogRead(PACK_V_MEAS_PIN);
+  pack_adc_v_average += adc_reading;
 
-void getLogicVoltage()
-{
-  Serial.println("LogicVoltage :");
-  Serial.println(analogRead(LOGIC_V_MEAS_PIN));
-  Serial.println();
+  if (count == countMax)
+  {
+    pack_adc_v_average = pack_adc_v_average/(count + 1);
+    int pack_voltage = map(pack_adc_v_average, PACK_V_ADC_MIN, PACK_V_ADC_MAX, PACK_VOLTS_MIN, PACK_VOLTS_MAX);
+    
+    Serial.println("PACK VOLTAGE");
+    Serial.print("ADC:");
+    Serial.print("      ");
+    Serial.print("VOLTS:");
+    Serial.println();
+    Serial.print(pack_adc_v_average);
+    Serial.print("      ");
+    Serial.print(pack_voltage);
+    Serial.println();
+  }
   return;
 }
  
-void getPackCurrent()
+void getPackCurrent(float pack_adc_i_average, int count, int countMax)
 {
-  Serial.println("PackCurrent :");
-  Serial.println(analogRead(PACK_I_MEAS_PIN));
-  Serial.println();
+  int adc_reading = analogRead(PACK_I_MEAS_PIN);
+  pack_adc_i_average += adc_reading;
+
+  if (count == countMax)
+  {
+    pack_adc_i_average = pack_adc_i_average/(count + 1);
+    int pack_current = map(pack_adc_i_average, CURRENT_ADC_MIN, CURRENT_ADC_MAX, CURRENT_MIN, CURRENT_MAX);
+    
+    Serial.println("PACK CURRENT");
+    Serial.print("ADC:");
+    Serial.print("      ");
+    Serial.print("CURRENT:");
+    Serial.println();
+    Serial.print(pack_adc_i_average);
+    Serial.print("      ");
+    Serial.print(pack_current);
+    Serial.println();
+  }
+  return;
+}
+
+void getTemperature(float temp_adc_average, int count, int countMax)
+{
+  int adc_reading = analogRead(TEMP_degC_MEAS_PIN);
+  temp_adc_average += adc_reading;
+
+  if (count == countMax)
+  {
+    temp_adc_average = temp_adc_average/(count+1);
+    int temp_average = map(temp_adc_average, TEMP_ADC_MIN, TEMP_ADC_MAX, TEMP_MIN, TEMP_MAX);
+
+    Serial.println("TEMPERATURE");
+    Serial.print("ADC:");
+    Serial.print("      ");
+    Serial.print("CELSUIS:");
+    Serial.println();
+    Serial.print(temp_adc_average);
+    Serial.print("      ");
+    Serial.print(temp_average);
+    Serial.println();
+  }
   return;
 }

@@ -7,11 +7,6 @@
 #define PACK_OUT_CTRL_PIN      PB_1
 #define LOGIC_SWITCH_CTRL_PIN  PA_4
 
-//Average 
-static float adc_average[8];
-static int count;
-
-
 //Indicator Pins
 #define FAN_PWR_IND_PIN       PM_2    // change after new tiva
 #define SW_IND_PIN            PB_0
@@ -36,7 +31,7 @@ static int count;
 const int CELL_MEAS_PINS[] = {C1_V_MEAS_PIN,C2_V_MEAS_PIN,C3_V_MEAS_PIN,C4_V_MEAS_PIN,C5_V_MEAS_PIN,C6_V_MEAS_PIN,C7_V_MEAS_PIN,C8_V_MEAS_PIN};
 
 //Voltage measurements
-#define VOLTS_MIN             0      //mV
+#define PACK_VOLTS_MIN           0      //mV
 #define CELL_VOLTS_MIN        2400   //mV
 #define PACK_VOLTS_MAX        33600  //mV
 #define CELL_VOLTS_MAX        4200   //mV
@@ -50,7 +45,31 @@ const int CELL_MEAS_PINS[] = {C1_V_MEAS_PIN,C2_V_MEAS_PIN,C3_V_MEAS_PIN,C4_V_MEA
 #define PACK_V_ADC_MAX        4096   //bits 
 #define CELL_V_ADC_MIN        2150   //bits2755,2930
 #define CELL_V_ADC_MAX        2700   //bits3450,3245
+
+//Current Measurements
+#define CURRENT_MAX           200000 //mA
+#define CURRENT_MIN          -196207 //mA
+#define OVERCURRENT           100000 //mA
+#define CURRENT_ADC_MIN       0      //bits
+#define CURRENT_ADC_MAX       4096   //bits
+
+//temperature measurements
+#define TEMP_MIN              0      //mdeg C
+#define TEMP_MAX              160000 //mdeg
+#define TEMP_THRESHOLD        38000  //mdeg C
+#define TEMP_ADC_MIN          0      //bits 
+#define TEMP_ADC_MAX          4096   //bits
+#define NUM_TEMP_AVERAGE      10     //batt_temp will be average of this many measurements
+
 static float cell_voltage[8];
+
+//Average 
+static float cell_adc_average[8];
+static int count;
+static int countMax;
+static float pack_adc_v_average;
+static float pack_adc_i_average;
+static float temp_adc_average;
 
 void setInputPins();
 
@@ -59,6 +78,12 @@ void setOutputPins();
 void setOutputStates();
 
 void getCellVoltage(float cell_voltage[],int count, float &adc_average);
+
+void getPackVoltage(float pack_adc_v_average, int count);
+
+void getPackCurrent(float pack_adc_i_average, int count);
+
+void getTemperature(float temp_adc_average,int count, int countMax);
 
 
 #endif
