@@ -101,9 +101,10 @@ void getCellVoltage(float cell_voltage[],int count, float adc_average[])
     Serial.println();
     for(int i = 0; i < 8 ; i++) //prints every cell average adc value
     {
-      Serial.println(adc_average[i]);//prints the average
+      Serial.print(adc_average[i]);//prints the average
       Serial.print("      ");
       Serial.print(cell_voltage[i]);
+      Serial.println();
     }
     Serial.println();
   }
