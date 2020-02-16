@@ -16,13 +16,13 @@ void loop()
 {
   // put your main code here, to run repeatedly:
   
- getCellVoltage(cell_voltage,count,countMax,cell_adc_average);
- getPackVoltage(pack_adc_v_average, count, countMax);
- getPackCurrent(pack_adc_i_average, count, countMax);
- getTemperature(temp_adc_average, count, countMax);
+ getCellVoltage(cell_voltage,count,cell_adc_average);
+ //getPackVoltage(pack_adc_v_average, count);
+ //getPackCurrent(pack_adc_i_average, count);
+ //getTemperature(temp_adc_average, count);
  
  count++;
- if(count == (countMax+1))
+ if(count == 21)
  {
   count = 0;
  }
@@ -72,14 +72,14 @@ void setOutputStates()
   return;
 }
 
-void getCellVoltage(float cell_voltage[],int count, int countMax, float cell_adc_average[])
+void getCellVoltage(float cell_voltage[],int count, float cell_adc_average[])
 {
   for(int i = 0; i < 8 ; i++)
   {
     int adc_reading = analogRead(CELL_MEAS_PINS[i]);   //Serial.println(analogRead(CELL_MEAS_PINS[1]));
     cell_adc_average[i]+= adc_reading; // adds cell voltages to an array of 8 (for average to be taken later)
   }
-  if (count == countMax)
+  if (count == 20)
   {
     //take average
     for(int i = 0; i < 8 ; i++)
@@ -106,12 +106,12 @@ void getCellVoltage(float cell_voltage[],int count, int countMax, float cell_adc
   return;
 }
 
-void getPackVoltage(float pack_adc_v_average, int count, int countMax)
+void getPackVoltage(float pack_adc_v_average, int count)
 {
   int adc_reading = analogRead(PACK_V_MEAS_PIN);
   pack_adc_v_average += adc_reading;
 
-  if (count == countMax)
+  if (count == 20)
   {
     pack_adc_v_average = pack_adc_v_average/(count + 1);
     int pack_voltage = map(pack_adc_v_average, PACK_V_ADC_MIN, PACK_V_ADC_MAX, PACK_VOLTS_MIN, PACK_VOLTS_MAX);
@@ -129,12 +129,12 @@ void getPackVoltage(float pack_adc_v_average, int count, int countMax)
   return;
 }
  
-void getPackCurrent(float pack_adc_i_average, int count, int countMax)
+void getPackCurrent(float pack_adc_i_average, int count)
 {
   int adc_reading = analogRead(PACK_I_MEAS_PIN);
   pack_adc_i_average += adc_reading;
 
-  if (count == countMax)
+  if (count == 20)
   {
     pack_adc_i_average = pack_adc_i_average/(count + 1);
     int pack_current = map(pack_adc_i_average, CURRENT_ADC_MIN, CURRENT_ADC_MAX, CURRENT_MIN, CURRENT_MAX);
@@ -152,12 +152,12 @@ void getPackCurrent(float pack_adc_i_average, int count, int countMax)
   return;
 }
 
-void getTemperature(float temp_adc_average, int count, int countMax)
+void getTemperature(float temp_adc_average, int count)
 {
   int adc_reading = analogRead(TEMP_degC_MEAS_PIN);
   temp_adc_average += adc_reading;
 
-  if (count == countMax)
+  if (count == 20)
   {
     temp_adc_average = temp_adc_average/(count+1);
     int temp_average = map(temp_adc_average, TEMP_ADC_MIN, TEMP_ADC_MAX, TEMP_MIN, TEMP_MAX);
