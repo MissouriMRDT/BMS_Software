@@ -5,20 +5,23 @@ void setup()
 {
   // put your setup code here, to run once:
   Serial.begin(9600);
+  initTest(beep_time);
   setInputPins();
   setOutputPins();
   setOutputStates();
+  
   int count = 0;
-  int countMax = 20; //amount of averages to be taken
+  int countMax = 20;
+  float pack_voltage = 0;
 }
 
 void loop() 
 {
   // put your main code here, to run repeatedly:
   
- getCellVoltage(cell_voltage,count,cell_adc_average);
- //getPackVoltage(pack_adc_v_average, count);
- //getPackCurrent(pack_adc_i_average, count);
+ getCellVoltage(cell_voltage,count,cell_adc_average,pack_voltage);
+ getPackVoltage(pack_adc_v_average, count, pack_voltage);
+ getPackCurrent(pack_adc_i_average, count);
  //getTemperature(temp_adc_average, count);
  
  count++;
@@ -72,7 +75,7 @@ void setOutputStates()
   return;
 }
 
-void getCellVoltage(float cell_voltage[],int count, float cell_adc_average[])
+void getCellVoltage(float cell_voltage[],int count, float cell_adc_average[], float pack_voltage)
 {
   for(int i = 0; i < 8 ; i++)
   {
@@ -81,11 +84,13 @@ void getCellVoltage(float cell_voltage[],int count, float cell_adc_average[])
   }
   if (count == 20)
   {
+    pack_voltage = 0;
     //take average
     for(int i = 0; i < 8 ; i++)
     { 
       cell_adc_average[i]= cell_adc_average[i]/(count + 1);
       cell_voltage[i]= map(cell_adc_average[i],CELL_V_ADC_MIN, CELL_V_ADC_MAX, CELL_VOLTS_MIN, CELL_VOLTS_MAX);
+      pack_voltage += cell_voltage[i];
     }
     
     //prints a table of adc and voltage average values
@@ -106,23 +111,13 @@ void getCellVoltage(float cell_voltage[],int count, float cell_adc_average[])
   return;
 }
 
-void getPackVoltage(float pack_adc_v_average, int count)
+void getPackVoltage(float pack_adc_v_average, int count, float pack_voltage)
 {
-  int adc_reading = analogRead(PACK_V_MEAS_PIN);
-  pack_adc_v_average += adc_reading;
-
   if (count == 20)
-  {
-    pack_adc_v_average = pack_adc_v_average/(count + 1);
-    int pack_voltage = map(pack_adc_v_average, PACK_V_ADC_MIN, PACK_V_ADC_MAX, PACK_VOLTS_MIN, PACK_VOLTS_MAX);
-    
+  { 
     Serial.println("PACK VOLTAGE");
-    Serial.print("ADC:");
-    Serial.print("      ");
     Serial.print("VOLTS:");
     Serial.println();
-    Serial.print(pack_adc_v_average);
-    Serial.print("      ");
     Serial.print(pack_voltage);
     Serial.println();
   }
@@ -148,6 +143,7 @@ void getPackCurrent(float pack_adc_i_average, int count)
     Serial.print("      ");
     Serial.print(pack_current);
     Serial.println();
+    
   }
   return;
 }
@@ -173,4 +169,43 @@ void getTemperature(float temp_adc_average, int count)
     Serial.println();
   }
   return;
+}
+
+void initTest(int beep_time)
+{
+  turnOnFans();
+  delay(1000);
+  turnOffFans();
+  beep(beep_time);
+  Serial.println("Rover Initialized");
+  digitalWrite(FAN_PWR_IND_PIN,       HIGH);
+  delay(beep_time);
+  digitalWrite(SW_IND_PIN,            HIGH);
+  delay(beep_time);
+  digitalWrite(SW_ERR_IND_PIN,        HIGH);
+  delay(beep_time);
+  digitalWrite(FAN_PWR_IND_PIN,       LOW);
+  delay(beep_time);
+  digitalWrite(SW_IND_PIN,            LOW);
+  delay(beep_time);
+  digitalWrite(SW_ERR_IND_PIN,        LOW);
+  
+}
+void turnOnFans()
+{
+ digitalWrite(FAN_CTRL_PIN, HIGH);
+ digitalWrite(FAN_PWR_IND_PIN, HIGH);
+}
+
+void turnOffFans()
+{
+  digitalWrite(FAN_CTRL_PIN, LOW);
+  digitalWrite(FAN_PWR_IND_PIN, LOW);
+}
+
+void beep(int beep_time)
+{
+  digitalWrite(BUZZER_CTRL_PIN, HIGH);
+  delay(beep_time);
+  digitalWrite(BUZZER_CTRL_PIN, LOW);
 }

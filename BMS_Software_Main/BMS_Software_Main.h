@@ -68,8 +68,8 @@ static float time_of_overcurrent = 0;
 #define CELL_EFFECTIVE_ZERO   1000   //mV
 #define PACK_V_ADC_MIN        0      //bits
 #define PACK_V_ADC_MAX        4096   //bits 
-#define CELL_V_ADC_MIN        2320   //bits
-#define CELL_V_ADC_MAX        3800   //bits3790
+#define CELL_V_ADC_MIN        2450   //bits
+#define CELL_V_ADC_MAX        4270   //bits
 
 static bool pack_undervoltage_state = false;
 static bool cell_undervoltage_state = false;
@@ -97,7 +97,7 @@ static bool fans_on = false;
 #define RECHECK_DELAY         10000    //msec  
 #define LOGIC_SWITCH_REMINDER   60000  //msec 
 #define IDLE_SHUTOFF_TIME     2400000  //msec 
-#define UPDATE_ON_LOOP        69       //loops   
+#define UPDATE_ON_LOOP        60       //loops   
 #define ROVECOMM_UPDATE_DELAY 420      //ms
 
 //Logic Switch
@@ -107,6 +107,17 @@ static int time_switch_forgotten = 0;
 static int time_switch_reminder = 0;
 static bool estop_released_beep = false;
 
+
+//Average 
+uint32_t time_cycle_start;
+uint32_t time_cycle_now;
+static int num_of_loops;
+
+float cell_adc_average[8];
+float pack_v_average;
+float main_current_average;
+float temp_average;
+
 //Error
 
 void setInputPins();
@@ -115,51 +126,5 @@ void setOutputPins();
 
 void setOutputStates();
 
-void getMainCurrent(float &main_current);
 
-void OverCurrentCheck(float &main_current)
-
-void getCellVoltage(float cell_voltage[RC_BMSBOARD_CELL_VMEAS_DATACOUNT]);
-
-void getOutVoltage(float &pack_out_voltage);
-
-void getBattTemp(float &batt_temp);
-
-//void updateLCD(int32_t batt_temp, uint16_t cellVoltages[]);
-
-void reactOverCurrent();
-
-void reactUnderVoltage();
-
-void reactOverTemp();
-
-void reactForgottenLogicSwitch();
-
-void reactEstopReleased();
-
-void reactLowVoltage(float cell_voltage[RC_BMSBOARD_CELL_VMEAS_DATACOUNT]);
-
-void setEstop(uint8_t data);
-
-void notifyEstop();
-
-void notifyLogicSwitch(); 
-
-void notifyEstopReleased(); 
-
-void notifyReboot(); 
-
-//void notifyOverCurrent(); 
-
-//void notifyUnderVoltage(); 
-
-//void notifyLowVoltage(); 
-
-//void startScreen();
-
-//void stars();
-
-//void asterisks();
-
-//void movingRover();
 #endif

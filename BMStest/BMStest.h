@@ -64,12 +64,16 @@ const int CELL_MEAS_PINS[] = {C1_V_MEAS_PIN,C2_V_MEAS_PIN,C3_V_MEAS_PIN,C4_V_MEA
 static float cell_voltage[8];
 
 //Average 
-static float cell_adc_average[8];
-static int count;
-static int countMax;
-static float pack_adc_v_average;
-static float pack_adc_i_average;
-static float temp_adc_average;
+float cell_adc_average[8];
+int count;
+int countMax;
+float pack_adc_v_average;
+float pack_adc_i_average;
+float temp_adc_average;
+float pack_voltage;
+
+
+int beep_time = 30;
 
 void setInputPins();
 
@@ -77,13 +81,21 @@ void setOutputPins();
 
 void setOutputStates();
 
-void getCellVoltage(float cell_voltage[],int count, float &adc_average);
+void getCellVoltage(float cell_voltage[],int count, float &adc_average, float pack_voltage);
 
-void getPackVoltage(float pack_adc_v_average, int count);
+void getPackVoltage(float pack_adc_v_average, int count, float pack_voltage);
 
 void getPackCurrent(float pack_adc_i_average, int count);
 
 void getTemperature(float temp_adc_average,int count);
+
+void initTest(int beep_time);
+
+void beep(int beep_time);
+
+void turnOffFans();
+
+void turnOnFans();
 
 
 #endif
