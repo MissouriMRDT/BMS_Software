@@ -73,7 +73,7 @@ float temp_adc_average;
 float pack_voltage;
 
 
-int beep_time = 30;
+int beep_time = 3000;
 
 void setInputPins();
 
