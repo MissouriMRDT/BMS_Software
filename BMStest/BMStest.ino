@@ -5,31 +5,32 @@ void setup()
 {
   // put your setup code here, to run once:
   Serial.begin(9600);
-  initTest(beep_time);
+  //initTest(beep_time);
   setInputPins();
   setOutputPins();
   setOutputStates();
+  Serial.println("Pack Current:");
   
-  int count = 0;
-  int countMax = 20;
-  float pack_voltage = 0;
+  //int count = 0;
+  //int countMax = 20;
+  //float pack_voltage = 0;
 }
 
 void loop() 
 {
   // put your main code here, to run repeatedly:
   
- getCellVoltage(cell_voltage,count,cell_adc_average,pack_voltage);
- getPackVoltage(pack_adc_v_average, count, pack_voltage);
- getPackCurrent(pack_adc_i_average, count);
+ //getCellVoltage(cell_voltage,count,cell_adc_average,pack_voltage);
+ //getPackVoltage(pack_adc_v_average, count, pack_voltage);
+ getPackCurrent(pack_adc_i_average);
  //getTemperature(temp_adc_average, count);
- 
+ /*
  count++;
  if(count == 21)
  {
   count = 0;
  }
- delay(30);  
+ delay(30);  */
 }
 
 void setInputPins()
@@ -124,11 +125,13 @@ void getPackVoltage(float pack_adc_v_average, int count, float pack_voltage)
   return;
 }
  
-void getPackCurrent(float pack_adc_i_average, int count)
+void getPackCurrent(float pack_adc_i_average)
 {
   int adc_reading = analogRead(PACK_I_MEAS_PIN);
-  pack_adc_i_average += adc_reading;
-
+  //pack_adc_i_average += adc_reading;
+  Serial.println(analogRead(PACK_I_MEAS_PIN));
+  
+  /*
   if (count == 20)
   {
     pack_adc_i_average = pack_adc_i_average/(count + 1);
@@ -144,7 +147,7 @@ void getPackCurrent(float pack_adc_i_average, int count)
     Serial.print(pack_current);
     Serial.println();
     
-  }
+  }*/
   return;
 }
 
