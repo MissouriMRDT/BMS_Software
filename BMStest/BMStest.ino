@@ -65,8 +65,8 @@ void setOutputPins()
 
 void setOutputStates()
 {
-  digitalWrite(PACK_OUT_CTRL_PIN,      LOW);
-  digitalWrite(LOGIC_SWITCH_CTRL_PIN,  HIGH);
+  digitalWrite(PACK_OUT_CTRL_PIN,      HIGH);
+  digitalWrite(LOGIC_SWITCH_CTRL_PIN,  LOW);
   digitalWrite(BUZZER_CTRL_PIN,        LOW);
   digitalWrite(FAN_CTRL_PIN,           LOW);
   digitalWrite(FAN_PWR_IND_PIN,       LOW);
