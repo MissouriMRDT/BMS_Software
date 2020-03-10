@@ -5,10 +5,10 @@ void setup()
 {
   // put your setup code here, to run once:
   Serial.begin(9600);
-  //initTest(beep_time);
   setInputPins();
   setOutputPins();
   setOutputStates();
+  initTest(beep_time);
   Serial.println("Pack Current:");
   
   //int count = 0;
