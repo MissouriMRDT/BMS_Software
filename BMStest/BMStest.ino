@@ -19,7 +19,7 @@ void setup()
 void loop() 
 {
   // put your main code here, to run repeatedly:
-  
+  delay(1000);
  //getCellVoltage(cell_voltage,count,cell_adc_average,pack_voltage);
  //getPackVoltage(pack_adc_v_average, count, pack_voltage);
  getPackCurrent(pack_adc_i_average);
@@ -129,8 +129,11 @@ void getPackCurrent(float pack_adc_i_average)
 {
   int adc_reading = analogRead(PACK_I_MEAS_PIN);
   //pack_adc_i_average += adc_reading;
+  Serial.println("adc:");
   Serial.println(analogRead(PACK_I_MEAS_PIN));
-  
+  int mapped_current = map(adc_reading,CURRENT_ADC_MIN,CURRENT_ADC_MAX,CURRENT_MIN,CURRENT_MAX);
+  Serial.println("map:");
+  Serial.println(mapped_current);
   /*
   if (count == 20)
   {
@@ -179,7 +182,7 @@ void initTest(int beep_time)
   turnOnFans();
   delay(1000);
   turnOffFans();
-  beep(beep_time);
+  //beep(beep_time);
   Serial.println("Rover Initialized");
   digitalWrite(FAN_PWR_IND_PIN,       HIGH);
   delay(beep_time);

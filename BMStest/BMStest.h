@@ -47,9 +47,9 @@ const int CELL_MEAS_PINS[] = {C1_V_MEAS_PIN,C2_V_MEAS_PIN,C3_V_MEAS_PIN,C4_V_MEA
 #define CELL_V_ADC_MAX        4270   //bits3450,3245
 
 //Current Measurements
-#define CURRENT_MAX           200000 //mA
-#define CURRENT_MIN          -196207 //mA
-#define OVERCURRENT           100000 //mA
+#define CURRENT_MAX           20000 //mA
+#define CURRENT_MIN           -20000. //mA
+#define OVERCURRENT           10000 //mA
 #define CURRENT_ADC_MIN       0      //bits
 #define CURRENT_ADC_MAX       4096   //bits
 
