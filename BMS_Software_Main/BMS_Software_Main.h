@@ -78,8 +78,8 @@ static int num_low_voltage_reminder = 0;
 static int time_of_low_voltage = 0;
 
 //Temp 
-#define TEMP_MIN              0      //mdeg C
-#define TEMP_MAX              160000 //mdeg
+#define TEMP_MIN              0     //mdeg C
+#define TEMP_MAX              140000 //mdeg
 #define TEMP_THRESHOLD        38000  //mdeg C
 #define TEMP_ADC_MIN          0      //bits 
 #define TEMP_ADC_MAX          4096   //bits
