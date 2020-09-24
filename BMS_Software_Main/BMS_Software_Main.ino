@@ -7,9 +7,9 @@ void setup()
   Serial.begin(9600);
   //Serial3.begin(9600); //starting comms with LCD display
   
-  RoveComm.begin(RC_BMSBOARD_FOURTHOCTET);
+  //RoveComm.begin(RC_BMSBOARD_FOURTHOCTET);
   delay(ROVECOMM_DELAY);
-
+  
   setInputPins();
   setOutputPins();
   setOutputStates();
@@ -23,22 +23,22 @@ void setup()
 void loop() 
 {
   // put your main code here, to run repeatedly:
-
+  getTemperature();
   //average 
-  time_cycle_now = millis(); //updates constantly
-  if((time_cycle_now - time_cycle_start)> 1000)
-  {
-    time_cycle_start = millis(); //resets the time loop
-    sendRoveCommTelemetry(); //takes the averages of values needing to send to basestation
-  }
-  else
-  {
-    num_of_loops ++; //increments the # of loops
-  }
-  main_current_average;
-  cell_adc_average[i];
+  //time_cycle_now = millis(); //updates constantly
+  //if((time_cycle_now - time_cycle_start)> 1000)
+  //{
+  //  time_cycle_start = millis(); //resets the time loop
+   // sendRoveCommTelemetry(); //takes the averages of values needing to send to basestation
+  //}
+  //else
+  //{
+  //  num_of_loops ++; //increments the # of loops
+  //}
+  //main_current_average;
+  //cell_adc_average[i];
   
-  rovecomm_packet packet;
+  //rovecomm_packet packet;
   
 }
 
@@ -80,6 +80,15 @@ void setOutputStates()
   digitalWrite(SW_ERR_IND_PIN,        LOW);
 }
 
+void getTemperature()
+{
+  
+  int adc_reading = analogRead(TEMP_degC_MEAS_PIN);
+  int temp_average = map(adc_reading, TEMP_ADC_MIN, TEMP_ADC_MAX, TEMP_MIN, TEMP_MAX);
+  Serial.println("Temperature :");
+  Serial.println(temp_average);
+  Serial.println();
+}
 void getCellVoltage(float cell_adc_average[])
 {
   for(int i = 0; i < 8 ; i++)
@@ -96,6 +105,6 @@ void getMainCurrent(float main_current_average)
 void sendRoveCommTelemetry(int num_of_loops, float main_current_average, float cell_adc_average[], float pack_v_average, float temp_average)
 {
   main_current_average /= num_of_loops;
-  Rovecomm.write(RC_BMSBOARD_MAINIMEASmA_DATAID, main_current_average);
+  //Rovecomm.write(RC_BMSBOARD_MAINIMEASmA_DATAID, main_current_average);
   num_of_loops = 0;
 }
