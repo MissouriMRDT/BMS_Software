@@ -1,0 +1,16 @@
+Get a list of variable needed and define these variables in the header file
+
+Need a base code (LT1910 needs to be set to "low" on output, ESTOP needs to be coded)
+
+Do code for cell_voltages, then current, then temp (all need to be mapped) [Look @ tiva pins to find variables]
+
+LCD screen code
+
+Buzzer @ end (not important)
+
+Do serial prints first and @ very end link to rovecomm (serial print output --> rovecomm language)
+
+Write commands for:
+SW_ESTOP
+ERROR STATEMENTS
+
