@@ -1,4 +1,7 @@
-Get a list of variable needed and define these variables in the header file
+*Get a list of variable needed and define these variables in the header file
+(sw_ind, sw_err_ind, V_out_ind, Fans_ind, temp_sense(analog signal in), v_out_sense, 
+buzzer_control,pack_i_sense, cell_senses, fan_control, LCD_tx, logic_switch,
+logic_power_sense,pack_gate)*
 
 Need a base code (LT1910 needs to be set to "low" on output, ESTOP needs to be coded)
 
