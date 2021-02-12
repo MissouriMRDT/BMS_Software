@@ -14,7 +14,7 @@
 #define PACK_I_SENSE_PIN        PN_4
 #define LOGIC_POWER_SENSE_PIN   PK_7
 
-//Cell voltages
+//Cell voltage pins
 #define CELL1_VOLTAGE_PIN       PK_3
 #define CELL2_VOLTAGE_PIN       PK_2
 #define CELL3_VOLTAGE_PIN       PK_1
@@ -30,3 +30,7 @@
 #define PACK_GATE_PIN           PM_6
 #define LCD_TX_PIN              PA_7
 #define LOGIC_SWITCH_PIN        PK_6
+
+float cell1_voltage;
+
+//lowercase changing, CAPITAL NOT CHANGING
