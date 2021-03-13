@@ -3,42 +3,33 @@
 
 void setup() 
 {
-  // put your setup code here, to run once:
-  Serial.begin(9600);
-  //Serial3.begin(9600); //starting comms with LCD display
+  Serial.begin(9600);   //
+  Serial3.begin(9600); //comms with LCD display
   
-  //RoveComm.begin(RC_BMSBOARD_FOURTHOCTET);
+  RoveComm.begin(RC_BMSBOARD_FOURTHOCTET);
   delay(ROVECOMM_DELAY);
   
   setInputPins();
   setOutputPins();
   setOutputStates();
-
-  time_cycle_start = millis(); //time program started
-  time_cycle_now = 0;
-  num_of_loops = 0 ;
 }
 
 
 void loop() 
 {
-  // put your main code here, to run repeatedly:
-  getTemperature();
-  //average 
-  //time_cycle_now = millis(); //updates constantly
-  //if((time_cycle_now - time_cycle_start)> 1000)
-  //{
-  //  time_cycle_start = millis(); //resets the time loop
-   // sendRoveCommTelemetry(); //takes the averages of values needing to send to basestation
-  //}
-  //else
-  //{
-  //  num_of_loops ++; //increments the # of loops
-  //}
-  //main_current_average;
-  //cell_adc_average[i];
+  //listen for rovecomm packets
+  rovecomm_packet packet;
+  packet = RoveComm.read();
   
-  //rovecomm_packet packet;
+  //if estop, go directly to estop function
+  if (packet.data_id = RC_BMSBOARD_BMSSTOP_DATA_ID)
+  {
+    estop(packet.data[0]);
+  }
+
+  //get telemetry and send it
+
+  //check for errors
   
 }
 
@@ -69,7 +60,7 @@ void setOutputPins()
   pinMode(SW_ERR_IND_PIN,       OUTPUT);
 }
 
-void setOutputStates()
+void setOutputStates() //is the pin on or off? must be set for all digital pins
 {
   digitalWrite(PACK_OUT_CTRL_PIN,      HIGH);
   digitalWrite(LOGIC_SWITCH_CTRL_PIN,  LOW);
@@ -80,31 +71,50 @@ void setOutputStates()
   digitalWrite(SW_ERR_IND_PIN,        LOW);
 }
 
-void getTemperature()
+
+void estop(uint8_t time)
 {
-  
-  int adc_reading = analogRead(TEMP_degC_MEAS_PIN);
-  int temp_average = map(adc_reading, TEMP_ADC_MIN, TEMP_ADC_MAX, TEMP_MIN, TEMP_MAX);
-  Serial.println("Temperature :");
-  Serial.println(temp_average);
-  Serial.println();
-}
-void getCellVoltage(float cell_adc_average[])
-{
-  for(int i = 0; i < 8 ; i++)
-  { 
-    cell_adc_average[i]+= analogRead(CELL_MEAS_PINS[i]);        // adds cell voltages to an array of 8 (for average to be taken later)
+  if (time > 0)
+  {
+    digitalWrite(PACK_OUT_CTRL_PIN, LOW);
+    delay(time);
+    digitalWrite(PACK_OUT_CTRL_PIN, HIGH);
   }
 }
 
-void getMainCurrent(float main_current_average)
+void SendRovecommPackets()
 {
-  main_current_average += analogRead(PACK_I_MEAS_PIN); 
+  float temp = getTemperature();
+  float cells[RC_BMSBOARD_VMEASmV_DATACOUNT] = getCellVoltages();
+  float pack_current = getCurrent()p;
+}
+// get temp for battery pack and if too high, turn on fans
+float getTemperature()
+{
+  temp = analog.read(TEMP_degC_MEAS_PIN);
+  serial.print(temp);
+  return temp;
 }
 
-void sendRoveCommTelemetry(int num_of_loops, float main_current_average, float cell_adc_average[], float pack_v_average, float temp_average)
+// get the individual voltage of 8 cells and put in an array
+float cells[RC_BMSBOARD_VMEASmV_DATACOUNT] getCellVoltages()
 {
-  main_current_average /= num_of_loops;
-  //Rovecomm.write(RC_BMSBOARD_MAINIMEASmA_DATAID, main_current_average);
-  num_of_loops = 0;
+  cells[RC_BMSBOARD_VMEASmV_DATACOUNT] = {}
+  for a in range(RC_BMSBOARD_VMEASmV_DATACOUNT)
+  {
+    float cell = map(analogRead(CELL_MEAS_PINS[a]), PACK_V_ADC_MIN, PACK_V_ADC_MAX, VOLTS_MIN, PACK_VOLTS_MAX);
+    cells[a] = cell;
+    // check if cell is low
+    if (cell < CELL_SAFETY_LOW)
+    {
+      delay(DEBOUNCE_DELAY);
+
+    }
+  }
+}
+
+// get pack current
+float getCurrent()
+{
+
 }

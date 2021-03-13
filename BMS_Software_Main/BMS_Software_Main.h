@@ -109,14 +109,6 @@ static bool estop_released_beep = false;
 
 
 //Average 
-uint32_t time_cycle_start;
-uint32_t time_cycle_now;
-static int num_of_loops;
-
-float cell_adc_average[8];
-float pack_v_average;
-float main_current_average;
-float temp_average;
 
 //Error
 
