@@ -63,6 +63,7 @@ static float time_of_overcurrent = 0;
 #define PACK_UNDERVOLTAGE     21600  //mV
 #define PACK_LOWVOLTAGE       25000  //mV
 #define PACK_SAFETY_LOW       PACK_UNDERVOLTAGE - 4000 //mV
+#define CELL_SAFETY_LOW       (PACK_SAFETY_LOW)/8 //mV
 #define CELL_UNDERVOLTAGE     2650   //mV
 #define PACK_EFFECTIVE_ZERO   5000   //mV
 #define CELL_EFFECTIVE_ZERO   1000   //mV
@@ -118,5 +119,9 @@ void setOutputPins();
 
 void setOutputStates();
 
+float getTemperature();
+float cells[RC_BMSBOARD_CELLV_MEAS_DATA_COUNT] getCellVoltages();
+float getPackVoltage(float cells[RC_BMSBOARD_CELLV_MEAS_DATA_COUNT]);
+float getCurrent();
 
 #endif
