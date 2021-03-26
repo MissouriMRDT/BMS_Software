@@ -4,9 +4,6 @@
 RoveCommEthernet RoveComm;
 rovecomm_packet packet; 
 
-//timekeeping variables
-uint32_t last_update_time;
-
 //declare the Ethernet Server in the top level sketch with the requisite port ID any time you want to use RoveComm
 EthernetServer TCPServer(RC_ROVECOMM_BMSBOARD_PORT);
 void setup() 
@@ -29,17 +26,19 @@ void loop()
   packet = RoveComm.read();
   
   //if estop, go directly to estop function
-  if (packet.data_id = RC_BMSBOARD_BMSSTOP_DATA_ID)
+  switch (packet.data_id)
   {
-    estop(packet.data[0]);
+    case (RC_BMSBOARD_BMSSTOP_DATA_ID):
+      estop(packet.data[0]);
+      break;
   }
 
   //get telemetry and send it
-  float temp = getTemperature();
-  float cells[RC_BMSBOARD_CELLV_MEAS_DATA_COUNT] = getCellVoltages();
-  float pack_voltage = getPackVoltage(cells[RC_BMSBOARD_CELLV_MEAS_DATA_COUNT]);
-  float pack_current = getCurrent();
-  RoveComm.write(RC_BMSBOARD_PACKI_MEAS_DATA_ID, pack_current);
+  getTemperature();
+  getCellVoltages();
+  getPackVoltage(cells[RC_BMSBOARD_CELLV_MEAS_DATA_COUNT]);// refer to in function
+  getCurrent();
+  
   RoveComm.write(RC_BMSBOARD_PACKV_MEAS_DATA_ID, pack_voltage);
   RoveComm.write(RC_BMSBOARD_CELLV_MEAS_DATA_ID, cells[]);
   RoveComm.write(RC_BMSBOARD_TEMP_MEAS_DATA_ID, temp);
@@ -95,7 +94,7 @@ void estop(uint8_t time)
 }
 
 // get temp for battery pack and if too high, turn on fans
-float getTemperature()
+void getTemperature()
 {
   temp = analog.read(TEMP_degC_MEAS_PIN);
   if (temp > TEMP_THRESHOLD)
@@ -137,19 +136,18 @@ float* getCellVoltages()
 
 float getPackVoltage(float cells[RC_BMSBOARD_CELLV_MEAS_DATA_COUNT])
 {
-  packVoltage = 0;
-  for a in range(RC_BMSBOARD_CELLV_MEAS_DATA_COUNT)
+  packVoltage = 0; //type float and unit
+  for a in range(RC_BMSBOARD_CELLV_MEAS_DATA_COUNT) //redo
   {
-    packVoltage += a;
+    packVoltage += a;//cells[a] (in V)
   }
-  if (packVoltage =< PACK_UNDERVOLTAGE)
+  if (packVoltage =< PACK_UNDERVOLTAGE) //change PACK_UNDERVOLTAGE to be in V not mV
   {
     uint8_t packerror = 1;
     RoveComm.write(RC_BMSBOARD_PACKUNDERVOLTAGE_DATA_ID,packerror);
   }
-  return packVoltage/1000;
+  return packVoltage/1000; //jk these are all V, don't need to change it
 }
-
 
 // get pack current
 float getCurrent()
@@ -162,9 +160,9 @@ float getCurrent()
     if(main_current >= OVERCURRENT)
     {
       uint8_t overcurrent = 1;
-      RoveComm.write(RC_BMSBOARD_PACKOVERCURRENT_DATA_ID, pvercurrent);
+      RoveComm.write(RC_BMSBOARD_PACKOVERCURRENT_DATA_ID, pvercurrent);//
     }
   }
-  return main_current/1000;
-  }
+  RoveComm.write(RC_BMSBOARD_PACKI_MEAS_DATA_ID, main_current/1000); //mA to A
+  //take out curly brace
 }

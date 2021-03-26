@@ -8,29 +8,29 @@ void setup()
   setInputPins();
   setOutputPins();
   setOutputStates();
-  initTest(beep_time);
-  Serial.println("Pack Current:");
+  //initTest(beep_time);
+  //Serial.println("Pack Current:");
   
-  //int count = 0;
-  //int countMax = 20;
-  //float pack_voltage = 0;
+  int count = 0;
+  int countMax = 20;
+  float pack_voltage = 0;
 }
 
 void loop() 
 {
   // put your main code here, to run repeatedly:
   delay(1000);
- //getCellVoltage(cell_voltage,count,cell_adc_average,pack_voltage);
+  getCellVoltage(cell_voltage,count,cell_adc_average,pack_voltage);
  //getPackVoltage(pack_adc_v_average, count, pack_voltage);
- getPackCurrent(pack_adc_i_average);
+ //getPackCurrent(pack_adc_i_average);
  //getTemperature(temp_adc_average, count);
- /*
+ 
  count++;
  if(count == 21)
  {
   count = 0;
  }
- delay(30);  */
+ delay(30);
 }
 
 void setInputPins()
