@@ -52,7 +52,5 @@ void setPinOutputs()
 
 void cellVoltageRead()
 {
-
-    cell1_voltage = analogRead(CELL1_VOLTAGE_PIN);
-    Serial.println(cell1_voltage);
+    
 }

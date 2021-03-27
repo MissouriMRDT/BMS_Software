@@ -31,8 +31,8 @@
 const int CELL_MEAS_PINS[] = {C1_V_MEAS_PIN,C2_V_MEAS_PIN,C3_V_MEAS_PIN,C4_V_MEAS_PIN,C5_V_MEAS_PIN,C6_V_MEAS_PIN,C7_V_MEAS_PIN,C8_V_MEAS_PIN};
 
 //Voltage measurements
-#define PACK_VOLTS_MIN           0      //mV
-#define CELL_VOLTS_MIN        2400   //mV
+#define PACK_VOLTS_MIN        0      //mV
+#define CELL_VOLTS_MIN        0   //mV
 #define PACK_VOLTS_MAX        33600  //mV
 #define CELL_VOLTS_MAX        4200   //mV
 #define PACK_UNDERVOLTAGE     21600  //mV
@@ -43,8 +43,8 @@ const int CELL_MEAS_PINS[] = {C1_V_MEAS_PIN,C2_V_MEAS_PIN,C3_V_MEAS_PIN,C4_V_MEA
 #define CELL_EFFECTIVE_ZERO   1000   //mV
 #define PACK_V_ADC_MIN        0      //bits
 #define PACK_V_ADC_MAX        4096   //bits 
-#define CELL_V_ADC_MIN        1140   //bits2755,2930
-#define CELL_V_ADC_MAX        4270   //bits3450,3245
+#define CELL_V_ADC_MIN        0   //bits 2755,2930
+#define CELL_V_ADC_MAX        4096   //bits 3450,3245
 
 //Current Measurements
 #define CURRENT_MAX           20000 //mA
