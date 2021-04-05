@@ -9,26 +9,27 @@ void setup()
   setOutputPins();
   setOutputStates();
   //initTest(beep_time);
-  //Serial.println("Pack Current:");
+  Serial.println("Pack Current:");
   
   int count = 0;
   int countMax = 5;
   //float pack_voltage = 0;
+  pack_adc_i_average = 0;
 }
-
 void loop() 
 {
   // put your main code here, to run repeatedly:
   delay(1000);
-  getCellVoltage(cell_voltage,count,cell_adc_average,pack_voltage);
+  //getCellVoltage(cell_voltage,count,cell_adc_average,pack_voltage);
  //getPackVoltage(pack_adc_v_average, count, pack_voltage);
- //getPackCurrent(pack_adc_i_average);
+ getPackCurrent(pack_adc_i_average, count);
  //getTemperature(temp_adc_average, count);
  
  count++;
  if(count == 6)
  {
   count = 0;
+  pack_adc_i_average = 0;
   for(int i = 0; i < 8 ; i++)
   {
     cell_adc_average[i] = 0;
@@ -138,16 +139,16 @@ void getPackVoltage(float pack_adc_v_average, int count, float pack_voltage)
   return;
 }
  
-void getPackCurrent(float pack_adc_i_average)
+void getPackCurrent(float pack_adc_i_average,int count)
 {
   int adc_reading = analogRead(PACK_I_MEAS_PIN);
-  //pack_adc_i_average += adc_reading;
-  Serial.println("adc:");
-  Serial.println(analogRead(PACK_I_MEAS_PIN));
+  pack_adc_i_average += adc_reading;
+ // Serial.println("adc:");
+  //Serial.println(analogRead(PACK_I_MEAS_PIN));
   int mapped_current = map(adc_reading,CURRENT_ADC_MIN,CURRENT_ADC_MAX,CURRENT_MIN,CURRENT_MAX);
-  Serial.println("map:");
-  Serial.println(mapped_current);
-  /*
+  //Serial.println("map:");
+  //Serial.println(mapped_current);
+  
   if (count == 5)
   {
     pack_adc_i_average = pack_adc_i_average/(count + 1);
@@ -163,7 +164,7 @@ void getPackCurrent(float pack_adc_i_average)
     Serial.print(pack_current);
     Serial.println();
     
-  }*/
+  }
   return;
 }
 

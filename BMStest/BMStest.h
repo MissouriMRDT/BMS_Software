@@ -85,7 +85,7 @@ void getCellVoltage(float cell_voltage[],int count, float &adc_average, float pa
 
 void getPackVoltage(float pack_adc_v_average, int count, float pack_voltage);
 
-void getPackCurrent(float pack_adc_i_average);
+void getPackCurrent(float pack_adc_i_average, int count);
 
 void getTemperature(float temp_adc_average,int count);
 
