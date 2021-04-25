@@ -23,7 +23,7 @@ const uint8_t CELL5_VOLTAGE_PIN       PB_5;
 const uint8_t CELL6_VOLTAGE_PIN       PB_4;
 const uint8_t CELL7_VOLTAGE_PIN       PD_5;
 const uint8_t CELL8_VOLTAGE_PIN       PD_4;
-const uint8_t cell_meas_pins[]=       {CELL1_VOLTAGE_PIN,CELL2_VOLTAGE_PIN,CELL3_VOLTAGE_PIN,CELL4_VOLTAGE_PIN,CELL5_VOLTAGE_PIN,CELL6_VOLTAGE_PIN,CELL7_VOLTAGE_PIN,CELL8_VOLTAGE_PIN}
+const uint8_t cell_meas_pins[]=       {CELL1_VOLTAGE_PIN,CELL2_VOLTAGE_PIN,CELL3_VOLTAGE_PIN,CELL4_VOLTAGE_PIN,CELL5_VOLTAGE_PIN,CELL6_VOLTAGE_PIN,CELL7_VOLTAGE_PIN,CELL8_VOLTAGE_PIN};
 
 //Control 
 const uint8_t BUZZER_CONTROL_PIN=      PL_0;
@@ -32,6 +32,19 @@ const uint8_t PACK_GATE_PIN=           PM_6;
 const uint8_t LCD_TX_PIN=              PA_7;
 const uint8_t LOGIC_SWITCH_PIN=        PK_6;
 
-float cell1_voltage;
+//Votlage measurements
+const int VOLTS_MIN=                    2400; //mV
+const int VOLTS_MAX=                    4200; //mV
+const int PACK_V_ADC_MIN=               ----; //bits
+const int PACK_V_ADC_MAX=               ----; //bits
+
+const int CELL_UNDERVOLTAGE=            2650; //mV
+
+//Current measurements
+const int CURRENT_MAX=                  200000; //mA
+const int CURRENT_MIN=                  -196207; //mA
+const int  OVERCURRENT=                 100000; //mA
+const int  CURRENT_ADC_MIN=             0;      //bits
+const int  CURRENT_ADC_MAX=             4096;   //bits
 
 //lowercase changing, CAPITAL NOT CHANGING

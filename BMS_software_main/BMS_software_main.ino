@@ -8,6 +8,7 @@ void setup()
 
     setPinInputs();
     setPinOutputs();
+    setPinOutputStates();
 }
 
 //loop
@@ -62,32 +63,24 @@ void setPinOutputStates()
     digitalWrite(FANS_IND_PIN,          LOW);
 }
 
-void cellVoltageRead()
+float* cellVoltageRead()
 {
-    
-}
+    float cells[RC_BMSBOARD_CELLV_MEAS_DATA_COUNT] = {};
 
-/*
-float* getCellVoltages()
-{
-  float cells[RC_BMSBOARD_CELLV_MEAS_DATA_COUNT] = {};
-
-  for a in range(RC_BMSBOARD_CELLV_MEAS_DATA_COUNT)
-  {
-    float cell = map(analogRead(CELL_MEAS_PINS[a]), PACK_V_ADC_MIN, PACK_V_ADC_MAX, VOLTS_MIN, PACK_VOLTS_MAX);
-    // check errors
-    if(cell =< CELL_UNDERVOLTAGE)
+    for i in range(RC_BMSBOARD_CELLV_MEAS_DATA_COUNT)
     {
-      delay(DEBOUNCE_DELAY);
-      float cell = map(analogRead(CELL_MEAS_PINS[a]), PACK_V_ADC_MIN, PACK_V_ADC_MAX, VOLTS_MIN, PACK_VOLTS_MAX);
-      if (cell =< CELL_UNDERVOLTAGE)
-      {
-        uint8_t undervoltcell = a;  
-        RoveComm.write(RC_BMSBOARD_CELLUNDERVOLTAGE_DATA_ID, undervoltcell);
-      }
+        float cell = map(analogRead(cell_meas_pins[i]),PACK_V_ADC_MIN, PACK_V_ADC_MAX, VOLTS_MIN, VOLTS_MAX);
+        if(cell =< CELL_UNDERVOLTAGE)
+        {
+            delay(10);
+            float cell = map(analogRead(cell_meas_pins[i]),PACK_V_ADC_MIN, PACK_V_ADC_MAX, VOLTS_MIN, VOLTS_MAX);
+            if(cell =< CELL_UNDERVOLTAGE)
+            {
+                uint8_t undervolt = i;
+                //insert RoveComm integration
+            }
+        }
     }
-    cells[a] = cell/1000;
-  }
-  return float cells[RC_BMSBOARD_CELLV_MEAS_DATA_COUNT];
-
-*/
+    cells[i] = cell/1000;
+}
+return float cells[RC_BMSBOARD_CELLV_MEAS_DATA_COUNT];
