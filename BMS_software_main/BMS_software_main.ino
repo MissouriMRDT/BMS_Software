@@ -67,20 +67,20 @@ float* cellVoltageRead()
 {
     float cells[RC_BMSBOARD_CELLV_MEAS_DATA_COUNT] = {};
 
-    for i in range(RC_BMSBOARD_CELLV_MEAS_DATA_COUNT)
+    for(int i=0; i<RC_BMSBOARD_CELLV_MEAS_DATA_COUNT; i++)
     {
-        float cell = map(analogRead(cell_meas_pins[i]),PACK_V_ADC_MIN, PACK_V_ADC_MAX, VOLTS_MIN, VOLTS_MAX);
-        if(cell =< CELL_UNDERVOLTAGE)
+        float cell_value = map(analogRead(cell_meas_pins[i]),PACK_V_ADC_MIN, PACK_V_ADC_MAX, VOLTS_MIN, VOLTS_MAX);
+        if(cell_value =< CELL_UNDERVOLTAGE)
         {
             delay(10);
-            float cell = map(analogRead(cell_meas_pins[i]),PACK_V_ADC_MIN, PACK_V_ADC_MAX, VOLTS_MIN, VOLTS_MAX);
-            if(cell =< CELL_UNDERVOLTAGE)
+            float cell_value = map(analogRead(cell_meas_pins[i]),PACK_V_ADC_MIN, PACK_V_ADC_MAX, VOLTS_MIN, VOLTS_MAX);
+            if(cell_value =< CELL_UNDERVOLTAGE)
             {
                 uint8_t undervolt = i;
                 //insert RoveComm integration
             }
         }
+        cells[i] = cell_value/1000;
     }
-    cells[i] = cell/1000;
+    return cells;
 }
-return float cells[RC_BMSBOARD_CELLV_MEAS_DATA_COUNT];
