@@ -43,8 +43,12 @@ const int CELL_UNDERVOLTAGE=            2650; //mV
 //Current measurements
 const int CURRENT_MAX=                  200000; //mA
 const int CURRENT_MIN=                  -196207; //mA
-const int  OVERCURRENT=                 100000; //mA
-const int  CURRENT_ADC_MIN=             0;      //bits         need ADC values
-const int  CURRENT_ADC_MAX=             4096;   //bits
+const int OVERCURRENT=                 100000; //mA
+const int CURRENT_ADC_MIN=             0;      //bits         need ADC values
+const int CURRENT_ADC_MAX=             4096;   //bits
+
+const int LOW_OVERCURRENT=                  100000;  //mA
+const int MED_OVERCURRENT=                  110000;  //mA
+const int HIGH_OVERCURRENT=                 120000;  //mA
 
 //lowercase changing, CAPITAL NOT CHANGING

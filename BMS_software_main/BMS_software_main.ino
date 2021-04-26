@@ -14,7 +14,7 @@ void setup()
 //loop
 void loop()
 {
-    cellVoltageRead();
+    getCellVoltage();
     delay(1000);
 }
 
@@ -63,7 +63,7 @@ void setPinOutputStates()
     digitalWrite(FANS_IND_PIN,          LOW);
 }
 
-float* cellVoltageRead()
+float* getCellVoltage()
 {
     float cells[RC_BMSBOARD_CELLV_MEAS_DATA_COUNT] = {};
 
@@ -77,10 +77,24 @@ float* cellVoltageRead()
             if(cell_value <= CELL_UNDERVOLTAGE)
             {
                 uint8_t undervolt = i;
-                //insert RoveComm integration
+                //insert RoveComm integration, buzzer
             }
         }
         cells[i] = cell_value/1000;
     }
     return cells;
+}
+
+float getPackVoltage()
+{
+    
+
+float getPackCurrent()
+{
+   float packCurrent = map(analogRead(PACK_I_SENSE_PIN),CURRENT_ADC_MIN,CURRENT_ADC_MAX,CURRENT_MIN,CURRENT_MAX) 
+   //if(MED_OVERCURRENT > packCurrent > LOW_OVERCURRENT)
+   //find a better way to do this
+   {
+       
+   }
 }
