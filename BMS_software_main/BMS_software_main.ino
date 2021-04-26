@@ -72,12 +72,12 @@ float* getCellVoltage()
         float cell_value = map(analogRead(cell_meas_pins[i]),PACK_V_ADC_MIN, PACK_V_ADC_MAX, VOLTS_MIN, VOLTS_MAX);
         if(cell_value <= CELL_UNDERVOLTAGE)
         {
-            delay(10);
+            delay(DEBOUNCE_DELAY);
             float cell_value = map(analogRead(cell_meas_pins[i]),PACK_V_ADC_MIN, PACK_V_ADC_MAX, VOLTS_MIN, VOLTS_MAX);
             if(cell_value <= CELL_UNDERVOLTAGE)
             {
                 uint8_t undervolt = i;
-                //insert RoveComm integration, buzzer
+                //insert RoveComm undervolt error
             }
         }
         cells[i] = cell_value/1000;
@@ -88,13 +88,18 @@ float* getCellVoltage()
 float getPackVoltage()
 {
     
+}
 
 float getPackCurrent()
 {
-   float packCurrent = map(analogRead(PACK_I_SENSE_PIN),CURRENT_ADC_MIN,CURRENT_ADC_MAX,CURRENT_MIN,CURRENT_MAX) 
-   //if(MED_OVERCURRENT > packCurrent > LOW_OVERCURRENT)
-   //find a better way to do this
+   float packCurrent = map(analogRead(PACK_I_SENSE_PIN),CURRENT_ADC_MIN,CURRENT_ADC_MAX,CURRENT_MIN,CURRENT_MAX); 
+   if((packCurrent > LOW_OVERCURRENT) && (MED_OVERCURRENT > packCurrent))
    {
-       
+       delay(DEBOUNCE_DELAY);
+       float packCurrent = map(analogRead(PACK_I_SENSE_PIN),CURRENT_ADC_MIN,CURRENT_ADC_MAX,CURRENT_MIN,CURRENT_MAX); 
+       if((packCurrent > LOW_OVERCURRENT) && (MED_OVERCURRENT > packCurrent))
+       {
+           //insert RoveComm overcurrent error
+       }
    }
 }

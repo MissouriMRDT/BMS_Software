@@ -33,22 +33,23 @@ const uint8_t LCD_TX_PIN=              PA_7;
 const uint8_t LOGIC_SWITCH_PIN=        PK_6;
 
 //Votlage measurements
-const int VOLTS_MIN=                    2400; //mV
-const int VOLTS_MAX=                    4200; //mV
-const int PACK_V_ADC_MIN=               0000; //bits           need ADC values
-const int PACK_V_ADC_MAX=               0000; //bits
+const int VOLTS_MIN=                   2400; //mV
+const int VOLTS_MAX=                   4200; //mV
+const int PACK_V_ADC_MIN=              0000; //bits           need ADC values
+const int PACK_V_ADC_MAX=              0000; //bits
 
-const int CELL_UNDERVOLTAGE=            2650; //mV
+const int CELL_UNDERVOLTAGE=           2650; //mV
 
 //Current measurements
-const int CURRENT_MAX=                  200000; //mA
-const int CURRENT_MIN=                  -196207; //mA
+const int CURRENT_MAX=                 200000; //mA
+const int CURRENT_MIN=                 -196207; //mA
 const int OVERCURRENT=                 100000; //mA
 const int CURRENT_ADC_MIN=             0;      //bits         need ADC values
 const int CURRENT_ADC_MAX=             4096;   //bits
 
-const int LOW_OVERCURRENT=                  100000;  //mA
-const int MED_OVERCURRENT=                  110000;  //mA
-const int HIGH_OVERCURRENT=                 120000;  //mA
+const int LOW_OVERCURRENT=             100000;  //mA
+const int MED_OVERCURRENT=             110000;  //mA
+const int HIGH_OVERCURRENT=            120000;  //mA
 
-//lowercase changing, CAPITAL NOT CHANGING
+//Assorted delays
+const int DEBOUNCE_DELAY=              10; //ms
