@@ -45,14 +45,13 @@ const int PACK_V_MAX=                  33600; //mV
 const int PACK_V_ADC_MIN=              0000; //bits           need ADC values
 const int PACK_V_ADC_MAX=              0000; //bits
 
-//Undervolt values
-const int CELL_UNDERVOLTAGE=           2650; //mV   REPLACE THIS WITH THE BELOW VARIABLES
-/*
+//Undervolt cell values
 const int CELL_LOW_UNDERVOLTAGE=       3700; //mV
 const int CELL_MED_UNDERVOLTAGE=       3500; //mV
 const int CELL_HIGH_UNDERVOLTAGE=      3300; //mV
 const int KILL_CELL_VOLTAGE=           3000; //mV
-*/
+
+//Undervolt pack values
 
 //Current measurements
 const int CURRENT_MAX=                 200000; //mA
@@ -60,6 +59,7 @@ const int CURRENT_MIN=                 -196207; //mA
 const int CURRENT_ADC_MIN=             0;      //bits         need ADC values
 const int CURRENT_ADC_MAX=             4096;   //bits
 
+//Undercurrent values
 const int LOW_OVERCURRENT=             100000;  //mA
 const int MED_OVERCURRENT=             110000;  //mA
 const int HIGH_OVERCURRENT=            115000;  //mA

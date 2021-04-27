@@ -70,14 +70,44 @@ float* getCellVoltage()
     for(int i=0; i<RC_BMSBOARD_CELLV_MEAS_DATA_COUNT; i++)
     {
         float cell_value = map(analogRead(cell_meas_pins[i]),CELL_V_ADC_MIN, CELL_V_ADC_MAX, CELL_VOLTS_MIN, CELL_VOLTS_MAX);
-        if(cell_value <= CELL_UNDERVOLTAGE)
+        if(cell_value > KILL_CELL_VOLTAGE)
         {
             delay(DEBOUNCE_DELAY);
             float cell_value = map(analogRead(cell_meas_pins[i]),CELL_V_ADC_MIN, CELL_V_ADC_MAX, CELL_VOLTS_MIN, CELL_VOLTS_MAX);
-            if(cell_value <= CELL_UNDERVOLTAGE)
+            if(cell_value > KILL_CELL_VOLTAGE)
+            {
+                //insert kill rove command
+            }
+        }
+        else if((cell_value > CELL_HIGH_UNDERVOLTAGE) && (KILL_CELL_VOLTAGE > cell_value))
+        {
+            delay(DEBOUNCE_DELAY);
+            float cell_value = map(analogRead(cell_meas_pins[i]),CELL_V_ADC_MIN, CELL_V_ADC_MAX, CELL_VOLTS_MIN, CELL_VOLTS_MAX);
+            if((cell_value > CELL_HIGH_UNDERVOLTAGE) && (KILL_CELL_VOLTAGE > cell_value))
             {
                 uint8_t undervolt = i;
-                //insert RoveComm undervolt error
+                //insert RoveComm cell undervolt error
+                //high warning beep
+            }
+        }
+        else if((cell_value > CELL_MED_UNDERVOLTAGE) && (CELL_HIGH_UNDERVOLTAGE > cell_value))
+        {
+            delay(DEBOUNCE_DELAY);
+            float cell_value = map(analogRead(cell_meas_pins[i]),CELL_V_ADC_MIN, CELL_V_ADC_MAX, CELL_VOLTS_MIN, CELL_VOLTS_MAX);
+            if((cell_value > CELL_MED_UNDERVOLTAGE) && (CELL_HIGH_UNDERVOLTAGE > cell_value))
+            {
+                uint8_t undervolt = i;
+                //insert RoveComm cell undervolt error
+                //med warning beep
+            }
+        }
+        else if((cell_value > CELL_LOW_UNDERVOLTAGE) && (CELL_MED_UNDERVOLTAGE > cell_value))
+        {
+            delay(DEBOUNCE_DELAY);
+            float cell_value = map(analogRead(cell_meas_pins[i]),CELL_V_ADC_MIN, CELL_V_ADC_MAX, CELL_VOLTS_MIN, CELL_VOLTS_MAX);
+            if((cell_value > CELL_LOW_UNDERVOLTAGE) && (CELL_MED_UNDERVOLTAGE > cell_value))
+            {
+                //low warning beep
             }
         }
         cells[i] = cell_value/1000;
