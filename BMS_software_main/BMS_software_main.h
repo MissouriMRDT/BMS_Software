@@ -73,6 +73,10 @@ const int TEMP_MAX=                    00; // *C
 const int TEMP_ADC_MIN=                0000; //bits
 const int TEMP_ADC_MAX=                0000; // bits
 //Temp superhot values
+//const int TEMP_
 
 //Assorted delays
 const int DEBOUNCE_DELAY=              10; //ms
+const int BUZZER_SHORT=                150; //ms
+const int BUZZER_MED=                  300; //ms
+const int BUZZER_LONG=                 600; //ms

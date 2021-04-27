@@ -15,7 +15,7 @@ void setup()
 void loop()
 {
     getCellVoltage();
-    delay(1000);
+    delay(1000); //why is this here?
 }
 
 
@@ -63,6 +63,7 @@ void setPinOutputStates()
     digitalWrite(FANS_IND_PIN,          LOW);
 }
 
+//getBLANK Functions///////////////////////////////////////////////////////////////////////////////////////////////
 float* getCellVoltage()
 {
     float cells[RC_BMSBOARD_CELLV_MEAS_DATA_COUNT] = {};
@@ -87,7 +88,7 @@ float* getCellVoltage()
             {
                 uint8_t undervolt = i;
                 //insert RoveComm cell undervolt error
-                //high warning beep
+                highBeep();
             }
         }
         else if((cell_value > CELL_MED_UNDERVOLTAGE) && (CELL_HIGH_UNDERVOLTAGE > cell_value))
@@ -98,7 +99,7 @@ float* getCellVoltage()
             {
                 uint8_t undervolt = i;
                 //insert RoveComm cell undervolt error
-                //med warning beep
+                medBeep();
             }
         }
         else if((cell_value > CELL_LOW_UNDERVOLTAGE) && (CELL_MED_UNDERVOLTAGE > cell_value))
@@ -107,7 +108,7 @@ float* getCellVoltage()
             float cell_value = map(analogRead(cell_meas_pins[i]),CELL_V_ADC_MIN, CELL_V_ADC_MAX, CELL_VOLTS_MIN, CELL_VOLTS_MAX);
             if((cell_value > CELL_LOW_UNDERVOLTAGE) && (CELL_MED_UNDERVOLTAGE > cell_value))
             {
-                //low warning beep
+                lowBeep();
             }
         }
         cells[i] = cell_value/1000;
@@ -135,7 +136,7 @@ float getPackVoltage()
         if((packVoltage > PACK_HIGH_UNDERVOLT) && (KILL_PACK_VOLTAGE > packVoltage))
         {
             //insert RoveComm pack undervolt error
-            //high warning beep
+            highBeep();
         }
     }
     else if((packVoltage > PACK_MED_UNDERVOLT) && (PACK_HIGH_UNDERVOLT > packVoltage))
@@ -145,7 +146,7 @@ float getPackVoltage()
         if((packVoltage > PACK_MED_UNDERVOLT) && (PACK_HIGH_UNDERVOLT > packVoltage))
         {
             //insert RoveComm pack undervolt error
-            //med warning beep
+            medBeep();
         }
     }
     else if((packVoltage > PACK_LOW_UNDERVOLT) && (PACK_MED_UNDERVOLT > packVoltage))
@@ -154,7 +155,7 @@ float getPackVoltage()
         float packVoltage = map(analogRead(V_OUT_SENSE_PIN),PACK_V_ADC_MIN,PACK_V_ADC_MAX,PACK_V_MIN,PACK_V_MAX);
         if((packVoltage > PACK_LOW_UNDERVOLT) && (PACK_MED_UNDERVOLT > packVoltage))
         {
-            //low warning beep
+            lowBeep();
         }  
     }
     return packVoltage;
@@ -171,22 +172,78 @@ float getPackCurrent()
 //consider moving the following into a different function that reacts to the data gather in the "getBLANK" function
        if(packCurrent > KILL_CURRENT)
        {
-           //insert kill rover command
+           //insert rover restart command
        }
        else if((packCurrent > HIGH_OVERCURRENT) && (KILL_CURRENT > packCurrent))
        {
             //insert RoveComm overcurrent error
-            //high warning beep
+            highBeep();
        }
        else if((packCurrent > MED_OVERCURRENT) && (HIGH_OVERCURRENT > packCurrent))
        {
             //insert RoveComm overcurrent error
-            //med warning beep
+            medBeep();
        }
        else if((packCurrent > LOW_OVERCURRENT) && (MED_OVERCURRENT > packCurrent))
        {
-           //low warning beep
+           lowBeep();
        }
    }
    return packCurrent;
+}
+
+
+
+//Buzzer Functions///////////////////////////////////////////////////////////////////////
+void lowBeep() //beep beep    beep beep    beep beep  x3
+{
+    for(int i=0; i<2; i++)
+    {
+        digitalWrite(BUZZER_CONTROL_PIN, HIGH);
+        digitalWrite(SW_ERR_IND_PIN, HIGH);
+        delay(BUZZER_SHORT);
+        digitalWrite(BUZZER_CONTROL_PIN, LOW);
+        digitalWrite(SW_ERR_IND_PIN, LOW);
+        delay(BUZZER_LONG);
+    }
+}
+
+void medBeep()  //beep  beep  beeeeep x3
+{
+    for(int i=0; i<2; i++)
+    {
+        digitalWrite(BUZZER_CONTROL_PIN, HIGH);
+        digitalWrite(SW_ERR_IND_PIN, HIGH);
+        delay(BUZZER_MED);
+        digitalWrite(BUZZER_CONTROL_PIN, LOW);
+        digitalWrite(SW_ERR_IND_PIN, LOW);
+        delay(BUZZER_MED);
+
+        digitalWrite(BUZZER_CONTROL_PIN, HIGH);
+        digitalWrite(SW_ERR_IND_PIN, HIGH);
+        delay(BUZZER_MED);
+        digitalWrite(BUZZER_CONTROL_PIN, LOW);
+        digitalWrite(SW_ERR_IND_PIN, LOW);
+        delay(BUZZER_MED);
+
+        digitalWrite(BUZZER_CONTROL_PIN, HIGH);
+        digitalWrite(SW_ERR_IND_PIN, HIGH);
+        delay(BUZZER_LONG);
+        digitalWrite(BUZZER_CONTROL_PIN, LOW);
+        digitalWrite(SW_ERR_IND_PIN, LOW);
+        delay(BUZZER_MED);
+    }
+}
+
+void highBeep()  //beeeeeeeep  x5
+{
+    for(int i=0; i<4; i++)
+    {
+        digitalWrite(BUZZER_CONTROL_PIN, HIGH);
+        digitalWrite(SW_ERR_IND_PIN, HIGH);
+        delay(BUZZER_LONG);
+        digitalWrite(BUZZER_CONTROL_PIN, LOW);
+        digitalWrite(SW_ERR_IND_PIN, LOW);
+        delay(BUZZER_SHORT); 
+    }
 }
