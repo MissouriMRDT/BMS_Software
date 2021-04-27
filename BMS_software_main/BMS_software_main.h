@@ -67,5 +67,12 @@ const int MED_OVERCURRENT=             110000;  //mA
 const int HIGH_OVERCURRENT=            115000;  //mA
 const int KILL_CURRENT=                120000; //mA
 
+//Temp measurements
+const int TEMP_Min=                    00; // *C
+const int TEMP_MAX=                    00; // *C
+const int TEMP_ADC_MIN=                0000; //bits
+const int TEMP_ADC_MAX=                0000; // bits
+//Temp superhot values
+
 //Assorted delays
 const int DEBOUNCE_DELAY=              10; //ms

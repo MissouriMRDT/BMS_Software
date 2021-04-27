@@ -11,7 +11,7 @@ void setup()
     setPinOutputStates();
 }
 
-//loop
+//loop need to decide order to run functions and how often i.e. any delays
 void loop()
 {
     getCellVoltage();
