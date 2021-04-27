@@ -34,31 +34,33 @@ const uint8_t LCD_TX_PIN=              PA_7;
 const uint8_t LOGIC_SWITCH_PIN=        PK_6;
 
 //CONSTANTS//
-//Voltage measurements
+//Cell voltage measurements
 const int CELL_VOLTS_MIN=              2400; //mV
 const int CELL_VOLTS_MAX=              4200; //mV
 const int CELL_V_ADC_MIN=              0000; //bits
 const int CELL_V_ADC_MAX=              0000; //bits
-
-const int PACK_V_MIN=                  24000; //mV ???              
-const int PACK_V_MAX=                  33600; //mV
-const int PACK_V_ADC_MIN=              0000; //bits           need ADC values
-const int PACK_V_ADC_MAX=              0000; //bits
-
 //Undervolt cell values
 const int CELL_LOW_UNDERVOLTAGE=       3700; //mV
 const int CELL_MED_UNDERVOLTAGE=       3500; //mV
 const int CELL_HIGH_UNDERVOLTAGE=      3300; //mV
 const int KILL_CELL_VOLTAGE=           3000; //mV
 
+//Pack voltage measurements
+const int PACK_V_MIN=                  24000; //mV ???              
+const int PACK_V_MAX=                  33600; //mV
+const int PACK_V_ADC_MIN=              0000; //bits           need ADC values
+const int PACK_V_ADC_MAX=              0000; //bits
 //Undervolt pack values
+const int PACK_LOW_UNDERVOLT=          29600; //mV
+const int PACK_MED_UNDERVOLT=          28000; //mV
+const int PACK_HIGH_UNDERVOLT=         26400; //mV
+const int KILL_PACK_VOLTAGE=           24000; //mV
 
-//Current measurements
+//Pack current measurements
 const int CURRENT_MAX=                 200000; //mA
 const int CURRENT_MIN=                 -196207; //mA
 const int CURRENT_ADC_MIN=             0;      //bits         need ADC values
 const int CURRENT_ADC_MAX=             4096;   //bits
-
 //Undercurrent values
 const int LOW_OVERCURRENT=             100000;  //mA
 const int MED_OVERCURRENT=             110000;  //mA

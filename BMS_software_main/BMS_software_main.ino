@@ -115,13 +115,51 @@ float* getCellVoltage()
     return cells;
 }
 
-/*
-float getPackVoltage()  //NOT FINISHED
+
+float getPackVoltage()  
 {
     float packVoltage = map(analogRead(V_OUT_SENSE_PIN),PACK_V_ADC_MIN,PACK_V_ADC_MAX,PACK_V_MIN,PACK_V_MAX);
-    if((packVoltage > ))
+    if(packVoltage > KILL_PACK_VOLTAGE)
+    {
+        delay(DEBOUNCE_DELAY);
+        float packVoltage = map(analogRead(V_OUT_SENSE_PIN),PACK_V_ADC_MIN,PACK_V_ADC_MAX,PACK_V_MIN,PACK_V_MAX);
+        if(packVoltage > KILL_PACK_VOLTAGE)
+        {
+            //insert kill rover command
+        }
+    }
+    else if((packVoltage > PACK_HIGH_UNDERVOLT) && (KILL_PACK_VOLTAGE > packVoltage))
+    {
+        delay(DEBOUNCE_DELAY);
+        float packVoltage = map(analogRead(V_OUT_SENSE_PIN),PACK_V_ADC_MIN,PACK_V_ADC_MAX,PACK_V_MIN,PACK_V_MAX);
+        if((packVoltage > PACK_HIGH_UNDERVOLT) && (KILL_PACK_VOLTAGE > packVoltage))
+        {
+            //insert RoveComm pack undervolt error
+            //high warning beep
+        }
+    }
+    else if((packVoltage > PACK_MED_UNDERVOLT) && (PACK_HIGH_UNDERVOLT > packVoltage))
+    {
+        delay(DEBOUNCE_DELAY);
+        float packVoltage = map(analogRead(V_OUT_SENSE_PIN),PACK_V_ADC_MIN,PACK_V_ADC_MAX,PACK_V_MIN,PACK_V_MAX);
+        if((packVoltage > PACK_MED_UNDERVOLT) && (PACK_HIGH_UNDERVOLT > packVoltage))
+        {
+            //insert RoveComm pack undervolt error
+            //med warning beep
+        }
+    }
+    else if((packVoltage > PACK_LOW_UNDERVOLT) && (PACK_MED_UNDERVOLT > packVoltage))
+    {
+        delay(DEBOUNCE_DELAY);
+        float packVoltage = map(analogRead(V_OUT_SENSE_PIN),PACK_V_ADC_MIN,PACK_V_ADC_MAX,PACK_V_MIN,PACK_V_MAX);
+        if((packVoltage > PACK_LOW_UNDERVOLT) && (PACK_MED_UNDERVOLT > packVoltage))
+        {
+            //low warning beep
+        }  
+    }
+    return packVoltage;
 }
-*/
+
 
 float getPackCurrent()
 {
