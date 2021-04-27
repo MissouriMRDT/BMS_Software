@@ -5,6 +5,7 @@
 void setup()
 {
     Serial.begin(9600);
+    Serial3.begin(9600);
 
     setPinInputs();
     setPinOutputs();
@@ -19,7 +20,7 @@ void loop()
 }
 
 
-//functions that will be called
+//PINSTATE Functions//////////////////////////////////////////////////////////////////////////////////
 void setPinInputs()
 {
     pinMode(CELL1_VOLTAGE_PIN,      INPUT);
@@ -77,7 +78,7 @@ float* getCellVoltage()
             float cell_value = map(analogRead(cell_meas_pins[i]),CELL_V_ADC_MIN, CELL_V_ADC_MAX, CELL_VOLTS_MIN, CELL_VOLTS_MAX);
             if(cell_value > KILL_CELL_VOLTAGE)
             {
-                //insert kill rove command
+                estop();
             }
         }
         else if((cell_value > CELL_HIGH_UNDERVOLTAGE) && (KILL_CELL_VOLTAGE > cell_value))
@@ -116,7 +117,6 @@ float* getCellVoltage()
     return cells;
 }
 
-
 float getPackVoltage()  
 {
     float packVoltage = map(analogRead(V_OUT_SENSE_PIN),PACK_V_ADC_MIN,PACK_V_ADC_MAX,PACK_V_MIN,PACK_V_MAX);
@@ -126,7 +126,7 @@ float getPackVoltage()
         float packVoltage = map(analogRead(V_OUT_SENSE_PIN),PACK_V_ADC_MIN,PACK_V_ADC_MAX,PACK_V_MIN,PACK_V_MAX);
         if(packVoltage > KILL_PACK_VOLTAGE)
         {
-            //insert kill rover command
+            estop();
         }
     }
     else if((packVoltage > PACK_HIGH_UNDERVOLT) && (KILL_PACK_VOLTAGE > packVoltage))
@@ -161,7 +161,6 @@ float getPackVoltage()
     return packVoltage;
 }
 
-
 float getPackCurrent()
 {
    float packCurrent = map(analogRead(PACK_I_SENSE_PIN),CURRENT_ADC_MIN,CURRENT_ADC_MAX,CURRENT_MIN,CURRENT_MAX); 
@@ -172,7 +171,7 @@ float getPackCurrent()
 //consider moving the following into a different function that reacts to the data gather in the "getBLANK" function
        if(packCurrent > KILL_CURRENT)
        {
-           //insert rover restart command
+           restart();
        }
        else if((packCurrent > HIGH_OVERCURRENT) && (KILL_CURRENT > packCurrent))
        {
@@ -192,6 +191,20 @@ float getPackCurrent()
    return packCurrent;
 }
 
+
+//ESTOP & LOGIC SWITCH///////////////////////////////////////////////////////////////////////////////////////
+void restart()
+{
+    digitalWrite(PACK_GATE_PIN, LOW);
+    delay(3000); //ms
+    digitalWrite(PACK_GATE_PIN, HIGH);
+}
+
+void estop()
+{
+    digitalWrite(PACK_GATE_PIN, LOW);
+    estopBeep();
+}
 
 
 //Buzzer Functions///////////////////////////////////////////////////////////////////////
@@ -247,3 +260,42 @@ void highBeep()  //beeeeeeeep  x5
         delay(BUZZER_SHORT); 
     }
 }
+
+void estopBeep() //beep beep beep beep beep beep beep beep beep beep
+{
+    for(int i=0; i<4; i++)
+    {
+        digitalWrite(BUZZER_CONTROL_PIN, HIGH);
+        digitalWrite(SW_ERR_IND_PIN, HIGH);
+        delay(BUZZER_SHORT);
+        digitalWrite(BUZZER_CONTROL_PIN, LOW);
+        digitalWrite(SW_ERR_IND_PIN, LOW);
+        delay(BUZZER_SHORT);
+    }
+}
+
+/*
+void startScreen()
+{
+    Serial3.write(0x23);//#
+    Serial3.write(0x52);//R
+    Serial3.write(0x4F);//O
+    Serial3.write(0x56);//V
+    Serial3.write(0x45);//E
+    Serial3.write(0x53);//S
+    Serial3.write(0x4F);//O
+    Serial3.write(0x48);//H
+    Serial3.write(0x41);//A
+    Serial3.write(0x52);//R
+    Serial3.write(0x44);//D
+    Serial3.write(0x20);
+    Serial3.write(0x20);
+    Serial3.write(0x20);
+    Serial3.write(0x20);
+    Serial3.write(0x20);
+    Serial3.write(0x20);
+    Serial3.write(0x20);
+    Serial3.write(0x20);
+    Serial3.write(0x20);
+}
+*/
