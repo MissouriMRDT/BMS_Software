@@ -49,7 +49,8 @@ const int CURRENT_ADC_MAX=             4096;   //bits
 
 const int LOW_OVERCURRENT=             100000;  //mA
 const int MED_OVERCURRENT=             110000;  //mA
-const int HIGH_OVERCURRENT=            120000;  //mA
+const int HIGH_OVERCURRENT=            115000;  //mA
+const int KILL_CURRENT=             120000; //mA
 
 //Assorted delays
 const int DEBOUNCE_DELAY=              10; //ms
