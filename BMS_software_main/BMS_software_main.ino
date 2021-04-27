@@ -85,13 +85,15 @@ float* getCellVoltage()
     return cells;
 }
 
-float getPackVoltage()
+/*
+float getPackVoltage()  //NOT FINISHED
 {
-//finish below
-    float packVoltage = map(analogRead(V_OUT_SENSE_PIN),)
+    float packVoltage = map(analogRead(V_OUT_SENSE_PIN),PACK_V_ADC_MIN,PACK_V_ADC_MAX,PACK_V_MIN,PACK_V_MAX);
+    if((packVoltage > ))
 }
+*/
 
-void getPackCurrent()
+float getPackCurrent()
 {
    float packCurrent = map(analogRead(PACK_I_SENSE_PIN),CURRENT_ADC_MIN,CURRENT_ADC_MAX,CURRENT_MIN,CURRENT_MAX); 
    if((packCurrent > LOW_OVERCURRENT) && (MED_OVERCURRENT > packCurrent))
@@ -99,23 +101,24 @@ void getPackCurrent()
        delay(DEBOUNCE_DELAY);
        float packCurrent = map(analogRead(PACK_I_SENSE_PIN),CURRENT_ADC_MIN,CURRENT_ADC_MAX,CURRENT_MIN,CURRENT_MAX); 
 //consider moving the following into a different function that reacts to the data gather in the "getBLANK" function
-       if((packCurrent > LOW_OVERCURRENT) && (MED_OVERCURRENT > packCurrent))
-       {
-           //low warning beep
-       }
-       if((packCurrent > MED_OVERCURRENT) && (HIGH_OVERCURRENT > packCurrent))
-       {
-            //insert RoveComm overcurrent error
-            //med warning beep
-       }
-       if((packCurrent > HIGH_OVERCURRENT) && (KILL_CURRENT > packCurrent))
-       {
-            //insert RoveComm overcurrent error
-            //high warning beep
-       }
        if(packCurrent > KILL_CURRENT)
        {
            //insert kill rover command
        }
+       else if((packCurrent > HIGH_OVERCURRENT) && (KILL_CURRENT > packCurrent))
+       {
+            //insert RoveComm overcurrent error
+            //high warning beep
+       }
+       else if((packCurrent > MED_OVERCURRENT) && (HIGH_OVERCURRENT > packCurrent))
+       {
+            //insert RoveComm overcurrent error
+            //med warning beep
+       }
+       else if((packCurrent > LOW_OVERCURRENT) && (MED_OVERCURRENT > packCurrent))
+       {
+           //low warning beep
+       }
    }
+   return packCurrent;
 }

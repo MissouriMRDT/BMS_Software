@@ -36,17 +36,17 @@ const uint8_t LOGIC_SWITCH_PIN=        PK_6;
 //CONSTANTS//
 //Voltage measurements
 const int CELL_VOLTS_MIN=              2400; //mV
-const int CELL_VOLTS_MAX=              4200; //mV  
-const int PACK_V_MIN=                  24000; //mV ???              
-const int PACK_V_MAX=                  33600; //mV
-
+const int CELL_VOLTS_MAX=              4200; //mV
 const int CELL_V_ADC_MIN=              0000; //bits
 const int CELL_V_ADC_MAX=              0000; //bits
+
+const int PACK_V_MIN=                  24000; //mV ???              
+const int PACK_V_MAX=                  33600; //mV
 const int PACK_V_ADC_MIN=              0000; //bits           need ADC values
 const int PACK_V_ADC_MAX=              0000; //bits
 
 //Undervolt values
-const int CELL_UNDERVOLTAGE=           2650; //mV
+const int CELL_UNDERVOLTAGE=           2650; //mV   REPLACE THIS WITH THE BELOW VARIABLES
 /*
 const int CELL_LOW_UNDERVOLTAGE=       3700; //mV
 const int CELL_MED_UNDERVOLTAGE=       3500; //mV
@@ -57,7 +57,6 @@ const int KILL_CELL_VOLTAGE=           3000; //mV
 //Current measurements
 const int CURRENT_MAX=                 200000; //mA
 const int CURRENT_MIN=                 -196207; //mA
-const int OVERCURRENT=                 100000; //mA
 const int CURRENT_ADC_MIN=             0;      //bits         need ADC values
 const int CURRENT_ADC_MAX=             4096;   //bits
 
