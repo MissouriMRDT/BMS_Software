@@ -274,9 +274,58 @@ void estopBeep() //beep beep beep beep beep beep beep beep beep beep
     }
 }
 
-/*
+
 void startScreen()
 {
+    Serial3.write('|'); //setting character
+    Serial3.write('-'); //clear display
+
+    Serial3.write(0X20); //sp
+    Serial3.write(0X20); //sp
+    Serial3.write(0X20); //sp
+    Serial3.write(0X20); //sp
+    Serial3.write(0X20); //sp
+    Serial3.write(0X20); //sp
+    Serial3.write(0X20); //sp
+    Serial3.write(0X20); //sp
+    Serial3.write(0X20); //sp
+    Serial3.write(0X20); //sp
+    Serial3.write(0X20); //sp
+    Serial3.write(0X20); //sp
+    Serial3.write(0X20); //sp
+    Serial3.write(0X20); //sp
+    Serial3.write(0X20); //sp
+    Serial3.write(0X20); //sp
+    Serial3.write(0X20); //sp
+    Serial3.write(0X20); //sp
+    Serial3.write(0X20); //sp
+    Serial3.write(0X20); //sp
+
+        Serial3.write(0xA1); //next line  ??
+
+    Serial3.write(0X41); //A
+    Serial3.write(0X55); //U
+    Serial3.write(0X52); //R
+    Serial3.write(0X4F); //O
+    Serial3.write(0X52); //R
+    Serial3.write(0X41); //A
+    Serial3.write(0X20); //sp
+    Serial3.write(0X49); //I
+    Serial3.write(0X4E); //N
+    Serial3.write(0X49); //I
+    Serial3.write(0X54); //T
+    Serial3.write(0X49); //I
+    Serial3.write(0X41); //A
+    Serial3.write(0X4C); //L
+    Serial3.write(0X49); //I
+    Serial3.write(0X5A); //Z
+    Serial3.write(0X49); //I
+    Serial3.write(0X4E); //N
+    Serial3.write(0X47); //G
+    Serial3.write(0X20); //sp
+
+        Serial3.write(0xA1); //next line
+
     Serial3.write(0x23);//#
     Serial3.write(0x52);//R
     Serial3.write(0x4F);//O
@@ -293,9 +342,9 @@ void startScreen()
     Serial3.write(0x20);
     Serial3.write(0x20);
     Serial3.write(0x20);
-    Serial3.write(0x20);
-    Serial3.write(0x20);
-    Serial3.write(0x20);
-    Serial3.write(0x20);
+    Serial3.write(0x32); //2
+    Serial3.write(0x30); //0
+    Serial3.write(0x32); //2
+    Serial3.write(0x31); //1
 }
-*/
+
