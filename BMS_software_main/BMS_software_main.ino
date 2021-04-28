@@ -161,33 +161,48 @@ float getPackVoltage()
     return packVoltage;
 }
 
-float getPackCurrent()
+float getPackCurrent()   //need to restructure like the above two functions
 {
    float packCurrent = map(analogRead(PACK_I_SENSE_PIN),CURRENT_ADC_MIN,CURRENT_ADC_MAX,CURRENT_MIN,CURRENT_MAX); 
-   if((packCurrent > LOW_OVERCURRENT) && (MED_OVERCURRENT > packCurrent))
-   {
-       delay(DEBOUNCE_DELAY);
-       float packCurrent = map(analogRead(PACK_I_SENSE_PIN),CURRENT_ADC_MIN,CURRENT_ADC_MAX,CURRENT_MIN,CURRENT_MAX); 
 //consider moving the following into a different function that reacts to the data gather in the "getBLANK" function
-       if(packCurrent > KILL_CURRENT)
+   if(packCurrent > KILL_CURRENT)
+    {
+       delay(DEBOUNCE_DELAY);
+       float packVoltage = map(analogRead(V_OUT_SENSE_PIN),PACK_V_ADC_MIN,PACK_V_ADC_MAX,PACK_V_MIN,PACK_V_MAX);
+       if(packVoltage > KILL_PACK_VOLTAGE)
        {
-           restart();
+            restart();
        }
-       else if((packCurrent > HIGH_OVERCURRENT) && (KILL_CURRENT > packCurrent))
-       {
+    }
+    else if((packCurrent > HIGH_OVERCURRENT) && (KILL_CURRENT > packCurrent))
+    {       
+        delay(DEBOUNCE_DELAY);
+        float packVoltage = map(analogRead(V_OUT_SENSE_PIN),PACK_V_ADC_MIN,PACK_V_ADC_MAX,PACK_V_MIN,PACK_V_MAX);
+        if((packCurrent > HIGH_OVERCURRENT) && (KILL_CURRENT > packCurrent))
+        {
             //insert RoveComm overcurrent error
             highBeep();
-       }
-       else if((packCurrent > MED_OVERCURRENT) && (HIGH_OVERCURRENT > packCurrent))
-       {
+        }
+    } 
+    else if((packCurrent > MED_OVERCURRENT) && (HIGH_OVERCURRENT > packCurrent))
+    {
+        delay(DEBOUNCE_DELAY);
+        float packVoltage = map(analogRead(V_OUT_SENSE_PIN),PACK_V_ADC_MIN,PACK_V_ADC_MAX,PACK_V_MIN,PACK_V_MAX);
+        if((packCurrent > MED_OVERCURRENT) && (HIGH_OVERCURRENT > packCurrent))
+        {
             //insert RoveComm overcurrent error
-            medBeep();
-       }
-       else if((packCurrent > LOW_OVERCURRENT) && (MED_OVERCURRENT > packCurrent))
-       {
-           lowBeep();
-       }
-   }
+            medBeep();  
+        }
+    }
+    else if((packCurrent > LOW_OVERCURRENT) && (MED_OVERCURRENT > packCurrent))
+    {
+        delay(DEBOUNCE_DELAY);
+        float packVoltage = map(analogRead(V_OUT_SENSE_PIN),PACK_V_ADC_MIN,PACK_V_ADC_MAX,PACK_V_MIN,PACK_V_MAX);
+        if((packCurrent > LOW_OVERCURRENT) && (MED_OVERCURRENT > packCurrent))
+        {
+            lowBeep();
+        }
+    }
    return packCurrent;
 }
 
@@ -275,6 +290,7 @@ void estopBeep() //beep beep beep beep beep beep beep beep beep beep
 }
 
 
+//LCD FUNCTIONS///////////////////////////////////////////////////////////////////////////////////////////
 void startScreen()
 {
     Serial3.write('|'); //setting character
