@@ -5,7 +5,7 @@
 void setup()
 {
     Serial.begin(9600);
-    Serial3.begin(9600);
+    Serial2.begin(9600);
 
     setPinInputs();
     setPinOutputs();
@@ -293,74 +293,74 @@ void estopBeep() //beep beep beep beep beep beep beep beep beep beep
 //LCD FUNCTIONS///////////////////////////////////////////////////////////////////////////////////////////
 void startScreen()
 {
-    Serial3.write('|'); //setting character
-    Serial3.write('-'); //clear display
+    Serial2.write('|'); //setting character
+    Serial2.write('-'); //clear display
 
-    Serial3.write(0X20); //sp
-    Serial3.write(0X20); //sp
-    Serial3.write(0X20); //sp
-    Serial3.write(0X20); //sp
-    Serial3.write(0X20); //sp
-    Serial3.write(0X20); //sp
-    Serial3.write(0X20); //sp
-    Serial3.write(0X20); //sp
-    Serial3.write(0X20); //sp
-    Serial3.write(0X20); //sp
-    Serial3.write(0X20); //sp
-    Serial3.write(0X20); //sp
-    Serial3.write(0X20); //sp
-    Serial3.write(0X20); //sp
-    Serial3.write(0X20); //sp
-    Serial3.write(0X20); //sp
-    Serial3.write(0X20); //sp
-    Serial3.write(0X20); //sp
-    Serial3.write(0X20); //sp
-    Serial3.write(0X20); //sp
+    Serial2.write(0X20); //sp
+    Serial2.write(0X20); //sp
+    Serial2.write(0X20); //sp
+    Serial2.write(0X20); //sp
+    Serial2.write(0X20); //sp
+    Serial2.write(0X20); //sp
+    Serial2.write(0X20); //sp
+    Serial2.write(0X20); //sp
+    Serial2.write(0X20); //sp
+    Serial2.write(0X20); //sp
+    Serial2.write(0X20); //sp
+    Serial2.write(0X20); //sp
+    Serial2.write(0X20); //sp
+    Serial2.write(0X20); //sp
+    Serial2.write(0X20); //sp
+    Serial2.write(0X20); //sp
+    Serial2.write(0X20); //sp
+    Serial2.write(0X20); //sp
+    Serial2.write(0X20); //sp
+    Serial2.write(0X20); //sp
 
-        Serial3.write(0xA1); //next line  ??
+        Serial2.write(0xA1); //next line  ??
 
-    Serial3.write(0X41); //A
-    Serial3.write(0X55); //U
-    Serial3.write(0X52); //R
-    Serial3.write(0X4F); //O
-    Serial3.write(0X52); //R
-    Serial3.write(0X41); //A
-    Serial3.write(0X20); //sp
-    Serial3.write(0X49); //I
-    Serial3.write(0X4E); //N
-    Serial3.write(0X49); //I
-    Serial3.write(0X54); //T
-    Serial3.write(0X49); //I
-    Serial3.write(0X41); //A
-    Serial3.write(0X4C); //L
-    Serial3.write(0X49); //I
-    Serial3.write(0X5A); //Z
-    Serial3.write(0X49); //I
-    Serial3.write(0X4E); //N
-    Serial3.write(0X47); //G
-    Serial3.write(0X20); //sp
+    Serial2.write(0X41); //A
+    Serial2.write(0X55); //U
+    Serial2.write(0X52); //R
+    Serial2.write(0X4F); //O
+    Serial2.write(0X52); //R
+    Serial2.write(0X41); //A
+    Serial2.write(0X20); //sp
+    Serial2.write(0X49); //I
+    Serial2.write(0X4E); //N
+    Serial2.write(0X49); //I
+    Serial2.write(0X54); //T
+    Serial2.write(0X49); //I
+    Serial2.write(0X41); //A
+    Serial2.write(0X4C); //L
+    Serial2.write(0X49); //I
+    Serial2.write(0X5A); //Z
+    Serial2.write(0X49); //I
+    Serial2.write(0X4E); //N
+    Serial2.write(0X47); //G
+    Serial2.write(0X20); //sp
 
-        Serial3.write(0xA1); //next line
+        Serial2.write(0xA1); //next line
 
-    Serial3.write(0x23);//#
-    Serial3.write(0x52);//R
-    Serial3.write(0x4F);//O
-    Serial3.write(0x56);//V
-    Serial3.write(0x45);//E
-    Serial3.write(0x53);//S
-    Serial3.write(0x4F);//O
-    Serial3.write(0x48);//H
-    Serial3.write(0x41);//A
-    Serial3.write(0x52);//R
-    Serial3.write(0x44);//D
-    Serial3.write(0x20);
-    Serial3.write(0x20);
-    Serial3.write(0x20);
-    Serial3.write(0x20);
-    Serial3.write(0x20);
-    Serial3.write(0x32); //2
-    Serial3.write(0x30); //0
-    Serial3.write(0x32); //2
-    Serial3.write(0x31); //1
+    Serial2.write(0x23);//#
+    Serial2.write(0x52);//R
+    Serial2.write(0x4F);//O
+    Serial2.write(0x56);//V
+    Serial2.write(0x45);//E
+    Serial2.write(0x53);//S
+    Serial2.write(0x4F);//O
+    Serial2.write(0x48);//H
+    Serial2.write(0x41);//A
+    Serial2.write(0x52);//R
+    Serial2.write(0x44);//D
+    Serial2.write(0x20);
+    Serial2.write(0x20);
+    Serial2.write(0x20);
+    Serial2.write(0x20);
+    Serial2.write(0x20);
+    Serial2.write(0x32); //2
+    Serial2.write(0x30); //0
+    Serial2.write(0x32); //2
+    Serial2.write(0x31); //1
 }
 
