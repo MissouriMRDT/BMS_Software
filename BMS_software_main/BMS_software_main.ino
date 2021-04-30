@@ -65,7 +65,7 @@ void setPinOutputStates()
 }
 
 //getBLANK Functions///////////////////////////////////////////////////////////////////////////////////////////////
-float* getCellVoltage()
+float* getCellVoltage()  // look at directions of < or > signs because u are checking for undervolting
 {
     float cells[RC_BMSBOARD_CELLV_MEAS_DATA_COUNT] = {};
 
@@ -208,6 +208,7 @@ float getPackCurrent()   //need to restructure like the above two functions
 
 
 //ESTOP & LOGIC SWITCH///////////////////////////////////////////////////////////////////////////////////////
+//basestation might send a number for how long the delay should be, look at how that should be implimented 
 void restart()
 {
     digitalWrite(PACK_GATE_PIN, LOW);
