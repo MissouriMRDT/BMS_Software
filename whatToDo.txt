@@ -1,0 +1,19 @@
+*Get a list of variable needed and define these variables in the header file
+(sw_ind, sw_err_ind, V_out_ind, Fans_ind, temp_sense(analog signal in), v_out_sense, 
+buzzer_control,pack_i_sense, cell_senses, fan_control, LCD_tx, logic_switch,
+logic_power_sense,pack_gate)*
+
+Need a base code (LT1910 needs to be set to "low" on output(?), ESTOP needs to be coded)
+
+Do code for cell_voltages, then current, then temp (all need to be mapped) [Look @ tiva pins to find variables]
+
+LCD screen code
+
+Buzzer @ end (not important)
+
+Do serial prints first and @ very end link to rovecomm (serial print output --> rovecomm language)
+
+Write commands for:
+SW_ESTOP
+ERROR STATEMENTS
+
