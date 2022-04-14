@@ -14,37 +14,30 @@
 RoveCommEthernet RoveComm; //extantiates a class
 
 // Pinmap ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-//
-// Control Pins
-#define PACK_OUT_CTR_PIN    	PN_3
-#define LOGIC_SWITCH_CTR_PIN  PP_2
-#define BUZZER_CTR_PIN      	PN_2
-#define FAN_1_CTR_PIN     		PH_2
-#define FAN_2_CTR_PIN     		PH_3
-#define FAN_3_CTR_PIN     		PL_5
-#define FAN_4_CTR_PIN     		PL_4
-#define FAN_PWR_IND_PIN     	PF_1
-#define SW_IND_PIN        		PQ_3
-#define SW_ERR_PIN        		PP_3
+// Control Pins (output pins)
+#define BUZZER					PIN_C53
+#define FAN_CTL					PIN_A15
+#define SW_ERR					PIN_A14
+#define SW_IND					PIN_A12
 
+//Sensor pins (input pins)
+//cell sensors
+#define CELL_1_GND				PIN_A1
+#define CELL_2_1				PIN_A2
+#define CELL_3_2				PIN_A3
+#define CELL_4_3				PIN_A4
+#define CELL_5_4				PIN_A5
+#define CELL_6_5				PIN_A6
+#define CELL_7_6				PIN_A7
+#define CELL_8_7				PIN_A8
+//other system sensors
+#define SER_TX_IND				PIN_TX1
+#define PACK_GATE				PIN_C52
+#define PACK_I					PIN_A17
+#define TEMP_D					PIN_A26
+#define V_OUT					PIN_A10
 
-// Sensor Volts/Amps Readings Pins
-#define PACK_I_MEAS_PIN     	PE_0
-#define PACK_V_MEAS_PIN     	PE_1 //Measures voltage outputting to rover. Will read zero if PACK_OUT_CTR is LOW.
-#define LOGIC_V_MEAS_PIN    	PE_2 //Measures total voltage of pack continuously while logic switch is on. 
-#define TEMP_degC_MEAS_PIN    PD_1 //Board routes to PM_3 but its not an analog pin. Must fix in hardware design
-#define C1_V_MEAS_PIN     		PK_3 //CELL 1 - GND
-#define C2_V_MEAS_PIN     		PK_2 //CELL 2 - CELL 1
-#define C3_V_MEAS_PIN     		PK_1 //CELL 3 - CELL 2
-#define C4_V_MEAS_PIN     		PK_0 //CELL 4 - CELL 3
-#define C5_V_MEAS_PIN     		PB_5 //CELL 5 - CELL 4
-#define C6_V_MEAS_PIN     		PB_4 //CELL 6 - CELL 5
-#define C7_V_MEAS_PIN     		PD_5 //CELL 7 - CELL 6
-#define C8_V_MEAS_PIN     		PD_4 //CELL 8 - CELL 7
-
-
-const int CELL_MEAS_PINS[] = {LOGIC_V_MEAS_PIN, C1_V_MEAS_PIN, C2_V_MEAS_PIN, C3_V_MEAS_PIN, 
-                C4_V_MEAS_PIN, C5_V_MEAS_PIN, C6_V_MEAS_PIN, C7_V_MEAS_PIN, C8_V_MEAS_PIN};
+const int CELL_PINS[] = {CELL_1_GND, CELL_2_1, CELL_3_2, CELL_4_3, CELL_5_4, CELL_6_5, CELL_7_6, CELL_8_7};
 
 // Sensor Measurment: Constants and Calculations /////////////////////////////////////////////////////////////////////////////////////////////////////
 //
