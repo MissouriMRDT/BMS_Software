@@ -8,7 +8,7 @@
 
 // Included Libraries
 
-#include BMS_Software_Main.h // this is a main header file for the BMS.
+#include BMS_Software.h // this is a main header file for the BMS.
 // other code might possibly need to be included ask Anthony about files on Github. Include screenshot.
 
 // Setup and Main Loop
