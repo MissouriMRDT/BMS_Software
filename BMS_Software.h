@@ -46,9 +46,11 @@ const int CELL_PINS[] = {CELL_1_GND, CELL_2_1, CELL_3_2, CELL_4_3, CELL_5_4, CEL
 //#define TIVA_ADC_MAX          4096 //bits
 //#define TIVA_MIN              0 //bits
 
-// ACS759ECB-200B-PFF-T Current Sensor Specs
-  // Find at: https://www.digikey.com/products/en?keywords=%20620-1466-5-ND%20
-#define SENSOR_SENSITIVITY   	0.0066 //mV/mA
+// Teensy 4.1 specs
+  // Find at: https://www.pjrc.com/store/teensy41.html
+  // find at: https://www.pjrc.com/store/teensy41_pins.html
+#define SENSOR_SENSITIVITY   	0.0032 //mV 3.3V / 1024 levels = 0.0032
+/* 
 #define SENSOR_SCALE         	0.5
 #define SENSOR_BIAS          	VCC * SENSOR_SCALE //Viout voltage when current is at 0A (aka quiescent output voltage)
                           						 // Noise is 2mV, meaning the smallest current that the device is able to resolve is 0.3A
@@ -57,7 +59,7 @@ const int CELL_PINS[] = {CELL_1_GND, CELL_2_1, CELL_3_2, CELL_4_3, CELL_5_4, CEL
 #define OVERCURRENT           100000 //mA
 #define CURRENT_ADC_MIN     	0 //bits
 #define CURRENT_ADC_MAX     	4096 //bits
-
+*/
 // Voltage Measurments
 #define VOLTS_MIN             	0 //mV		//Lowest possible pack voltage value we could measure. 
 #define CELL_VOLTS_MIN        	2400//mV	//Lowest cell voltage I expect to be able to measure.
