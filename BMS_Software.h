@@ -51,7 +51,7 @@ const int CELL_PINS[] = {CELL_1_GND, CELL_2_1, CELL_3_2, CELL_4_3, CELL_5_4, CEL
   // find at: https://www.pjrc.com/store/teensy41_pins.html
 #define SENSOR_SENSITIVITY   	0.0032 //mV 3.3V / 1024 levels = 0.0032
 
-/* 								the following spec have no appearence in our design
+/* 								*/
 #define SENSOR_SCALE         	0.5
 #define SENSOR_BIAS          	VCC * SENSOR_SCALE //Viout voltage when current is at 0A (aka quiescent output voltage)
                           						 // Noise is 2mV, meaning the smallest current that the device is able to resolve is 0.3A
@@ -60,7 +60,6 @@ const int CELL_PINS[] = {CELL_1_GND, CELL_2_1, CELL_3_2, CELL_4_3, CELL_5_4, CEL
 #define OVERCURRENT           100000 //mA
 #define CURRENT_ADC_MIN     	0 //bits
 #define CURRENT_ADC_MAX     	4096 //bits
-*/
 
 // Voltage Measurments			can we keep using those value?
 #define VOLTS_MIN             	0 //mV		//Lowest possible pack voltage value we could measure. 
