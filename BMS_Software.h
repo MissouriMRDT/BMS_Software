@@ -15,27 +15,27 @@ RoveCommEthernet RoveComm; //extantiates a class
 
 // Pinmap ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 // Control Pins (output pins)
-#define BUZZER					PIN_C53
-#define FAN_CTL					PIN_A15
-#define SW_ERR					PIN_A14
-#define SW_IND					PIN_A12
+#define BUZZER_CTR_PIN			PIN_C53
+#define FAN_1_CTR_PIN				PIN_A15
+#define SW_ERR_PIN					PIN_A14
+#define SW_IND_PIN					PIN_A12
+#define SER_TX_IND				  PIN_TX1
 
 //Sensor pins (input pins)
 //cell sensors
-#define CELL_1_GND				PIN_A1
-#define CELL_2_1				PIN_A2
-#define CELL_3_2				PIN_A3
-#define CELL_4_3				PIN_A4
-#define CELL_5_4				PIN_A5
-#define CELL_6_5				PIN_A6
-#define CELL_7_6				PIN_A7
-#define CELL_8_7				PIN_A8
+#define C1_V_MEAS_PIN				PIN_A1
+#define C2_V_MEAS_PIN				PIN_A2
+#define C3_V_MEAS_PIN				PIN_A3
+#define C4_V_MEAS_PIN				PIN_A4
+#define C5_V_MEAS_PIN				PIN_A5
+#define C6_V_MEAS_PIN				PIN_A6
+#define C7_V_MEAS_PIN				PIN_A7
+#define C8_V_MEAS_PIN				PIN_A8
 //other system sensors
-#define SER_TX_IND				PIN_TX1
-#define PACK_GATE				PIN_C52
-#define PACK_I					PIN_A17
-#define TEMP_D					PIN_A26
-#define V_OUT					PIN_A10
+#define PACK_V_MEAS_PIN			PIN_C52
+#define PACK_I_MEAS_PIN			PIN_A17
+#define TEMP_degC_MEAS_PI		PIN_A26
+#define LOGIC_V_MEAS_PIN		PIN_A10
 
 const int CELL_PINS[] = {CELL_1_GND, CELL_2_1, CELL_3_2, CELL_4_3, CELL_5_4, CELL_6_5, CELL_7_6, CELL_8_7};
 
