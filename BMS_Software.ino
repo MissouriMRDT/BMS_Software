@@ -12,7 +12,7 @@
 
 // Setup and Main Loop
 
-uint8_t error_report[RC_BMSBOARD_ERROR_DATACOUNT] = {0, 0, 0, 0, 0, 0, 0, 0, 0};
+uint8_t error_report[RC_BMSBOARD_ERROR_DATACOUNT] = 0;
 bool pinfault_state = false;
 int num_loop = 0; // battery temperature sensor state defualt to false in case of an error report
 bool sw_ind_state = false;
@@ -39,7 +39,7 @@ void setup()
 void loop() // object identifier loop when called id or loop it runs?
 {
     int32_t main_current;
-    uint16_t cell_voltages[RC_BMSBOARD_VMEASmV_DATACOUNT]; // identifying main current, pack voltage out, and battery temp.
+    uint16_t cell_voltages[RC_BMSBOARD_PACKV_MEAS_DATA_COUNT]; // identifying main current, pack voltage out, and battery temp.
     int pack_out_voltage;
     uint32_t batt_temp;
     rovecomm_packet packet;
@@ -63,11 +63,11 @@ void loop() // object identifier loop when called id or loop it runs?
     {
         // batt_temp = 23456;//just for fixin reds temp values
         ////Serial.println(batt_temp);
-        RoveComm.write(RC_BMSBOARD_MAINIMEASmA_HEADER, main_current);
+        RoveComm.write(RC_BMSBOARD_PACKI_MEAS_DATA_ID, main_current);
         delay(ROVECOMM_DELAY);
-        RoveComm.write(RC_BMSBOARD_VMEASmV_HEADER, cell_voltages); // this if statement is created to write information of current, cell volt.,
+        RoveComm.write(RC_BMSBOARD_PACKV_MEAS_DATA_ID, cell_voltages); // this if statement is created to write information of current, cell volt.,
         delay(ROVECOMM_DELAY);                                     // and battery temperature if the update delay is greater or equal to time since last update
-        RoveComm.write(RC_BMSBOARD_TEMPMEASmDEGC_HEADER, batt_temp);
+        RoveComm.write(RC_BMSBOARD_TEMP_MEAS_DATA_ID, batt_temp);
         delay(ROVECOMM_DELAY);
 
         if (pinfault_state == true)
@@ -219,12 +219,12 @@ void getMainCurrent(int32_t &main_current)
 
 //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-void getCellVoltage(uint16_t cell_voltage[RC_BMSBOARD_VMEASmV_DATACOUNT])
+void getCellVoltage(uint16_t cell_voltage[RC_BMSBOARD_PACKV_MEAS_DATA_COUNT])
 {
     pinfault_state = false; // cell voltage pin reader if the pinfualt state is false then the code will continue
                             // Serial.println();
     ////Serial.println("///////////////////Cell values/////////////////////// ");
-    for (int i = 0; i < RC_BMSBOARD_VMEASmV_DATACOUNT; i++)
+    for (int i = 0; i < RC_BMSBOARD_PACKV_MEAS_DATA_COUNT; i++)
     {
         //////////////////////PACK/////////////////////////////////
         if (i == RC_BMSBOARD_VMEASmV_PACKENTRY)
@@ -577,7 +577,7 @@ void reactEstopReleased()
 }
 //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-void reactLowVoltage(uint16_t cell_voltage[RC_BMSBOARD_VMEASmV_DATACOUNT])
+void reactLowVoltage(uint16_t cell_voltage[RC_BMSBOARD_PACKV_MEAS_DATA_COUNT])
 {
     ////Serial.println("reactLowVoltage");
     if ((cell_voltage[0] > PACK_UNDERVOLTAGE) && (cell_voltage[0] <= PACK_LOWVOLTAGE) && (low_voltage_state = false)) // first instance of low voltage
