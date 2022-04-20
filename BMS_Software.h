@@ -51,7 +51,7 @@ const int CELL_PINS[] = {C1_V_MEAS_PIN, C2_V_MEAS_PIN, C3_V_MEAS_PIN, C4_V_MEAS_
   // find at: https://www.pjrc.com/store/teensy41_pins.html
 #define SENSOR_SENSITIVITY   	0.0032 //V  3.3V / 1024 levels = 0.0032
 
-/*value from past year
+//value from past year
 #define SENSOR_SCALE         	0.5
 #define SENSOR_BIAS          	VCC * SENSOR_SCALE //Viout voltage when current is at 0A (aka quiescent output voltage)
                           						 // Noise is 2mV, meaning the smallest current that the device is able to resolve is 0.3A
@@ -60,12 +60,12 @@ const int CELL_PINS[] = {C1_V_MEAS_PIN, C2_V_MEAS_PIN, C3_V_MEAS_PIN, C4_V_MEAS_
 #define OVERCURRENT           100000 //mA
 #define CURRENT_ADC_MIN     	0 //bits
 #define CURRENT_ADC_MAX     	4096 //bits
-*/
+
 // Voltage Measurments			can we keep using those value? 
 #define CELL_VOLTS_MIN          651//ADC value  //Lowest cell voltage I expect to be able to measure.
 #define CELL_VOLTS_MAX        922 //ADC value //Highest possible cell voltage value we could measure.
 
-/*value from past year
+//value from past year
 #define VOLTS_MIN               0 //mV    //Lowest possible pack voltage value we could measure.
 #define PACK_VOLTS_MAX        	33600 //mV	//Highest possible pack voltage value we could measure.
 #define PACK_UNDERVOLTAGE   	21600 //mV	//If pack voltage reaches this voltage, turn off rover and BMS suicide.
@@ -100,7 +100,7 @@ const int CELL_PINS[] = {C1_V_MEAS_PIN, C2_V_MEAS_PIN, C3_V_MEAS_PIN, C4_V_MEAS_
 #define IDLE_SHUTOFF_TIME   	2400000 //msec or 40 minutes	//After this period of time passes, the BMS will commit suicide.
 #define UPDATE_ON_LOOP     		69 //loops		//Each time this number of loops passes, SW_IND will blink and LCD will update.
 #define ROVECOMM_UPDATE_DELAY	420 //ms
-*/
+
 // Function Declarations ///////////////////////////////////////////////////////////
 /* functions from past year
 void setInputPins();

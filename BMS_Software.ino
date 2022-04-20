@@ -2,32 +2,48 @@
 // Main cpp file (Needed to clarify that this is in c++)
 
 // The BMS System is created for the Missouri S&T 2022 Competition Rover.
-
-// created by Sean Duda
-
+// created by Sean Duda， Sanfan Liu
 // Included Libraries
 
 #include "D:\Github\Bms_Software\BMS_Software.h" // this is a main header file for the BMS.
 // other code might possibly need to be included ask Anthony about files on Github. Include screenshot.
 
-// Setup and Main Loop
+//RoveComm setup
+#include "RoveComm.h"
+#if defined(ARDUINO_TEENSY41) 
+#include <TimerOne.h>
+#endif
+//rovecomm and packet instances
+RoveCommEthernet RoveComm;
+rovecomm_packet packet; 
 
+//timekeeping variables
+uint32_t last_update_time;
+
+//declare the Ethernet Server in the top level sketch with the requisite port ID any time you want to use RoveComm
+EthernetServer TCPServer(RC_ROVECOMM_BMSBOARD_PORT);
+
+
+//Setup and Main Loop
 uint8_t error_report[RC_BMSBOARD_ERROR_DATACOUNT] = 0;
 bool pinfault_state = false;
 int num_loop = 0; // battery temperature sensor state defualt to false in case of an error report
 bool sw_ind_state = false;
 uint32_t time_since_Rovecomm_update = 0; // intial time of Rovecomm updating
 uint32_t meas_batt_temp[NUM_TEMP_AVERAGE];
-
+*/
 void setup()
 
 {
+    //start up serial communication
     Serial.begin(9600);
-    Serial3.begin(9600);
-    Serial3.begin(9600);
-    startScreen(); // Rovecomm communications of BMS start up
-    RoveComm.begin(RC_BMSBOARD_FOURTHOCTET);
-    delay(ROVECOMM_DELAY);
+
+    //initialize the ethernet device and rovecomm instance
+    RoveComm.begin(RC_DRIVEBOARD_FOURTHOCTET, &TCPServer);
+    delay(100);
+
+    //update timekeeping
+    last_update_time = millis();
 
     setInputPins();
     setOutputPins();
@@ -38,10 +54,10 @@ void setup()
 
 void loop() // object identifier loop when called id or loop it runs?
 {
-    int32_t main_current;
-    uint16_t cell_voltages[RC_BMSBOARD_PACKV_MEAS_DATA_COUNT]; // identifying main current, pack voltage out, and battery temp.
-    int pack_out_voltage;
-    uint32_t batt_temp;
+    int32_t main_current; //PACK_I
+    uint16_t cell_voltages[RC_BMSBOARD_PACKV_MEAS_DATA_COUNT]; //Cell Voltages
+    int pack_out_voltage; //PACK_V
+    uint32_t batt_temp;   //TEMP_degC
     rovecomm_packet packet;
 
     // Serial.println();
@@ -64,11 +80,11 @@ void loop() // object identifier loop when called id or loop it runs?
         // batt_temp = 23456;//just for fixin reds temp values
         ////Serial.println(batt_temp);
         RoveComm.write(RC_BMSBOARD_PACKI_MEAS_DATA_ID, main_current);
-        delay(ROVECOMM_DELAY);
+        delay(100);
         RoveComm.write(RC_BMSBOARD_PACKV_MEAS_DATA_ID, cell_voltages); // this if statement is created to write information of current, cell volt.,
-        delay(ROVECOMM_DELAY);                                     // and battery temperature if the update delay is greater or equal to time since last update
+        delay(100);                                     // and battery temperature if the update delay is greater or equal to time since last update
         RoveComm.write(RC_BMSBOARD_TEMP_MEAS_DATA_ID, batt_temp);
-        delay(ROVECOMM_DELAY);
+        delay(100);
 
         if (pinfault_state == true)
         {
@@ -82,7 +98,7 @@ void loop() // object identifier loop when called id or loop it runs?
     packet = RoveComm.read();
     if (packet.data_id != 0)
     {
-        switch (packet.data_id) // don't understand packets and I don't remember how to use a swtich case.
+        switch (packet.data_id) // 
         {
         case RC_BMSBOARD_SWESTOPs_DATAID:
         {
@@ -143,12 +159,12 @@ void setInputPins()
 {
     pinMode(PACK_I_MEAS_PIN, INPUT); // pack current sensor
     pinMode(PACK_V_MEAS_PIN, INPUT); // pack voltage sensor
-    pinMode(LOGIC_V_MEAS_PIN, INPUT);
+    pinMode(LOGIC_V_MEAS_PIN, INPUT); //output logic voltage sensor
     pinMode(TEMP_degC_MEAS_PIN, INPUT); // temperature sensor
-    pinMode(C1_V_MEAS_PIN, INPUT);
+    pinMode(C1_V_MEAS_PIN, INPUT);      //cell voltage sensor
     pinMode(C2_V_MEAS_PIN, INPUT);
     pinMode(C3_V_MEAS_PIN, INPUT);
-    pinMode(C4_V_MEAS_PIN, INPUT); // Connected cells to pins to measure individual cell data
+    pinMode(C4_V_MEAS_PIN, INPUT); 
     pinMode(C5_V_MEAS_PIN, INPUT);
     pinMode(C6_V_MEAS_PIN, INPUT);
     pinMode(C7_V_MEAS_PIN, INPUT);
@@ -161,13 +177,11 @@ void setInputPins()
 
 void setOutputPins() // output pin functions
 {
-    pinMode(PACK_OUT_CTR_PIN, OUTPUT);
-    pinMode(LOGIC_SWITCH_CTR_PIN, OUTPUT);
-    pinMode(BUZZER_CTR_PIN, OUTPUT);
-    pinMode(FAN_1_CTR_PIN, OUTPUT); // Changed to one fan control pin, to reduce redundancy and have all fans powered on at once through an 8 pin molex connector
-    pinMode(FAN_PWR_IND_PIN, OUTPUT);
-    pinMode(SW_IND_PIN, OUTPUT); // indicator pins
-    pinMode(SW_ERR_PIN, OUTPUT);
+    pinMode(BUZZER_CTR_PIN, OUTPUT);  //buzzer control pin
+    pinMode(FAN_CTR_PIN, OUTPUT); //all-fan control  pin
+    pinMode(SER_TX_IND, OUTPUT);  //LCD communication pin
+    pinMode(SW_IND_PIN, OUTPUT); //software indicator pin
+    pinMode(SW_ERR_PIN, OUTPUT);  //software error pin
 
     return;
 } // end func
@@ -176,13 +190,11 @@ void setOutputPins() // output pin functions
 
 void setOutputStates()
 {
-    digitalWrite(PACK_OUT_CTR_PIN, HIGH);    // digital write is used to write high and low values of digital pins
-    digitalWrite(LOGIC_SWITCH_CTR_PIN, LOW); // 5V - 3.3V is low while anything above 5V is considered to be high
-    digitalWrite(BUZZER_CTR_PIN, LOW);
-    digitalWrite(FAN_1_CTR_PIN, LOW); // Only one digital write is needed to power the fans of the 8 pin molex connector
-    digitalWrite(FAN_PWR_IND_PIN, LOW);
-    digitalWrite(SW_IND_PIN, LOW);
-    digitalWrite(SW_ERR_PIN, LOW);
+    digitalWrite(BUZZER_CTR_PIN, LOW);  //turn off buzzer
+    digitalWrite(FAN_CTR_PIN, LOW); //turn on fan 
+    digitalWrite(SER_TX_IND, LOW);  //turn off LCD communication
+    digitalWrite(SW_IND_PIN, LOW);  //turn off software indicator LED
+    digitalWrite(SW_ERR_PIN, LOW);  //turn off software error LED
 
     return;
 } // end func
@@ -194,7 +206,7 @@ void getMainCurrent(int32_t &main_current)
     ////Serial.print("adc current:  ");
     ////Serial.println(analogRead(PACK_I_MEAS_PIN));
 
-    main_current = ((map(analogRead(PACK_I_MEAS_PIN), CURRENT_ADC_MIN, CURRENT_ADC_MAX, CURRENT_MIN, CURRENT_MAX) * 1069) / 1000); //*950)/1000);
+    main_current = ((map(analogRead(PACK_I_MEAS_PIN), CURRENT_ADC_MIN, CURRENT_ADC_MAX, CURRENT_MIN, CURRENT_MAX)));m
 
     // display of current functions
 
@@ -465,7 +477,7 @@ void reactOverCurrent()
         {
             error_report[RC_BMSBOARD_ERROR_PACKENTRY] = RC_BMSBOARD_ERROR_OVERCURRENT;
             RoveComm.write(RC_BMSBOARD_ERROR_HEADER, error_report);
-            delay(ROVECOMM_DELAY);
+            delay(100);
 
             digitalWrite(PACK_OUT_CTR_PIN, LOW);
 
@@ -492,7 +504,7 @@ void reactOverCurrent()
         {
             error_report[RC_BMSBOARD_ERROR_PACKENTRY] = RC_BMSBOARD_ERROR_OVERCURRENT;
             RoveComm.write(RC_BMSBOARD_ERROR_HEADER, error_report);
-            delay(ROVECOMM_DELAY);
+            delay(100);
 
             digitalWrite(PACK_OUT_CTR_PIN, LOW);
 
