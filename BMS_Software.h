@@ -40,11 +40,6 @@
 const int CELL_PINS[] = {C1_V_MEAS_PIN, C2_V_MEAS_PIN, C3_V_MEAS_PIN, C4_V_MEAS_PIN, C5_V_MEAS_PIN, C6_V_MEAS_PIN, C7_V_MEAS_PIN, C1_V_MEAS_PIN};
 
 // Sensor Measurment: Constants and Calculations /////////////////////////////////////////////////////////////////////////////////////////////////////
-//
-// Tiva1294C RoveBoard Specs
-#define VCC                   	3300 //mV
-//#define TIVA_ADC_MAX          4096 //bits
-//#define TIVA_MIN              0 //bits
 
 // Teensy 4.1 specs
   // Find at: https://www.pjrc.com/store/teensy41.html
@@ -61,7 +56,7 @@ const int CELL_PINS[] = {C1_V_MEAS_PIN, C2_V_MEAS_PIN, C3_V_MEAS_PIN, C4_V_MEAS_
 #define CURRENT_ADC_MIN     	0 //bits
 #define CURRENT_ADC_MAX     	4096 //bits
 */
-// Voltage Measurments			can we keep using those value? 
+// Voltage Measurments
 #define CELL_VOLTS_MIN          651//ADC value  //Lowest cell voltage I expect to be able to measure.
 #define CELL_VOLTS_MAX        922 //ADC value //Highest possible cell voltage value we could measure.
 
