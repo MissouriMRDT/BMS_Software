@@ -9,16 +9,16 @@
 #ifndef BMS_Software
 #define BMS_Software
 
-#include "RoveComm.h"
+//#include "RoveComm.h"
 
-RoveCommEthernet RoveComm; //extantiates a class
+//RoveCommEthernet RoveComm; //extantiates a class
 
 // Pinmap ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 // Control Pins (output pins)
 #define BUZZER_CTR_PIN			PIN_C53
 #define FAN_1_CTR_PIN				PIN_A15
 #define SW_ERR_PIN					PIN_A14
-#define SW_IND_PIN					PIN_A12
+#define SW_IND_PIN					PIN_A13
 #define SER_TX_IND				  PIN_TX1
 
 //Sensor pins (input pins)
@@ -34,10 +34,10 @@ RoveCommEthernet RoveComm; //extantiates a class
 //other system sensors
 #define PACK_V_MEAS_PIN			PIN_C52
 #define PACK_I_MEAS_PIN			PIN_A17
-#define TEMP_degC_MEAS_PI		PIN_A26
+#define TEMP_degC_MEAS_PI		PIN_A12
 #define LOGIC_V_MEAS_PIN		PIN_A10
 
-const int CELL_PINS[] = {CELL_1_GND, CELL_2_1, CELL_3_2, CELL_4_3, CELL_5_4, CELL_6_5, CELL_7_6, CELL_8_7};
+const int CELL_PINS[] = {C1_V_MEAS_PIN, C2_V_MEAS_PIN, C3_V_MEAS_PIN, C4_V_MEAS_PIN, C5_V_MEAS_PIN, C6_V_MEAS_PIN, C7_V_MEAS_PIN, C1_V_MEAS_PIN};
 
 // Sensor Measurment: Constants and Calculations /////////////////////////////////////////////////////////////////////////////////////////////////////
 //
@@ -49,9 +49,9 @@ const int CELL_PINS[] = {CELL_1_GND, CELL_2_1, CELL_3_2, CELL_4_3, CELL_5_4, CEL
 // Teensy 4.1 specs
   // Find at: https://www.pjrc.com/store/teensy41.html
   // find at: https://www.pjrc.com/store/teensy41_pins.html
-#define SENSOR_SENSITIVITY   	0.0032 //mV 3.3V / 1024 levels = 0.0032
+#define SENSOR_SENSITIVITY   	0.0032 //V  3.3V / 1024 levels = 0.0032
 
-/* 								*/
+/*value from past year
 #define SENSOR_SCALE         	0.5
 #define SENSOR_BIAS          	VCC * SENSOR_SCALE //Viout voltage when current is at 0A (aka quiescent output voltage)
                           						 // Noise is 2mV, meaning the smallest current that the device is able to resolve is 0.3A
@@ -60,12 +60,14 @@ const int CELL_PINS[] = {CELL_1_GND, CELL_2_1, CELL_3_2, CELL_4_3, CELL_5_4, CEL
 #define OVERCURRENT           100000 //mA
 #define CURRENT_ADC_MIN     	0 //bits
 #define CURRENT_ADC_MAX     	4096 //bits
+*/
+// Voltage Measurments			can we keep using those value? 
+#define CELL_VOLTS_MIN          651//ADC value  //Lowest cell voltage I expect to be able to measure.
+#define CELL_VOLTS_MAX        922 //ADC value //Highest possible cell voltage value we could measure.
 
-// Voltage Measurments			can we keep using those value?
-#define VOLTS_MIN             	0 //mV		//Lowest possible pack voltage value we could measure. 
-#define CELL_VOLTS_MIN        	2400//mV	//Lowest cell voltage I expect to be able to measure.
+/*value from past year
+#define VOLTS_MIN               0 //mV    //Lowest possible pack voltage value we could measure.
 #define PACK_VOLTS_MAX        	33600 //mV	//Highest possible pack voltage value we could measure.
-#define CELL_VOLTS_MAX      	4200 //mV	//Highest possible cell voltage value we could measure.
 #define PACK_UNDERVOLTAGE   	21600 //mV	//If pack voltage reaches this voltage, turn off rover and BMS suicide.
 #define PACK_LOWVOLTAGE     	25000 //mV	//If pack voltage reaches this voltage, notify of low voltage.
 #define PACK_SAFETY_LOW     	PACK_UNDERVOLTAGE - 4000 //mV	//Even though I shouldn't be need to measure a voltage lower than undervoltage 
@@ -98,9 +100,9 @@ const int CELL_PINS[] = {CELL_1_GND, CELL_2_1, CELL_3_2, CELL_4_3, CELL_5_4, CEL
 #define IDLE_SHUTOFF_TIME   	2400000 //msec or 40 minutes	//After this period of time passes, the BMS will commit suicide.
 #define UPDATE_ON_LOOP     		69 //loops		//Each time this number of loops passes, SW_IND will blink and LCD will update.
 #define ROVECOMM_UPDATE_DELAY	420 //ms
-
+*/
 // Function Declarations ///////////////////////////////////////////////////////////
-
+/* functions from past year
 void setInputPins();
 
 
@@ -178,5 +180,5 @@ void asterisks();
 
 void movingRover();
 
-
+*/
 #endif
