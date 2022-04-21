@@ -212,11 +212,14 @@ void getMainCurrent(int32_t &main_current)
 	main_current =  map(analogRead(PACK_I_MEAS_PIN), CURRENT_ADC_MIN, CURRENT_ADC_MAX, CURRENT_MIN, CURRENT_MAX)	//fetch again to double check value
     if (main_current > OVERCURRENT)				//if current > overcurrent, send out a warning
     {
-      RoveComm.writeReliable(RC_BMSBOARD_PACKOVERCURRENT_DATA_ID, main_current);//
-	  //turn off output
+	   //send error flag to roveComm for package over current
+      RoveComm.writeReliable(RC_BMSBOARD_PACKOVERCURRENT_DATA_ID, main_current);//send the error current value
+		//turn off output
+		digitalWrite(PACK_OUT_CTR_PIN, LOW);
+		notifyOverCurrent();
+		digitalWrite(LOGIC_SWITCH_CTR_PIN, HIGH);
 	}                          // end if
   }                              // end if
-  RoveComm.writeReliable(RC_BMSBOARD_PACKI_MEAS_DATA_ID, main_current/1000); //mA to A
   return;
 } // end func
 
@@ -254,12 +257,17 @@ void getCellVoltage(uint16_t CELL_PINS[])
       else if (adc_reading > CELL_V_ADC_MAX){	//handle if reading above 3.3V	:above expecting voltage
         adc_reading = CELL_V_ADC_MAX;
       }                                                                                                                                                                                                                              // end if
-        if ((map(adc_reading, CELL_V_ADC_MIN, CELL_V_ADC_MAX, CELL_VOLTS_MIN, CELL_VOLTS_MAX) <= CELL_UNDERVOLTAGE) // remap of new data values found of ac to dc
-            && (map(adc_reading, CELL_V_ADC_MIN, CELL_V_ADC_MAX, CELL_VOLTS_MIN, CELL_VOLTS_MAX) > CELL_VOLTS_MIN))
+        if ((map(adc_reading, CELL_V_ADC_MIN, CELL_V_ADC_MAX, CELL_VOLTS_MIN, CELL_VOLTS_MAX) <= CELL_UNDERVOLTAGE) 
+            && (map(adc_reading, CELL_V_ADC_MIN, CELL_V_ADC_MAX, CELL_VOLTS_MIN, CELL_VOLTS_MAX) > CELL_VOLTS_MIN))//map and then compare to min and max expecting voltage
         {
           //Raise a flag for Rove Comm battery undervoltage
-		  //turn off output
-
+		RoveComm.writeReliable(RC_BMSBOARD_CELLUNDERVOLTAGE_DATA_ID, i);	//send which batter is causing the error(mA)
+		delay(DEBOUNCE_DELAY);
+		
+		//turn off output
+		digitalWrite(PACK_OUT_CTR_PIN, LOW);
+		notifyOverCurrent();
+		digitalWrite(LOGIC_SWITCH_CTR_PIN, HIGH);
         } // end if
       }     // end if
   }         // end for
@@ -274,7 +282,7 @@ void getOutVoltage(int &pack_out_voltage)
   ////Serial.print("adc vout : ");
   ////Serial.println(adc_reading);
   ////////////////////////////////////HERE////////////////////////////////////////////////
-  pack_out_voltage = ((1269 * map(adc_reading, PACK_V_ADC_MIN, PACK_V_ADC_MAX, VOLTS_MIN, PACK_VOLTS_MAX)) / 1000); // previously1369
+  pack_out_voltage = ((1269 * map(adc_reading, PACK_V_ADC_MIN, PACK_V_ADC_MAX, VOLTS_MIN, PACK_VOLTS_MAX)) / 1000); // 1269 is the voltage to analog signal ratio
   ////Serial.print("mapped vout : ");
   ////Serial.println(pack_out_voltage);
   if (pack_out_voltage < PACK_UNDERVOLTAGE)
@@ -284,7 +292,7 @@ void getOutVoltage(int &pack_out_voltage)
 	pack_out_voltage = ((1269 * map(adc_reading, PACK_V_ADC_MIN, PACK_V_ADC_MAX, VOLTS_MIN, PACK_VOLTS_MAX)) / 1000); // previously1369
 	if(pack_out_voltage < PACK_UNDERVOLTAGE){
 		//raise a error flag for RoveComm pack under voltage
-		RoveComm.writeReliable(RC_BMSBOARD_PACKUNDERVOLTAGE_DATA_ID, pack_out_voltage);
+		RoveComm.writeReliable(RC_BMSBOARD_PACKUNDERVOLTAGE_DATA_ID, pack_out_voltage);	//send the error voltage value (V)
 		delay(DEBOUNCE_DELAY);
 		
 		//turn off output
@@ -401,76 +409,6 @@ void updateLCD(int32_t batt_temp, uint16_t cellVoltages[])
     } // end else
   }     // end for
   LCD_Update = false;
-} // end func
-
-//////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-
-void reactOverCurrent()
-{
-  if (packOverCurrent_state == false)
-  {
-    error_report[RC_BMSBOARD_ERROR_PACKENTRY] = RC_BMSBOARD_ERROR_OVERCURRENT;
-  } // end if
-  if (packOverCurrent_state == true)
-  {
-    if (num_overcurrent == 0)
-    {
-      error_report[RC_BMSBOARD_ERROR_PACKENTRY] = RC_BMSBOARD_ERROR_OVERCURRENT;
-      RoveComm.writeReliable(RC_BMSBOARD_ERROR_HEADER, error_report);
-      delay(100);
-
-      digitalWrite(PACK_OUT_CTR_PIN, LOW);
-
-      time_of_overcurrent = millis();
-      num_overcurrent++;
-
-      notifyOverCurrent();
-    } // end if
-    else if (num_overcurrent == 1)
-    {
-      if (millis() >= (time_of_overcurrent + RESTART_DELAY))
-      {
-        digitalWrite(PACK_OUT_CTR_PIN, HIGH);
-      } // end if
-      if (millis() >= (time_of_overcurrent + RESTART_DELAY + RECHECK_DELAY))
-      {
-        packOverCurrent_state = false;
-        num_overcurrent = 0;
-        time_of_overcurrent = 0;
-      } // end if
-    }     // end else if
-
-    else
-    {
-      error_report[RC_BMSBOARD_ERROR_PACKENTRY] = RC_BMSBOARD_ERROR_OVERCURRENT;
-      RoveComm.writeReliable(RC_BMSBOARD_ERROR_HEADER, error_report);
-      delay(100);
-
-      digitalWrite(PACK_OUT_CTR_PIN, LOW);
-
-      notifyOverCurrent();
-
-      digitalWrite(LOGIC_SWITCH_CTR_PIN, HIGH); // BMS Suicide
-    }                                             // end else
-  }                                                 // end if
-  return;
-} // end func
-
-//////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-
-void reactUnderVoltage()
-{
-  ////Serial.println("reactUnderVoltage");
-  if ((pack_undervoltage_state == true) || cell_undervoltage_state == true)
-  {
-    RoveComm.writeReliable(RC_BMSBOARD_ERROR_HEADER, error_report);
-    delay(DEBOUNCE_DELAY);
-
-    digitalWrite(PACK_OUT_CTR_PIN, LOW);
-    notifyUnderVoltage();
-    digitalWrite(LOGIC_SWITCH_CTR_PIN, HIGH); // BMS Suicide
-  }                                             // end if
-  return;
 } // end func
 
 //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
