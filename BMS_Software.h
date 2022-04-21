@@ -62,24 +62,25 @@ const int CELL_PINS[] = {C1_V_MEAS_PIN, C2_V_MEAS_PIN, C3_V_MEAS_PIN, C4_V_MEAS_
 #define CURRENT_ADC_MIN     	0 //bits
 #define CURRENT_ADC_MAX     	4096 //bits
 
-// Voltage Measurments			can we keep using those value? 
-#define CELL_VOLTS_MIN          651//ADC value  //Lowest cell voltage I expect to be able to measure.
-#define CELL_VOLTS_MAX        922 //ADC value //Highest possible cell voltage value we could measure.
-#define RC_BMSBOARD_PACKV_MEAS_DATA_COUNT	8// number of batteries
-//value from past year
+// Voltage Measurments
+//cells
+#define CELL_VOLTS_MIN          2400//ADC value  //Lowest cell voltage I expect to be able to measure.
+#define CELL_VOLTS_MAX        3300 //ADC value //Highest possible cell voltage value we could measure.
+#define CELL_V_ADC_MIN        651 //from analogread
+#define CELL_V_ADC_MAX        922  //from analogread
+#define CELL_COUNT	8// number of batteries
+#define CELL_UNDERVOLTAGE     2650 //mV //If any cell voltage reaches this voltage, turn off rover and BMS suicide.
+
+// package related
 #define VOLTS_MIN               0 //mV    //Lowest possible pack voltage value we could measure.
 #define PACK_VOLTS_MAX        	33600 //mV	//Highest possible pack voltage value we could measure.
 #define PACK_UNDERVOLTAGE   	21600 //mV	//If pack voltage reaches this voltage, turn off rover and BMS suicide.
 #define PACK_LOWVOLTAGE     	25000 //mV	//If pack voltage reaches this voltage, notify of low voltage.
 #define PACK_SAFETY_LOW     	PACK_UNDERVOLTAGE - 4000 //mV	//Even though I shouldn't be need to measure a voltage lower than undervoltage 
-#define CELL_UNDERVOLTAGE   	2650 //mV	//If any cell voltage reaches this voltage, turn off rover and BMS suicide.
 #define PACK_EFFECTIVE_ZERO   	5000 //mV 	//Pack voltage below this value is considered to be adc noise and not valid measurments. This is because the battery cannot physically be this low. So there must be an error with reading the voltage
 #define CELL_EFFECTIVE_ZERO   	1000 //mV   //Cell voltage below this value is considered to be adc noise and not valid measurments.
 #define PACK_V_ADC_MIN      	0 //bits
 #define PACK_V_ADC_MAX      	4096 //bits
-#define CELL_V_ADC_MIN      	2320 //bits
-#define CELL_V_ADC_MAX      	3800  //bits3790//
-
 // TMP37 Temp Sensor Specs 
   //Find at: https://www.digikey.com/products/en?mpart=TMP37FT9Z&v=505
     //Voltage at 20 deg C is 500mV.
