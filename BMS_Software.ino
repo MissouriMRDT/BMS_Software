@@ -202,9 +202,7 @@ void getMainCurrent(int32_t &main_current)
   ////Serial.println(analogRead(PACK_I_MEAS_PIN));
 
   main_current =  map(analogRead(PACK_I_MEAS_PIN), CURRENT_ADC_MIN, CURRENT_ADC_MAX, CURRENT_MIN, CURRENT_MAX) //fetch pack current
-
   // display of current functions
-
   ////Serial.print("current:  ");
   ////Serial.println(main_current);
 
@@ -214,10 +212,9 @@ void getMainCurrent(int32_t &main_current)
 	main_current =  map(analogRead(PACK_I_MEAS_PIN), CURRENT_ADC_MIN, CURRENT_ADC_MAX, CURRENT_MIN, CURRENT_MAX)	//fetch again to double check value
     if (main_current > OVERCURRENT)				//if current > overcurrent, send out a warning
     {
-      packOverCurrent_state = true;
-      uint8_t overcurrent = 1;
-      RoveComm.writeReliable(RC_BMSBOARD_PACKOVERCURRENT_DATA_ID, pvercurrent);//
-    }                          // end if
+      RoveComm.writeReliable(RC_BMSBOARD_PACKOVERCURRENT_DATA_ID, main_current);//
+	  //turn off output
+	}                          // end if
   }                              // end if
   RoveComm.writeReliable(RC_BMSBOARD_PACKI_MEAS_DATA_ID, main_current/1000); //mA to A
   return;
@@ -235,50 +232,36 @@ void getCellVoltage(uint16_t CELL_PINS[])
       int adc_reading = analogRead(CELL_MEAS_PINS[i]);
       // Serial.print("adc reading : ");
       // Serial.println(adc_reading);
-      if (adc_reading < CELL_V_ADC_MIN)
-      {
-        adc_reading = CELL_V_ADC_MIN; // process to rewrite voltage as ac to dc converter min, and max values
-      }                                 // end if
-      if (adc_reading > CELL_V_ADC_MAX)
-      {
+
+      if (adc_reading < CELL_V_ADC_MIN){	//handle if reading between 0V and 2.4V: lower than expecting power
+        adc_reading = CELL_V_ADC_MIN; 			 
+      }     
+      else if (adc_reading > CELL_V_ADC_MAX){	//handle if reading above 3.3V	:above expecting voltage
         adc_reading = CELL_V_ADC_MAX;
-      }                                                                                                                     // end if////////////////HERE/////////////////////////////////////////////////////////////////
-      cell_voltage[i] = ((map(adc_reading, CELL_V_ADC_MIN, CELL_V_ADC_MAX, CELL_VOLTS_MIN, CELL_VOLTS_MAX)) * 1030) / 1000; // 980
-      if (i > 2)
-        cell_voltage[i] -= 00; // cell voltage less than or equal to zero if i > 2 after incrementation through loop.
+      }                                                                                                                     
+      cell_voltage[i] = ((map(adc_reading, CELL_V_ADC_MIN, CELL_V_ADC_MAX, CELL_VOLTS_MIN, CELL_VOLTS_MAX)) ); //map ADC value to Volts
       // Serial.print("cell voltage : ");
       // Serial.println(cell_voltage[i]);
-
-      error_report[i] = RC_BMSBOARD_ERROR_NOERROR;
-
-      if ((cell_voltage[i] > CELL_VOLTS_MIN) && (cell_voltage[i] < CELL_UNDERVOLTAGE))
+      if ((cell_voltage[i] > CELL_VOLTS_MIN) && (cell_voltage[i] < CELL_UNDERVOLTAGE))		//if between 2.4V and 2.65V
       {
-        delay(DEBOUNCE_DELAY);
+        delay(DEBOUNCE_DELAY);	//double check
 
         adc_reading = analogRead(CELL_MEAS_PINS[i]); // an analog signal creates a varying signal source
 
-        if (adc_reading < CELL_V_ADC_MIN)
-        {
-          adc_reading = CELL_V_ADC_MIN;
-        } // end if
-        if (adc_reading > CELL_V_ADC_MAX)
-        {
-          adc_reading = CELL_V_ADC_MAX;
-        }                                                                                                           // end if
+      if (adc_reading < CELL_V_ADC_MIN){	//handle if reading between 0V and 2.4V: lower than expecting power
+        adc_reading = CELL_V_ADC_MIN; 			 
+      }     
+      else if (adc_reading > CELL_V_ADC_MAX){	//handle if reading above 3.3V	:above expecting voltage
+        adc_reading = CELL_V_ADC_MAX;
+      }                                                                                                                                                                                                                              // end if
         if ((map(adc_reading, CELL_V_ADC_MIN, CELL_V_ADC_MAX, CELL_VOLTS_MIN, CELL_VOLTS_MAX) <= CELL_UNDERVOLTAGE) // remap of new data values found of ac to dc
             && (map(adc_reading, CELL_V_ADC_MIN, CELL_V_ADC_MAX, CELL_VOLTS_MIN, CELL_VOLTS_MAX) > CELL_VOLTS_MIN))
         {
-          cell_undervoltage_state = true;
-
-          error_report[i] = RC_BMSBOARD_ERROR_UNDERVOLTAGE;
+          //Raise a flag for Rove Comm battery undervoltage
+		  //turn off output
 
         } // end if
       }     // end if
-      if (adc_reading == CELL_V_ADC_MIN)
-      {
-        error_report[i] = RC_BMSBOARD_ERROR_PINFAULT;
-        pinfault_state = true;
-      } // end if
   }         // end for
   return;
 } // end func
@@ -294,22 +277,21 @@ void getOutVoltage(int &pack_out_voltage)
   pack_out_voltage = ((1269 * map(adc_reading, PACK_V_ADC_MIN, PACK_V_ADC_MAX, VOLTS_MIN, PACK_VOLTS_MAX)) / 1000); // previously1369
   ////Serial.print("mapped vout : ");
   ////Serial.println(pack_out_voltage);
-  if (pack_out_voltage > PACK_SAFETY_LOW)
-  {
-    forgotten_logic_switch = false; // logic switch isn't forgotten and a value is associated with time switch and number of volt. loops
-    time_switch_forgotten = 0;
-    num_out_voltage_loops = 0;
-  } // end if
-  if (pack_out_voltage < PACK_EFFECTIVE_ZERO)
+  if (pack_out_voltage < PACK_UNDERVOLTAGE)
   {
     delay(DEBOUNCE_DELAY);
-
-    if (((1269 * map(analogRead(PACK_V_MEAS_PIN), PACK_V_ADC_MIN, PACK_V_ADC_MAX, VOLTS_MIN, PACK_VOLTS_MAX)) / 1000) < PACK_EFFECTIVE_ZERO)
-    {
-      forgotten_logic_switch = true; // if the data values of adc are less than pack effective then logic switch is forgotten and estop switch is prevented from triggered
-      estop_released_beep = false;
-      num_out_voltage_loops++; // incrementing number of voltage loops if pack out voltage less than effective zero and parameters are not met of current if loop
-    }                            // end if
+	adc_reading = analogRead(PACK_V_MEAS_PIN);
+	pack_out_voltage = ((1269 * map(adc_reading, PACK_V_ADC_MIN, PACK_V_ADC_MAX, VOLTS_MIN, PACK_VOLTS_MAX)) / 1000); // previously1369
+	if(pack_out_voltage < PACK_UNDERVOLTAGE){
+		//raise a error flag for RoveComm pack under voltage
+		RoveComm.writeReliable(RC_BMSBOARD_PACKUNDERVOLTAGE_DATA_ID, pack_out_voltage);
+		delay(DEBOUNCE_DELAY);
+		
+		//turn off output
+		digitalWrite(PACK_OUT_CTR_PIN, LOW);
+		notifyUnderVoltage();
+		digitalWrite(LOGIC_SWITCH_CTR_PIN, HIGH); // BMS Suicide
+	}
   }                                // end if
   return;
 } // end func
