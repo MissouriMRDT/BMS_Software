@@ -55,6 +55,7 @@ const int CELL_PINS[] = {C1_V_MEAS_PIN, C2_V_MEAS_PIN, C3_V_MEAS_PIN, C4_V_MEAS_
 #define SENSOR_SCALE         	0.5
 #define SENSOR_BIAS          	VCC * SENSOR_SCALE //Viout voltage when current is at 0A (aka quiescent output voltage)
                           						 // Noise is 2mV, meaning the smallest current that the device is able to resolve is 0.3A
+// need to be tested for teensy
 #define CURRENT_MAX           	200000//mA; Current values must be sent over RoveComm as mA
 #define CURRENT_MIN           	-196207//mA
 #define OVERCURRENT           100000 //mA
@@ -64,7 +65,7 @@ const int CELL_PINS[] = {C1_V_MEAS_PIN, C2_V_MEAS_PIN, C3_V_MEAS_PIN, C4_V_MEAS_
 // Voltage Measurments			can we keep using those value? 
 #define CELL_VOLTS_MIN          651//ADC value  //Lowest cell voltage I expect to be able to measure.
 #define CELL_VOLTS_MAX        922 //ADC value //Highest possible cell voltage value we could measure.
-
+#define RC_BMSBOARD_PACKV_MEAS_DATA_COUNT	8// number of batteries
 //value from past year
 #define VOLTS_MIN               0 //mV    //Lowest possible pack voltage value we could measure.
 #define PACK_VOLTS_MAX        	33600 //mV	//Highest possible pack voltage value we could measure.
