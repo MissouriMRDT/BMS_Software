@@ -5,7 +5,7 @@
 // created by Sean Duda， Sanfan Liu
 // Included Libraries
 
-#include "D:\Github\Bms_Software\BMS_Software.h" // this is a main header file for the BMS.
+#include "BMS_Software.h" // this is a main header file for the BMS.
 // other code might possibly need to be included ask Anthony about files on Github. Include screenshot.
 
 //RoveComm setup
@@ -26,7 +26,7 @@ EthernetServer TCPServer(RC_ROVECOMM_BMSBOARD_PORT);
 
 
 //Setup and Main Loop
-//int8_t error_report[RC_BMSBOARD_ERROR_DATACOUNT] = 0;
+uint16_t error_report = 0; // 0-7 = cell undervoltage; 8 = pack undervoltage; 9 = pack overcurrent; 10 = pack superhot  
 bool pinfault_state = false;
 int num_loop = 0; // battery temperature sensor state defualt to false in case of an error report
 bool sw_ind_state = false;
@@ -225,7 +225,7 @@ void getMainCurrent(int32_t &main_current)
 
 //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-void getCellVoltage(uint16_t CELL_PINS[])
+void getCellVoltage(uint16_t CELL_MEAS_PINS[])
 {
   pinfault_state = false; // cell voltage pin reader if the pinfualt state is false then the code will continue
   // Serial.println();

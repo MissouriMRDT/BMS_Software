@@ -15,29 +15,29 @@
 
 // Pinmap ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 // Control Pins (output pins)
-#define BUZZER_CTR_PIN			PIN_C53
-#define FAN_1_CTR_PIN				PIN_A15
-#define SW_ERR_PIN					PIN_A14
-#define SW_IND_PIN					PIN_A13
-#define SER_TX_IND				  PIN_TX1
+#define BUZZER_CTR_PIN			C53
+#define FAN_1_CTR_PIN				A15
+#define SW_ERR_PIN					A14
+#define SW_IND_PIN					A13
+#define SER_TX_IND				  TX1
 
 //Sensor pins (input pins)
 //cell sensors
-#define C1_V_MEAS_PIN				PIN_A1
-#define C2_V_MEAS_PIN				PIN_A2
-#define C3_V_MEAS_PIN				PIN_A3
-#define C4_V_MEAS_PIN				PIN_A4
-#define C5_V_MEAS_PIN				PIN_A5
-#define C6_V_MEAS_PIN				PIN_A6
-#define C7_V_MEAS_PIN				PIN_A7
-#define C8_V_MEAS_PIN				PIN_A8
+#define C1_V_MEAS_PIN				A1
+#define C2_V_MEAS_PIN				A2
+#define C3_V_MEAS_PIN				A3
+#define C4_V_MEAS_PIN				A4
+#define C5_V_MEAS_PIN				A5
+#define C6_V_MEAS_PIN				A6
+#define C7_V_MEAS_PIN				A7
+#define C8_V_MEAS_PIN				A8
 //other system sensors
-#define PACK_V_MEAS_PIN			PIN_C52
-#define PACK_I_MEAS_PIN			PIN_A17
-#define TEMP_degC_MEAS_PI		PIN_A12
-#define LOGIC_V_MEAS_PIN		PIN_A10
+#define PACK_V_MEAS_PIN			C52
+#define PACK_I_MEAS_PIN			A17
+#define TEMP_degC_MEAS_PI		A12
+#define LOGIC_V_MEAS_PIN		A10
 
-const int CELL_PINS[] = {C1_V_MEAS_PIN, C2_V_MEAS_PIN, C3_V_MEAS_PIN, C4_V_MEAS_PIN, C5_V_MEAS_PIN, C6_V_MEAS_PIN, C7_V_MEAS_PIN, C1_V_MEAS_PIN};
+const int CELL_MEAS_PINS[] = {C1_V_MEAS_PIN, C2_V_MEAS_PIN, C3_V_MEAS_PIN, C4_V_MEAS_PIN, C5_V_MEAS_PIN, C6_V_MEAS_PIN, C7_V_MEAS_PIN, C8_V_MEAS_PIN};
 
 // Sensor Measurment: Constants and Calculations /////////////////////////////////////////////////////////////////////////////////////////////////////
 //
@@ -49,7 +49,7 @@ const int CELL_PINS[] = {C1_V_MEAS_PIN, C2_V_MEAS_PIN, C3_V_MEAS_PIN, C4_V_MEAS_
 // Teensy 4.1 specs
   // Find at: https://www.pjrc.com/store/teensy41.html
   // find at: https://www.pjrc.com/store/teensy41_pins.html
-#define SENSOR_SENSITIVITY   	0.0032 //V  3.3V / 1024 levels = 0.0032
+#define SENSOR_SENSITIVITY   	0.0066 //V  3.3V / 1024 levels = 0.0032
 
 //value from past year
 #define SENSOR_SCALE         	0.5
@@ -65,7 +65,7 @@ const int CELL_PINS[] = {C1_V_MEAS_PIN, C2_V_MEAS_PIN, C3_V_MEAS_PIN, C4_V_MEAS_
 // Voltage Measurments
 //cells
 #define CELL_VOLTS_MIN          2400//ADC value  //Lowest cell voltage I expect to be able to measure.
-#define CELL_VOLTS_MAX        3300 //ADC value //Highest possible cell voltage value we could measure.
+#define CELL_VOLTS_MAX        4200 //ADC value //Highest possible cell voltage value we could measure.
 #define CELL_V_ADC_MIN        651 //from analogread
 #define CELL_V_ADC_MAX        922  //from analogread
 #define CELL_COUNT	8// number of batteries
