@@ -20,6 +20,7 @@
 #define SW_ERR_PIN					A14
 #define SW_IND_PIN					A13
 #define SER_TX_IND				  TX1
+#define LOGIC_SWITCH_CTR_PIN  36
 
 //Sensor pins (input pins)
 //cell sensors

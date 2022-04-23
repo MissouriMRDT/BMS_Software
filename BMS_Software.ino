@@ -26,7 +26,7 @@ EthernetServer TCPServer(RC_ROVECOMM_BMSBOARD_PORT);
 
 
 //Setup and Main Loop
-uint16_t error_report = 0; // 0-7 = cell undervoltage; 8 = pack undervoltage; 9 = pack overcurrent; 10 = pack superhot  
+uint8_t error_report = 0;
 bool pinfault_state = false;
 int num_loop = 0; // battery temperature sensor state defualt to false in case of an error report
 bool sw_ind_state = false;
@@ -124,13 +124,14 @@ void loop() // object identifier loop when called id or loop it runs?
 
 // Static Variables for Below Functions /////////////////////////////////////////////////////////////////////////////////////////////////////////////
 // Current
-static int num_overcurrent = 0;
+static int num_overcurrent = 0; // if an overcurrent occurs once, it is 1; if it happens twice within some time period: it's greater than 1, BMS suicide
 static bool packOverCurrent_state = false;
 static float time_of_overcurrent = 0;
 
 // Voltage
 static bool pack_undervoltage_state = false;
-static bool cell_undervoltage_state = false;
+static uint8_t cell_undervoltage_state = 0;
+static uint8_t cell_undervoltage_count = 0;
 static bool low_voltage_state = false;
 static int num_low_voltage_reminder = 0;
 static int time_of_low_voltage = 0;
@@ -228,18 +229,23 @@ void getMainCurrent(int32_t &main_current)
 void getCellVoltage(uint16_t CELL_MEAS_PINS[])
 {
   pinfault_state = false; // cell voltage pin reader if the pinfualt state is false then the code will continue
+  cell_undervoltage_state = 0;
+  cell_undervoltage_count = 0;
   // Serial.println();
   ////Serial.println("///////////////////Cell values/////////////////////// ");
+
   for (int i = 0; i < CELL_COUNT; i++)	//loop for the number of batteri
   {
       int adc_reading = analogRead(CELL_MEAS_PINS[i]);
       // Serial.print("adc reading : ");
       // Serial.println(adc_reading);
 
-      if (adc_reading < CELL_V_ADC_MIN){	//handle if reading between 0V and 2.4V: lower than expecting power
+      if (adc_reading < CELL_V_ADC_MIN) 	//handle if reading between 0V and 2.4V: lower than expecting power
+      {
         adc_reading = CELL_V_ADC_MIN; 			 
       }     
-      else if (adc_reading > CELL_V_ADC_MAX){	//handle if reading above 3.3V	:above expecting voltage
+      else if (adc_reading > CELL_V_ADC_MAX) 	//handle if reading above 3.3V	:above expecting voltage
+      {
         adc_reading = CELL_V_ADC_MAX;
       }                                                                                                                     
       cell_voltage[i] = ((map(adc_reading, CELL_V_ADC_MIN, CELL_V_ADC_MAX, CELL_VOLTS_MIN, CELL_VOLTS_MAX)) ); //map ADC value to Volts
@@ -251,23 +257,20 @@ void getCellVoltage(uint16_t CELL_MEAS_PINS[])
 
         adc_reading = analogRead(CELL_MEAS_PINS[i]); // an analog signal creates a varying signal source
 
-      if (adc_reading < CELL_V_ADC_MIN){	//handle if reading between 0V and 2.4V: lower than expecting power
-        adc_reading = CELL_V_ADC_MIN; 			 
-      }     
-      else if (adc_reading > CELL_V_ADC_MAX){	//handle if reading above 3.3V	:above expecting voltage
-        adc_reading = CELL_V_ADC_MAX;
-      }                                                                                                                                                                                                                              // end if
+        if (adc_reading < CELL_V_ADC_MIN) 	//handle if reading between 0V and 2.4V: lower than expecting power
+        {
+          adc_reading = CELL_V_ADC_MIN; 			 
+        }     
+        else if (adc_reading > CELL_V_ADC_MAX) 	//handle if reading above 3.3V	:above expecting voltage
+        {
+          adc_reading = CELL_V_ADC_MAX;
+        }
+                                                                                                                                                                                                                                       // end if
         if ((map(adc_reading, CELL_V_ADC_MIN, CELL_V_ADC_MAX, CELL_VOLTS_MIN, CELL_VOLTS_MAX) <= CELL_UNDERVOLTAGE) 
             && (map(adc_reading, CELL_V_ADC_MIN, CELL_V_ADC_MAX, CELL_VOLTS_MIN, CELL_VOLTS_MAX) > CELL_VOLTS_MIN))//map and then compare to min and max expecting voltage
         {
-          //Raise a flag for Rove Comm battery undervoltage
-		RoveComm.writeReliable(RC_BMSBOARD_CELLUNDERVOLTAGE_DATA_ID, i);	//send which batter is causing the error(mA)
-		delay(DEBOUNCE_DELAY);
-		
-		//turn off output
-		digitalWrite(PACK_OUT_CTR_PIN, LOW);
-		notifyOverCurrent();
-		digitalWrite(LOGIC_SWITCH_CTR_PIN, HIGH);
+          cell_undervoltage_state |= (1 << i);
+          cell_undervoltage_count++;
         } // end if
       }     // end if
   }         // end for
@@ -288,18 +291,13 @@ void getOutVoltage(int &pack_out_voltage)
   if (pack_out_voltage < PACK_UNDERVOLTAGE)
   {
     delay(DEBOUNCE_DELAY);
-	adc_reading = analogRead(PACK_V_MEAS_PIN);
-	pack_out_voltage = ((1269 * map(adc_reading, PACK_V_ADC_MIN, PACK_V_ADC_MAX, VOLTS_MIN, PACK_VOLTS_MAX)) / 1000); // previously1369
-	if(pack_out_voltage < PACK_UNDERVOLTAGE){
-		//raise a error flag for RoveComm pack under voltage
-		RoveComm.writeReliable(RC_BMSBOARD_PACKUNDERVOLTAGE_DATA_ID, pack_out_voltage);	//send the error voltage value (V)
-		delay(DEBOUNCE_DELAY);
-		
-		//turn off output
-		digitalWrite(PACK_OUT_CTR_PIN, LOW);
-		notifyUnderVoltage();
-		digitalWrite(LOGIC_SWITCH_CTR_PIN, HIGH); // BMS Suicide
-	}
+	  adc_reading = analogRead(PACK_V_MEAS_PIN);
+	  pack_out_voltage = ((1269 * map(adc_reading, PACK_V_ADC_MIN, PACK_V_ADC_MAX, VOLTS_MIN, PACK_VOLTS_MAX)) / 1000); // previously1369
+	  if(pack_out_voltage < PACK_UNDERVOLTAGE)
+    {
+      //raise a error flag for RoveComm pack under voltage
+      pack_undervoltage_state = true;
+    }
   }                                // end if
   return;
 } // end func
@@ -410,6 +408,88 @@ void updateLCD(int32_t batt_temp, uint16_t cellVoltages[])
   }     // end for
   LCD_Update = false;
 } // end func
+
+//////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+void reactOverCurrent()
+{
+    if overcurrent_state
+    {
+        if num_overcurrent == 0
+        {
+            RoveComm.write(RC_BMSBOARD_PACKOVERCURRENT_DATA_ID, RC_BMSBOARD_PACKOVERCURRENT_DATA_COUNT);
+            delay(100);
+            digitalWrite(PACK_OUT_CTR_PIN, LOW);
+            time_of_overcurrent = millis();
+            notifyOverCurrent();
+            num_overcurrent++;
+        }
+       
+        else if num_overcurrent == 1
+        {
+            if millis() >= (time_of_overcurrent + RESTART_DELAY)
+            {
+                digitalWrite(PACK_OUT_CTR_PIN, HIGH);
+            }
+            
+            if millis() >= (time_of_overcurrent + RESTART_DELAY + RECHECK_DELAY)
+            {
+                time_of_overcurrent = 0;
+                overcurrent_state = false;
+                num_overcurrent = 0;
+            }
+        }
+
+        else
+        {
+            RoveComm.write(RC_BMSBOARD_PACKOVERCURRENT_DATA_ID, RC_BMSBOARD_PACKOVERCURRENT_DATA_COUNT);
+            delay(100);
+            digitalWrite(PACK_OUT_CTR_PIN, LOW);
+            notifyOverCurrent();
+            digitalWrite(LOGIC_SWITCH_CTR_PIN, HIGH); //BMS suicide
+        }
+    }
+    return;
+}
+
+//////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+void reactUnderVoltage()
+{
+    for (uint8_t i = 0; i < CELL_COUNT; i++)
+    {
+        if (cell_undervoltage_state &= (1 << i))
+        {
+            error_report |= (1 << i);
+        }
+        else
+        {
+            error_report &= !(1 << i);
+        }
+    }
+
+    if pack_undervoltage_state
+    {
+        RoveComm.write(RC_BMSBOARD_PACKUNDERVOLTAGE_DATA_ID, RC_BMSBOARD_PACKUNDERVOLTAGE_DATA_COUNT);
+        digitalWrite(PACK_OUT_CTR_PIN, LOW);
+        notifyUnderVoltage();
+        digitalWrite(LOGIC_SWITCH_CTR_PIN, HIGH); // BMS Suicide
+    }
+
+    if cell_undervoltage_state
+    {
+        RoveComm.write(RC_BMSBOARD_CELLUNDERVOLTAGE_DATA_ID, error_report);
+        digitalWrite(PACK_OUT_CTR_PIN, LOW);
+        notifyUnderVoltage();
+
+        if cell_undervoltage_count > 1
+        {
+          digitalWrite(LOGIC_SWITCH_CTR_PIN, HIGH); // BMS Suicide
+        }
+        
+    }
+    return;
+}
 
 //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
