@@ -495,12 +495,17 @@ void reactUnderVoltage()
 
 void reactOverTemp()
 {
-  if (overtemp_state == true && fans_on == false)
+  if overtemp_state
   {
-    fans_on = true;
-    digitalWrite(FAN_1_CTR_PIN, HIGH); // only one fan control is used to control all 4 fans colletively.
-    digitalWrite(FAN_PWR_IND_PIN, HIGH);
+    RoveComm.write(RC_BMSBOARD_PACKSUPERHOT_DATA_ID, RC_BMSBOARD_PACKSUPERHOT_DATA_COUNT);
+    if !(fans_on)
+    {
+      fans_on = true;
+      digitalWrite(FAN_1_CTR_PIN, HIGH); // only one fan control is used to control all 4 fans colletively.
+      digitalWrite(FAN_PWR_IND_PIN, HIGH);
+    }
   } // end if
+  
   if (overtemp_state == false && fans_on == true)
   {
     fans_on = false;
