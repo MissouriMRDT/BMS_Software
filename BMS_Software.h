@@ -9,18 +9,19 @@
 #ifndef BMS_Software
 #define BMS_Software
 
-//#include "RoveComm.h"
 
+//RoveComm setup
+#include "RoveComm.h"
 //RoveCommEthernet RoveComm; //extantiates a class
 
 // Pinmap ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 // Control Pins (output pins)
-#define BUZZER_CTR_PIN			C53
-#define FAN_1_CTR_PIN				A15
+#define BUZZER_CTR_PIN			37
+#define FAN_CTR_PIN				A15
 #define SW_ERR_PIN					A14
 #define SW_IND_PIN					A13
-#define SER_TX_IND				  TX1
-#define LOGIC_SWITCH_CTR_PIN  36
+#define SER_TX_IND				  Serial1
+#define PACK_GATE_CTR_PIN  36
 
 //Sensor pins (input pins)
 //cell sensors
@@ -33,10 +34,9 @@
 #define C7_V_MEAS_PIN				A7
 #define C8_V_MEAS_PIN				A8
 //other system sensors
-#define PACK_V_MEAS_PIN			C52
+#define PACK_V_MEAS_PIN			A10
 #define PACK_I_MEAS_PIN			A17
-#define TEMP_degC_MEAS_PI		A12
-#define LOGIC_V_MEAS_PIN		A10
+#define TEMP_degC_MEAS_PIN		A12
 
 const int CELL_MEAS_PINS[] = {C1_V_MEAS_PIN, C2_V_MEAS_PIN, C3_V_MEAS_PIN, C4_V_MEAS_PIN, C5_V_MEAS_PIN, C6_V_MEAS_PIN, C7_V_MEAS_PIN, C8_V_MEAS_PIN};
 
@@ -105,7 +105,7 @@ const int CELL_MEAS_PINS[] = {C1_V_MEAS_PIN, C2_V_MEAS_PIN, C3_V_MEAS_PIN, C4_V_
 #define ROVECOMM_UPDATE_DELAY	420 //ms
 
 // Function Declarations ///////////////////////////////////////////////////////////
-/* functions from past year
+
 void setInputPins();
 
 
@@ -118,7 +118,7 @@ void setOutputStates();
 void getMainCurrent(uint16_t &main_current);
 
 
-void getCellVoltage(uint16_t cell_voltage[RC_BMSBOARD_VMEASmV_DATACOUNT]);
+void getCellVoltage(uint16_t cell_voltage[RC_BMSBOARD_CELLV_MEAS_DATA_COUNT]);
 
 
 void getOutVoltage(int &pack_out_voltage);
@@ -127,7 +127,7 @@ void getOutVoltage(int &pack_out_voltage);
 void getBattTemp(uint32_t &batt_temp);
 
 
-void updateLCD(int32_t batt_temp, uint16_t cellVoltages[]);
+void updateLCD(int32_t batt_temp, uint16_t cell_voltages[]);
 
 
 void reactOverCurrent();
@@ -145,7 +145,7 @@ void reactForgottenLogicSwitch();
 void reactEstopReleased();
 
 
-void reactLowVoltage(uint16_t cell_voltage[RC_BMSBOARD_VMEASmV_DATACOUNT]);
+void reactLowVoltage(uint16_t cell_voltage[RC_BMSBOARD_CELLV_MEAS_DATA_COUNT]);
 
 
 void setEstop(uint8_t data);
@@ -183,5 +183,5 @@ void asterisks();
 
 void movingRover();
 
-*/
+
 #endif

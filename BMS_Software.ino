@@ -8,12 +8,7 @@
 #include "BMS_Software.h" // this is a main header file for the BMS.
 // other code might possibly need to be included ask Anthony about files on Github. Include screenshot.
 
-//RoveComm setup
-#include "RoveComm.h"
 
-#if defined(ARDUINO_TEENSY41)
-#include <TimerOne.h>
-#endif
 //rovecomm and packet instances
 RoveCommEthernet RoveComm;
 rovecomm_packet packet;
@@ -32,6 +27,10 @@ int num_loop = 0; // battery temperature sensor state defualt to false in case o
 bool sw_ind_state = false;
 uint32_t time_since_Rovecomm_update = 0; // intial time of Rovecomm updating
 uint32_t meas_batt_temp[NUM_TEMP_AVERAGE];
+int32_t main_current; //PACK_I
+uint16_t cell_voltages[CELL_COUNT]; //Cell Voltages
+int pack_out_voltage; //PACK_V
+uint32_t batt_temp;   //TEMP_degC
 
 void setup()
 
@@ -40,7 +39,7 @@ void setup()
   Serial.begin(9600);
 
   //initialize the ethernet device and rovecomm instance
-  RoveComm.begin(RC_DRIVEBOARD_FOURTHOCTET, TCPServer);
+  RoveComm.begin(RC_BMSBOARD_FOURTHOCTET, &TCPServer, RC_ROVECOMM_BMSBOARD_MAC);
   delay(100);
 
   //update timekeeping
@@ -55,10 +54,6 @@ void setup()
 
 void loop() // object identifier loop when called id or loop it runs?
 {
-  int32_t main_current; //PACK_I
-  uint16_t cell_voltages[CELL_COUNT]; //Cell Voltages
-  int pack_out_voltage; //PACK_V
-  uint32_t batt_temp;   //TEMP_degC
   rovecomm_packet packet;
 
   // Serial.println();
@@ -80,11 +75,11 @@ void loop() // object identifier loop when called id or loop it runs?
   {
     // batt_temp = 23456;//just for fixin reds temp values
     ////Serial.println(batt_temp);
-    RoveComm.writeReliable(RC_BMSBOARD_PACKI_MEAS_DATA_ID, main_current);
+    RoveComm.write(RC_BMSBOARD_PACKI_MEAS_DATA_ID, RC_BMSBOARD_PACKI_MEAS_DATA_COUNT, main_current);
     delay(100);
-    RoveComm.writeReliable(RC_BMSBOARD_PACKV_MEAS_DATA_ID, cell_voltages); // this if statement is created to write information of current, cell volt.,
+    RoveComm.write(RC_BMSBOARD_PACKV_MEAS_DATA_ID, RC_BMSBOARD_PACKV_MEAS_DATA_COUNT, cell_voltages); // this if statement is created to write information of current, cell volt.,
     delay(100);                                     // and battery temperature if the update delay is greater or equal to time since last update
-    RoveComm.writeReliable(RC_BMSBOARD_TEMP_MEAS_DATA_ID, batt_temp);
+    RoveComm.write(RC_BMSBOARD_TEMP_MEAS_DATA_ID, RC_BMSBOARD_TEMP_MEAS_DATA_COUNT, batt_temp);
     delay(100);
 
     time_since_Rovecomm_update = millis();
@@ -155,7 +150,6 @@ void setInputPins()
 {
   pinMode(PACK_I_MEAS_PIN, INPUT); // pack current sensor
   pinMode(PACK_V_MEAS_PIN, INPUT); // pack voltage sensor
-  pinMode(LOGIC_V_MEAS_PIN, INPUT); //output logic voltage sensor
   pinMode(TEMP_degC_MEAS_PIN, INPUT); // temperature sensor
   pinMode(C1_V_MEAS_PIN, INPUT);      //cell voltage sensor
   pinMode(C2_V_MEAS_PIN, INPUT);
@@ -202,7 +196,7 @@ void getMainCurrent(int32_t &main_current)
   ////Serial.print("adc current:  ");
   ////Serial.println(analogRead(PACK_I_MEAS_PIN));
 
-  main_current =  map(analogRead(PACK_I_MEAS_PIN), CURRENT_ADC_MIN, CURRENT_ADC_MAX, CURRENT_MIN, CURRENT_MAX) //fetch pack current
+  main_current =  map(analogRead(PACK_I_MEAS_PIN), CURRENT_ADC_MIN, CURRENT_ADC_MAX, CURRENT_MIN, CURRENT_MAX); //fetch pack current
   // display of current functions
   ////Serial.print("current:  ");
   ////Serial.println(main_current);
@@ -210,16 +204,12 @@ void getMainCurrent(int32_t &main_current)
   if (main_current > OVERCURRENT)		//check current > overcurrent, if not return
   {
     delay(DEBOUNCE_DELAY); // debounce delay is to check twice in a short period of time
-	main_current =  map(analogRead(PACK_I_MEAS_PIN), CURRENT_ADC_MIN, CURRENT_ADC_MAX, CURRENT_MIN, CURRENT_MAX)	//fetch again to double check value
+	  main_current =  map(analogRead(PACK_I_MEAS_PIN), CURRENT_ADC_MIN, CURRENT_ADC_MAX, CURRENT_MIN, CURRENT_MAX);	//fetch again to double check value
     if (main_current > OVERCURRENT)				//if current > overcurrent, send out a warning
     {
 	   //send error flag to roveComm for package over current
-      RoveComm.writeReliable(RC_BMSBOARD_PACKOVERCURRENT_DATA_ID, main_current);//send the error current value
-		//turn off output
-		digitalWrite(PACK_OUT_CTR_PIN, LOW);
-		notifyOverCurrent();
-		digitalWrite(LOGIC_SWITCH_CTR_PIN, HIGH);
-	}                          // end if
+      packOverCurrent_state = true;
+	  }                          // end if
   }                              // end if
   return;
 } // end func
@@ -248,10 +238,10 @@ void getCellVoltage(uint16_t CELL_MEAS_PINS[])
       {
         adc_reading = CELL_V_ADC_MAX;
       }                                                                                                                     
-      cell_voltage[i] = ((map(adc_reading, CELL_V_ADC_MIN, CELL_V_ADC_MAX, CELL_VOLTS_MIN, CELL_VOLTS_MAX)) ); //map ADC value to Volts
+      cell_voltages[i] = ((map(adc_reading, CELL_V_ADC_MIN, CELL_V_ADC_MAX, CELL_VOLTS_MIN, CELL_VOLTS_MAX))); //map ADC value to Volts
       // Serial.print("cell voltage : ");
       // Serial.println(cell_voltage[i]);
-      if ((cell_voltage[i] > CELL_VOLTS_MIN) && (cell_voltage[i] < CELL_UNDERVOLTAGE))		//if between 2.4V and 2.65V
+      if ((cell_voltages[i] > CELL_VOLTS_MIN) && (cell_voltages[i] < CELL_UNDERVOLTAGE))		//if between 2.4V and 2.65V
       {
         delay(DEBOUNCE_DELAY);	//double check
 
@@ -265,7 +255,7 @@ void getCellVoltage(uint16_t CELL_MEAS_PINS[])
         {
           adc_reading = CELL_V_ADC_MAX;
         }
-                                                                                                                                                                                                                                       // end if
+        cell_voltages[i] = ((map(adc_reading, CELL_V_ADC_MIN, CELL_V_ADC_MAX, CELL_VOLTS_MIN, CELL_VOLTS_MAX)));                                                                                                                                                                                                                               // end if
         if ((map(adc_reading, CELL_V_ADC_MIN, CELL_V_ADC_MAX, CELL_VOLTS_MIN, CELL_VOLTS_MAX) <= CELL_UNDERVOLTAGE) 
             && (map(adc_reading, CELL_V_ADC_MIN, CELL_V_ADC_MAX, CELL_VOLTS_MIN, CELL_VOLTS_MAX) > CELL_VOLTS_MIN))//map and then compare to min and max expecting voltage
         {
@@ -357,7 +347,7 @@ void getBattTemp(uint32_t &batt_temp)
 
 //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-void updateLCD(int32_t batt_temp, uint16_t cellVoltages[])
+void updateLCD(int32_t batt_temp, uint16_t cell_voltages[])
 {
   // Serial.print("**************************************************************************");
 
@@ -367,7 +357,7 @@ void updateLCD(int32_t batt_temp, uint16_t cellVoltages[])
   float packVoltage = 0; // V not mV
   float packTemp = 0;    // degC
 
-  packVoltage = (static_cast<float>(cellVoltages[0]) / 1000);
+  packVoltage = (static_cast<float>(cell_voltages[0]) / 1000);
   // Serial.print("temp   ");
   // Serial.println(batt_temp);
   packTemp = (static_cast<float>(batt_temp) / 1000);
@@ -393,7 +383,7 @@ void updateLCD(int32_t batt_temp, uint16_t cellVoltages[])
   for (int i = 0; i < NUM_CELLS; i++)
   {
     float temp_cell_voltage = 0;
-    temp_cell_voltage = (static_cast<float>(cellVoltages[i + 1]) / 1000);
+    temp_cell_voltage = (static_cast<float>(cell_voltages[i + 1]) / 1000);
     Serial3.print(i + 1); // Printing cell numbers with increased value.
     Serial3.print(":");
     Serial3.print(temp_cell_voltage, 1); // cellVoltage from BMS in V?  shows one decimal place
@@ -413,40 +403,41 @@ void updateLCD(int32_t batt_temp, uint16_t cellVoltages[])
 
 void reactOverCurrent()
 {
-    if overcurrent_state
+    if (packOverCurrent_state)
     {
-        if num_overcurrent == 0
+        if (num_overcurrent == 0)
         {
-            RoveComm.write(RC_BMSBOARD_PACKOVERCURRENT_DATA_ID, RC_BMSBOARD_PACKOVERCURRENT_DATA_COUNT);
+            RoveComm.write(RC_BMSBOARD_PACKOVERCURRENT_DATA_ID, RC_BMSBOARD_PACKOVERCURRENT_DATA_COUNT, main_current);
             delay(100);
-            digitalWrite(PACK_OUT_CTR_PIN, LOW);
+            digitalWrite(PACK_GATE_CTR_PIN, LOW);
             time_of_overcurrent = millis();
             notifyOverCurrent();
             num_overcurrent++;
         }
        
-        else if num_overcurrent == 1
+        else if (num_overcurrent == 1)
         {
-            if millis() >= (time_of_overcurrent + RESTART_DELAY)
+            if (millis() >= (time_of_overcurrent + RESTART_DELAY))
             {
-                digitalWrite(PACK_OUT_CTR_PIN, HIGH);
+                digitalWrite(PACK_GATE_CTR_PIN, HIGH);
             }
             
-            if millis() >= (time_of_overcurrent + RESTART_DELAY + RECHECK_DELAY)
+            if (millis() >= (time_of_overcurrent + RESTART_DELAY + RECHECK_DELAY))
             {
                 time_of_overcurrent = 0;
-                overcurrent_state = false;
+                packOverCurrent_state = false;
                 num_overcurrent = 0;
             }
         }
 
         else
         {
-            RoveComm.write(RC_BMSBOARD_PACKOVERCURRENT_DATA_ID, RC_BMSBOARD_PACKOVERCURRENT_DATA_COUNT);
-            delay(100);
-            digitalWrite(PACK_OUT_CTR_PIN, LOW);
+            RoveComm.write(RC_BMSBOARD_PACKOVERCURRENT_DATA_ID, RC_BMSBOARD_PACKOVERCURRENT_DATA_COUNT, main_current);
+            
+            digitalWrite(PACK_GATE_CTR_PIN, LOW);
             notifyOverCurrent();
-            digitalWrite(LOGIC_SWITCH_CTR_PIN, HIGH); //BMS suicide
+            delay(100);
+            digitalWrite(PACK_GATE_CTR_PIN, HIGH); //BMS suicide
         }
     }
     return;
@@ -468,25 +459,27 @@ void reactUnderVoltage()
         }
     }
 
-    if pack_undervoltage_state
+    if (pack_undervoltage_state)
     {
-        RoveComm.write(RC_BMSBOARD_PACKUNDERVOLTAGE_DATA_ID, RC_BMSBOARD_PACKUNDERVOLTAGE_DATA_COUNT);
-        digitalWrite(PACK_OUT_CTR_PIN, LOW);
+        RoveComm.write(RC_BMSBOARD_PACKUNDERVOLTAGE_DATA_ID, RC_BMSBOARD_PACKUNDERVOLTAGE_DATA_COUNT, pack_out_voltage);
+        digitalWrite(PACK_GATE_CTR_PIN, LOW);
         notifyUnderVoltage();
-        digitalWrite(LOGIC_SWITCH_CTR_PIN, HIGH); // BMS Suicide
+        delay(100);
+        digitalWrite(PACK_GATE_CTR_PIN, HIGH); // BMS Suicide
     }
 
-    if cell_undervoltage_state
+    if (cell_undervoltage_state)
     {
-        RoveComm.write(RC_BMSBOARD_CELLUNDERVOLTAGE_DATA_ID, error_report);
-        digitalWrite(PACK_OUT_CTR_PIN, LOW);
+        RoveComm.write(RC_BMSBOARD_CELLUNDERVOLTAGE_DATA_ID, RC_BMSBOARD_CELLUNDERVOLTAGE_DATA_COUNT, error_report);
         notifyUnderVoltage();
 
-        if cell_undervoltage_count > 1
+        if (cell_undervoltage_count > 1)
         {
-          digitalWrite(LOGIC_SWITCH_CTR_PIN, HIGH); // BMS Suicide
+          digitalWrite(PACK_GATE_CTR_PIN, LOW);
+          notifyUnderVoltage();
+          delay(100);
+          digitalWrite(PACK_GATE_CTR_PIN, HIGH); // BMS Suicide
         }
-        
     }
     return;
 }
@@ -497,19 +490,19 @@ void reactOverTemp()
 {
   if overtemp_state
   {
-    RoveComm.write(RC_BMSBOARD_PACKSUPERHOT_DATA_ID, RC_BMSBOARD_PACKSUPERHOT_DATA_COUNT);
+    RoveComm.write(RC_BMSBOARD_PACKSUPERHOT_DATA_ID, RC_BMSBOARD_PACKSUPERHOT_DATA_COUNT, batt_temp);
     if !(fans_on)
     {
       fans_on = true;
-      digitalWrite(FAN_1_CTR_PIN, HIGH); // only one fan control is used to control all 4 fans colletively.
+      digitalWrite(FAN_CTR_PIN, HIGH); // only one fan control is used to control all 4 fans colletively.
       digitalWrite(FAN_PWR_IND_PIN, HIGH);
     }
   } // end if
-  
+
   if (overtemp_state == false && fans_on == true)
   {
     fans_on = false;
-    digitalWrite(FAN_1_CTR_PIN, LOW);
+    digitalWrite(FAN_CTR_PIN, LOW);
     digitalWrite(FAN_PWR_IND_PIN, LOW);
   } // end if
   return;
