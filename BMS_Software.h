@@ -115,19 +115,19 @@ void setOutputPins();
 void setOutputStates();
 
 
-void getMainCurrent(uint16_t &main_current);
+void getMainCurrent(float &main_current);
 
 
-void getCellVoltage(uint16_t cell_voltage[RC_BMSBOARD_CELLV_MEAS_DATA_COUNT]);
+void getCellVoltage(float cell_voltage[RC_BMSBOARD_CELLV_MEAS_DATA_COUNT]);
 
 
-void getOutVoltage(int &pack_out_voltage);
+void getOutVoltage(float &pack_out_voltage);
 
 
 void getBattTemp(uint32_t &batt_temp);
 
 
-void updateLCD(int32_t batt_temp, uint16_t cell_voltages[]);
+void updateLCD(int32_t batt_temp, float cell_voltages[]);
 
 
 void reactOverCurrent();
@@ -145,7 +145,7 @@ void reactForgottenLogicSwitch();
 void reactEstopReleased();
 
 
-void reactLowVoltage(uint16_t cell_voltage[RC_BMSBOARD_CELLV_MEAS_DATA_COUNT]);
+void reactLowVoltage(float cell_voltage[RC_BMSBOARD_CELLV_MEAS_DATA_COUNT]);
 
 
 void setEstop(uint8_t data);

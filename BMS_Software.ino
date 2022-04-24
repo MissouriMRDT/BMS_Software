@@ -27,9 +27,9 @@ int num_loop = 0; // battery temperature sensor state defualt to false in case o
 bool sw_ind_state = false;
 uint32_t time_since_Rovecomm_update = 0; // intial time of Rovecomm updating
 uint32_t meas_batt_temp[NUM_TEMP_AVERAGE];
-int32_t main_current; //PACK_I
-uint16_t cell_voltages[CELL_COUNT]; //Cell Voltages
-int pack_out_voltage; //PACK_V
+float main_current; //PACK_I
+float cell_voltages[CELL_COUNT]; //Cell Voltages
+float pack_out_voltage; //PACK_V
 uint32_t batt_temp;   //TEMP_degC
 
 void setup()
@@ -77,10 +77,11 @@ void loop() // object identifier loop when called id or loop it runs?
     ////Serial.println(batt_temp);
     RoveComm.write(RC_BMSBOARD_PACKI_MEAS_DATA_ID, RC_BMSBOARD_PACKI_MEAS_DATA_COUNT, main_current);
     delay(100);
-    RoveComm.write(RC_BMSBOARD_PACKV_MEAS_DATA_ID, RC_BMSBOARD_PACKV_MEAS_DATA_COUNT, cell_voltages); // this if statement is created to write information of current, cell volt.,
+    RoveComm.write(RC_BMSBOARD_PACKV_MEAS_DATA_ID, RC_BMSBOARD_PACKV_MEAS_DATA_COUNT, pack_out_voltage); // this if statement is created to write information of current, cell volt.,
     delay(100);                                     // and battery temperature if the update delay is greater or equal to time since last update
     RoveComm.write(RC_BMSBOARD_TEMP_MEAS_DATA_ID, RC_BMSBOARD_TEMP_MEAS_DATA_COUNT, batt_temp);
     delay(100);
+    RoveComm.write(RC_BMSBOARD_CELLV_MEAS_DATA_ID,RC_BMSBOARD_CELLV_MEAS_DATA_COUNT, cell_voltages);
 
     time_since_Rovecomm_update = millis();
   }
@@ -191,7 +192,7 @@ void setOutputStates()
 
 //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-void getMainCurrent(int32_t &main_current)
+void getMainCurrent(float &main_current)
 {
   ////Serial.print("adc current:  ");
   ////Serial.println(analogRead(PACK_I_MEAS_PIN));
@@ -216,7 +217,7 @@ void getMainCurrent(int32_t &main_current)
 
 //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-void getCellVoltage(uint16_t CELL_MEAS_PINS[])
+void getCellVoltage(float CELL_MEAS_PINS[])
 {
   pinfault_state = false; // cell voltage pin reader if the pinfualt state is false then the code will continue
   cell_undervoltage_state = 0;
@@ -226,7 +227,7 @@ void getCellVoltage(uint16_t CELL_MEAS_PINS[])
 
   for (int i = 0; i < CELL_COUNT; i++)	//loop for the number of batteri
   {
-      int adc_reading = analogRead(CELL_MEAS_PINS[i]);
+      float adc_reading = analogRead(CELL_MEAS_PINS[i]);
       // Serial.print("adc reading : ");
       // Serial.println(adc_reading);
 
@@ -269,7 +270,7 @@ void getCellVoltage(uint16_t CELL_MEAS_PINS[])
 
 //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-void getOutVoltage(int &pack_out_voltage)
+void getOutVoltage(float &pack_out_voltage)
 {
   int adc_reading = analogRead(PACK_V_MEAS_PIN);
   ////Serial.print("adc vout : ");
@@ -347,7 +348,7 @@ void getBattTemp(uint32_t &batt_temp)
 
 //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-void updateLCD(int32_t batt_temp, uint16_t cell_voltages[])
+void updateLCD(int32_t batt_temp, float cell_voltages[])
 {
   // Serial.print("**************************************************************************");
 
@@ -407,7 +408,7 @@ void reactOverCurrent()
     {
         if (num_overcurrent == 0)
         {
-            RoveComm.write(RC_BMSBOARD_PACKOVERCURRENT_DATA_ID, RC_BMSBOARD_PACKOVERCURRENT_DATA_COUNT, main_current);
+            RoveComm.write(RC_BMSBOARD_PACKOVERCURRENT_DATA_ID, RC_BMSBOARD_PACKOVERCURRENT_DATA_COUNT, (uint8_t) packOverCurrent_state);
             delay(100);
             digitalWrite(PACK_GATE_CTR_PIN, LOW);
             time_of_overcurrent = millis();
@@ -432,7 +433,7 @@ void reactOverCurrent()
 
         else
         {
-            RoveComm.write(RC_BMSBOARD_PACKOVERCURRENT_DATA_ID, RC_BMSBOARD_PACKOVERCURRENT_DATA_COUNT, main_current);
+            RoveComm.write(RC_BMSBOARD_PACKOVERCURRENT_DATA_ID, RC_BMSBOARD_PACKOVERCURRENT_DATA_COUNT, (uint8_t) packOverCurrent_state);
             
             digitalWrite(PACK_GATE_CTR_PIN, LOW);
             notifyOverCurrent();
@@ -461,11 +462,9 @@ void reactUnderVoltage()
 
     if (pack_undervoltage_state)
     {
-        RoveComm.write(RC_BMSBOARD_PACKUNDERVOLTAGE_DATA_ID, RC_BMSBOARD_PACKUNDERVOLTAGE_DATA_COUNT, pack_out_voltage);
-        digitalWrite(PACK_GATE_CTR_PIN, LOW);
+        RoveComm.write(RC_BMSBOARD_PACKUNDERVOLTAGE_DATA_ID, RC_BMSBOARD_PACKUNDERVOLTAGE_DATA_COUNT, (uint8_t) pack_undervoltage_state);
+        digitalWrite(PACK_GATE_CTR_PIN, LOW); // BMS Suicide
         notifyUnderVoltage();
-        delay(100);
-        digitalWrite(PACK_GATE_CTR_PIN, HIGH); // BMS Suicide
     }
 
     if (cell_undervoltage_state)
@@ -475,10 +474,8 @@ void reactUnderVoltage()
 
         if (cell_undervoltage_count > 1)
         {
-          digitalWrite(PACK_GATE_CTR_PIN, LOW);
+          digitalWrite(PACK_GATE_CTR_PIN, LOW); // BMS Suicide
           notifyUnderVoltage();
-          delay(100);
-          digitalWrite(PACK_GATE_CTR_PIN, HIGH); // BMS Suicide
         }
     }
     return;
@@ -488,14 +485,13 @@ void reactUnderVoltage()
 
 void reactOverTemp()
 {
-  if overtemp_state
+  if (overtemp_state)
   {
-    RoveComm.write(RC_BMSBOARD_PACKSUPERHOT_DATA_ID, RC_BMSBOARD_PACKSUPERHOT_DATA_COUNT, batt_temp);
-    if !(fans_on)
+    RoveComm.write(RC_BMSBOARD_PACKSUPERHOT_DATA_ID, RC_BMSBOARD_PACKSUPERHOT_DATA_COUNT, (uint8_t) overtemp_state);
+    if (!(fans_on))
     {
       fans_on = true;
       digitalWrite(FAN_CTR_PIN, HIGH); // only one fan control is used to control all 4 fans colletively.
-      digitalWrite(FAN_PWR_IND_PIN, HIGH);
     }
   } // end if
 
@@ -503,7 +499,6 @@ void reactOverTemp()
   {
     fans_on = false;
     digitalWrite(FAN_CTR_PIN, LOW);
-    digitalWrite(FAN_PWR_IND_PIN, LOW);
   } // end if
   return;
 } // end func
@@ -528,7 +523,7 @@ void reactForgottenLogicSwitch()
       } // end if
       if (millis() >= time_switch_forgotten + IDLE_SHUTOFF_TIME)
       {
-        digitalWrite(LOGIC_SWITCH_CTR_PIN, HIGH); // BMS Suicide
+        digitalWrite(PACK_GATE_CTR_PIN, HIGH); // BMS Suicide
       }                                             // end if
     }                                                 // end if
   }                                                     // end if
@@ -545,7 +540,7 @@ void reactEstopReleased()
 }
 //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-void reactLowVoltage(uint16_t cell_voltage[CELL_COUNT])
+void reactLowVoltage(float cell_voltage[CELL_COUNT])
 {
   ////Serial.println("reactLowVoltage");
   if ((cell_voltage[0] > PACK_UNDERVOLTAGE) && (cell_voltage[0] <= PACK_LOWVOLTAGE) && (low_voltage_state = false)) // first instance of low voltage
@@ -572,20 +567,21 @@ void setEstop(uint8_t data)
 {
   if (data == 0)
   {
-    digitalWrite(PACK_OUT_CTR_PIN, LOW);
+    digitalWrite(PACK_GATE_CTR_PIN, LOW);
 
     notifyEstop();
+    delay(100);
 
-    digitalWrite(LOGIC_SWITCH_CTR_PIN, HIGH); // BMS Suicide
+    digitalWrite(PACK_GATE_CTR_PIN, HIGH); // BMS Suicide
     // If BMS is not turned off here, the PACK_OUT_CTR_PIN would be low and there would be no way to get it high again without reseting BMS anyway.
   } // end if
   else
   {
-    digitalWrite(PACK_OUT_CTR_PIN, LOW);
+    digitalWrite(PACK_GATE_CTR_PIN, LOW);
     notifyReboot();
     delay(data * 1000); // Receiving delay in seconds so it needs to be converted to msec.
 
-    digitalWrite(PACK_OUT_CTR_PIN, HIGH);
+    digitalWrite(PACK_GATE_CTR_PIN, HIGH);
   } // end else
   return;
 } // end func
