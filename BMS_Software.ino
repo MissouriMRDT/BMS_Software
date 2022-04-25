@@ -10,36 +10,21 @@
 RoveCommEthernet RoveComm;
 rovecomm_packet packet;
 
-// timekeeping variables
-uint32_t last_update_time;
-
 // declare the Ethernet Server in the top level sketch with the requisite port ID any time you want to use RoveComm
 EthernetServer TCPServer(RC_ROVECOMM_BMSBOARD_PORT);
 
-// Setup and Main Loop
-uint8_t error_report = 0;
-bool pinfault_state = false;
-uint8_t num_loop = 0; // battery temperature sensor state defualt to false in case of an error report
-bool sw_ind_state = false;
-uint32_t time_since_Rovecomm_update = 0; // intial time of Rovecomm updating
-uint32_t meas_batt_temp[NUM_TEMP_AVERAGE];
-float main_current;              // PACK_I
-float cell_voltages[CELL_COUNT]; // Cell Voltages
-float pack_out_voltage;          // PACK_V
-float batt_temp;              // TEMP_degC
+
 
 void setup()
 
 {
     // start up serial communication
     Serial.begin(9600);
+    Telemetry.begin(telemetry, 150000);
 
     // initialize the ethernet device and rovecomm instance
     RoveComm.begin(RC_BMSBOARD_FOURTHOCTET, &TCPServer, RC_ROVECOMM_BMSBOARD_MAC);
     delay(100);
-
-    // update timekeeping
-    last_update_time = millis();
 
     setInputPins();
     setOutputPins();
@@ -60,27 +45,12 @@ void loop() // object identifier loop when called id or loop it runs?
     reactUnderVoltage();            // Problems stated include: undervolting batteries, low voltage, Estop pressed, ---
     reactLowVoltage(cell_voltages); // Forgotten Logic Switch, and Over temperature.
 
-    getOutVoltage(pack_out_voltage);
+    getPackVoltage(pack_out_voltage);
     reactEstopReleased();
     reactForgottenLogicSwitch();
 
     getBattTemp(batt_temp);
     reactOverTemp();
-
-    if ((millis() - time_since_Rovecomm_update) >= ROVECOMM_UPDATE_DELAY)
-    {
-        // batt_temp = 23456;//just for fixin reds temp values
-        ////Serial.println(batt_temp);
-        RoveComm.write(RC_BMSBOARD_PACKI_MEAS_DATA_ID, RC_BMSBOARD_PACKI_MEAS_DATA_COUNT, main_current);
-        delay(100);
-        RoveComm.write(RC_BMSBOARD_PACKV_MEAS_DATA_ID, RC_BMSBOARD_PACKV_MEAS_DATA_COUNT, pack_out_voltage); // this if statement is created to write information of current, cell volt.,
-        delay(100);                                                                                          // and battery temperature if the update delay is greater or equal to time since last update
-        RoveComm.write(RC_BMSBOARD_TEMP_MEAS_DATA_ID, RC_BMSBOARD_TEMP_MEAS_DATA_COUNT, batt_temp);
-        delay(100);
-        RoveComm.write(RC_BMSBOARD_CELLV_MEAS_DATA_ID, RC_BMSBOARD_CELLV_MEAS_DATA_COUNT, cell_voltages);
-
-        time_since_Rovecomm_update = millis();
-    }
 
     packet = RoveComm.read();
     if (packet.data_id != 0)
@@ -96,7 +66,7 @@ void loop() // object identifier loop when called id or loop it runs?
         } // end switch
     }     // end if
 
-    if ((num_loop == UPDATE_ON_LOOP) // SW_IND led will blink while the code is looping and LCD will update
+    if (num_loop == UPDATE_ON_LOOP) // SW_IND led will blink while the code is looping and LCD will update
     {
         if (sw_ind_state == false)
         {
@@ -207,6 +177,10 @@ void getMainCurrent(float &main_current)
         {
             // send error flag to roveComm for package over current
             packOverCurrent_state = true;
+        }
+        else
+        {
+            packOverCurrent_state = false;
         } // end if
     }
     else
@@ -270,25 +244,33 @@ void getCellVoltage(float CELL_MEAS_PINS[])
 
 //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-void getOutVoltage(float &pack_out_voltage)
+void getPackVoltage(float &pack_out_voltage)
 {
     int adc_reading = analogRead(PACK_V_MEAS_PIN);
     ////Serial.print("adc vout : ");
     ////Serial.println(adc_reading);
     ////////////////////////////////////HERE////////////////////////////////////////////////
-    pack_out_voltage = ((1269 * map(adc_reading, PACK_V_ADC_MIN, PACK_V_ADC_MAX, VOLTS_MIN, PACK_VOLTS_MAX)) / 1000); // 1269 is the voltage to analog signal ratio
+    pack_out_voltage = ((VOLTAGE_TO_SIGNAL_RATIO * map(adc_reading, PACK_V_ADC_MIN, PACK_V_ADC_MAX, VOLTS_MIN, PACK_VOLTS_MAX)) / 1000); // 1269 is the voltage to analog signal ratio
     ////Serial.print("mapped vout : ");
     ////Serial.println(pack_out_voltage);
     if (pack_out_voltage < PACK_UNDERVOLTAGE)
     {
         delay(DEBOUNCE_DELAY);
         adc_reading = analogRead(PACK_V_MEAS_PIN);
-        pack_out_voltage = ((1269 * map(adc_reading, PACK_V_ADC_MIN, PACK_V_ADC_MAX, VOLTS_MIN, PACK_VOLTS_MAX)) / 1000); // previously1369
+        pack_out_voltage = ((VOLTAGE_TO_SIGNAL_RATIO * map(adc_reading, PACK_V_ADC_MIN, PACK_V_ADC_MAX, VOLTS_MIN, PACK_VOLTS_MAX)) / 1000); // previously1369
         if (pack_out_voltage < PACK_UNDERVOLTAGE)
         {
             // raise a error flag for RoveComm pack under voltage
             pack_undervoltage_state = true;
         }
+        else
+        {
+            pack_undervoltage_state = false;
+        }
+    }
+    else
+    {
+        pack_undervoltage_state = false;
     } // end if
     return;
 } // end func
@@ -307,10 +289,10 @@ void getBattTemp(float &batt_temp)
         adc_reading = TEMP_ADC_MIN;
     }
 
-    meas_batt_temp[num_meas_batt_temp] = (1060 * (map(adc_reading, TEMP_ADC_MIN, TEMP_ADC_MAX, TEMP_MIN, TEMP_MAX)) / 1000); // function of measuring battery temp with
+    meas_batt_temp[num_meas_batt_temp] = (MEAS_BATT_TEMP_CONST * (map(adc_reading, TEMP_ADC_MIN, TEMP_ADC_MAX, TEMP_MIN, TEMP_MAX)) / 1000); // function of measuring battery temp with
     num_meas_batt_temp++;                                                                                                    // increasing interval of the function
 
-    batt_temp = (925 * (map(analogRead(TEMP_degC_MEAS_PIN), TEMP_ADC_MIN, TEMP_ADC_MAX, TEMP_MIN, TEMP_MAX)) / 1000); // mapping analog signals of battery temp data
+    batt_temp = (BATT_TEMP_CONST * (map(analogRead(TEMP_degC_MEAS_PIN), TEMP_ADC_MIN, TEMP_ADC_MAX, TEMP_MIN, TEMP_MAX)) / 1000); // mapping analog signals of battery temp data
 
     if (num_meas_batt_temp % NUM_TEMP_AVERAGE == 0)
     {
@@ -352,7 +334,6 @@ void updateLCD(float batt_temp, float cell_voltages[])
 {
     // Serial.print("**************************************************************************");
 
-    const int NUM_CELLS = 8; // this should be in header?
     bool LCD_Update = false;
     float time1 = 0;
     float packVoltage = 0; // V not mV
@@ -381,7 +362,7 @@ void updateLCD(float batt_temp, float cell_voltages[])
     Serial3.print(packTemp, 1); // display packTemp from BMS, in C
     Serial3.print("C");
 
-    for (int i = 0; i < NUM_CELLS; i++)
+    for (int i = 0; i < CELL_COUNT; i++)
     {
         float temp_cell_voltage = 0;
         temp_cell_voltage = (static_cast<float>(cell_voltages[i + 1]) / 1000);
@@ -544,14 +525,14 @@ void reactEstopReleased()
 void reactLowVoltage(float cell_voltage[CELL_COUNT])
 {
     ////Serial.println("reactLowVoltage");
-    if ((cell_voltage[0] > PACK_UNDERVOLTAGE) && (cell_voltage[0] <= PACK_LOWVOLTAGE) && (low_voltage_state = false)) // first instance of low voltage
+    if ((cell_voltage[0] > PACK_UNDERVOLTAGE) && (cell_voltage[0] <= PACK_LOWVOLTAGE) && (low_voltage_state == false)) // first instance of low voltage
     {
         low_voltage_state = true;
         notifyLowVoltage();
         time_of_low_voltage = millis();
         num_low_voltage_reminder = 1;
     }                                                                                                                     // end if
-    else if ((cell_voltage[0] > PACK_UNDERVOLTAGE) && (cell_voltage[0] <= PACK_LOWVOLTAGE) && (low_voltage_state = true)) // following instances of low voltage
+    else if ((cell_voltage[0] > PACK_UNDERVOLTAGE) && (cell_voltage[0] <= PACK_LOWVOLTAGE) && (low_voltage_state == true)) // following instances of low voltage
     {
         if (millis() >= (time_of_low_voltage + (num_low_voltage_reminder * LOGIC_SWITCH_REMINDER)))
         {
@@ -571,11 +552,9 @@ void setEstop(uint8_t data)
         digitalWrite(PACK_GATE_CTR_PIN, LOW);
 
         notifyEstop();
-        delay(100);
-
-        digitalWrite(PACK_GATE_CTR_PIN, HIGH); // BMS Suicide
-                                               // If BMS is not turned off here, the PACK_OUT_CTR_PIN would be low and there would be no way to get it high again without reseting BMS anyway.
-    }                                          // end if
+                                            // BMS Suicide
+                                            // If BMS is not turned off here, the PACK_OUT_CTR_PIN would be low and there would be no way to get it high again without reseting BMS anyway.
+    }                                       // end if
     else
     {
         digitalWrite(PACK_GATE_CTR_PIN, LOW);
@@ -1153,4 +1132,17 @@ void stars()
 
     Serial3.write('|'); // Setting character
     Serial3.write('-'); // Clear display
+}
+
+
+void telemetry()
+{
+    RoveComm.write(RC_BMSBOARD_PACKI_MEAS_DATA_ID, RC_BMSBOARD_PACKI_MEAS_DATA_COUNT, main_current);
+    delay(100);
+    RoveComm.write(RC_BMSBOARD_PACKV_MEAS_DATA_ID, RC_BMSBOARD_PACKV_MEAS_DATA_COUNT, pack_out_voltage); // this if statement is created to write information of current, cell volt.,
+    delay(100);                                                                                          // and battery temperature if the update delay is greater or equal to time since last update
+    RoveComm.write(RC_BMSBOARD_TEMP_MEAS_DATA_ID, RC_BMSBOARD_TEMP_MEAS_DATA_COUNT, batt_temp);
+    delay(100);
+    RoveComm.write(RC_BMSBOARD_CELLV_MEAS_DATA_ID, RC_BMSBOARD_CELLV_MEAS_DATA_COUNT, cell_voltages);
+    Telemetry.begin(telemetry, 150000);
 }
