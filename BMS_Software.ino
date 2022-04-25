@@ -16,7 +16,6 @@ EthernetServer TCPServer(RC_ROVECOMM_BMSBOARD_PORT);
 
 
 void setup()
-
 {
     // start up serial communication
     Serial.begin(9600);
@@ -32,7 +31,7 @@ void setup()
     setOutputStates();
 
     // //Serial.println("Setup Complete.");              <----------- What is going on here? Should this be included or was it considered?
-} // end setup
+}
 
 void loop() // object identifier loop when called id or loop it runs?
 {
@@ -58,14 +57,13 @@ void loop() // object identifier loop when called id or loop it runs?
     {
         switch (packet.data_id) //
         {
-        case RC_BMSBOARD_BMSSTOP_DATA_ID:
-        {
-            setEstop(packet.data[0]);
-            break;
+            case RC_BMSBOARD_BMSSTOP_DATA_ID:
+            {
+                setEstop(packet.data[0]);
+                break;
+            }   
         }
-            // expand by adding more cases if more dataids are created
-        } // end switch
-    }     // end if
+    }
 
     if (num_loop == UPDATE_ON_LOOP) // SW_IND led will blink while the code is looping and LCD will update
     {
@@ -73,18 +71,18 @@ void loop() // object identifier loop when called id or loop it runs?
         {
             digitalWrite(SW_IND_PIN, HIGH); // High function will power LED on
             sw_ind_state = true;
-        } // end if
+        }
         else
         {
             digitalWrite(SW_IND_PIN, LOW); // Low function will have power of LED off.
             sw_ind_state = false;
-        } // end if
+        }
         updateLCD(batt_temp, cell_voltages);
         num_loop = 0;
-    }           // end if
+    }
     num_loop++; // incrementing loop
 
-} // end loop
+}
 
 // Static Variables for Below Functions /////////////////////////////////////////////////////////////////////////////////////////////////////////////
 // Current
@@ -130,7 +128,7 @@ void setInputPins()
     pinMode(C8_V_MEAS_PIN, INPUT);
 
     return;
-} // end func
+}
 
 //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
@@ -143,7 +141,7 @@ void setOutputPins() // output pin functions
     pinMode(SW_ERR_PIN, OUTPUT);     // software error pin
 
     return;
-} // end func
+}
 
 //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
@@ -156,7 +154,7 @@ void setOutputStates()
     digitalWrite(SW_ERR_PIN, LOW);     // turn off software error LED
 
     return;
-} // end func
+}
 
 //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
@@ -182,14 +180,14 @@ void getMainCurrent(float &main_current)
         else
         {
             packOverCurrent_state = false;
-        } // end if
+        }
     }
     else
     {
         packOverCurrent_state = false;
     }
     return;
-} // end func
+}
 
 //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
@@ -232,16 +230,16 @@ void getCellVoltage(float CELL_MEAS_PINS[])
             {
                 adc_reading = CELL_V_ADC_MAX;
             }
-            cell_voltages[i] = ((map(adc_reading, CELL_V_ADC_MIN, CELL_V_ADC_MAX, CELL_VOLTS_MIN, CELL_VOLTS_MAX)));                                                                                                            // end if
+            cell_voltages[i] = ((map(adc_reading, CELL_V_ADC_MIN, CELL_V_ADC_MAX, CELL_VOLTS_MIN, CELL_VOLTS_MAX)));
             if ((cell_voltages[i] <= CELL_UNDERVOLTAGE) && (cell_voltages[i] > CELL_VOLTS_MIN)) // map and then compare to min and max expecting voltage
             {
                 cell_undervoltage_state |= (1 << i);
                 cell_undervoltage_count++;
-            } // end if
-        }     // end if
-    }         // end for
+            }
+        }
+    }
     return;
-} // end func
+}
 
 //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
@@ -272,9 +270,9 @@ void getPackVoltage(float &pack_out_voltage)
     else
     {
         pack_undervoltage_state = false;
-    } // end if
+    }
     return;
-} // end func
+}
 
 //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
@@ -300,21 +298,21 @@ void getBattTemp(float &batt_temp)
         for (int i = 0; i < NUM_TEMP_AVERAGE; i++)
         {
             batt_temp += meas_batt_temp[i];
-        }                              // end for
+        }
         batt_temp /= NUM_TEMP_AVERAGE; // batt_temp is the average of all the measurments in the meas_batt_temp[] array. Giving the total average battery temperature.
         num_meas_batt_temp = 0;
         batt_temp_avail = true; // Set to true after first batt_temp value is avail. Avoids acting on overtemp before the first average is computed.
 
         // Serial.print("batt_temp: ");
         // Serial.println(batt_temp);
-    } // end if
+    }
 
     if (batt_temp_avail == true)
     {
         if (batt_temp < TEMP_THRESHOLD) // if statement to check if battery temperature is over the max amount.
         {
             overtemp_state = false;
-        } // end if
+        }
         if (batt_temp > TEMP_THRESHOLD)
         {
             delay(DEBOUNCE_DELAY);
@@ -322,12 +320,12 @@ void getBattTemp(float &batt_temp)
             if (map(analogRead(TEMP_degC_MEAS_PIN), TEMP_ADC_MIN, TEMP_ADC_MAX, TEMP_MIN, TEMP_MAX) > TEMP_THRESHOLD)
             {
                 overtemp_state = true;
-            } // end if
-        }     // end if
-    }         // end if
+            }
+        }
+    }
 
     return;
-} // end func
+}
 
 //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
@@ -373,15 +371,15 @@ void updateLCD(float batt_temp, float cell_voltages[])
         if ((i + 1) % 3 == 0)                // modular division of 3
         {
             Serial3.print("V");
-        } // end if
+        }
         else
         {
             Serial3.print("V ");
-        } // end else
-    }     // end for
+        }
+    }
     LCD_Update = false;
     return;
-} // end func
+}
 
 //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
@@ -476,15 +474,15 @@ void reactOverTemp()
             fans_on = true;
             digitalWrite(FAN_CTR_PIN, HIGH); // only one fan control is used to control all 4 fans colletively.
         }
-    } // end if
+    }
 
     if (overtemp_state == false && fans_on == true)
     {
         fans_on = false;
         digitalWrite(FAN_CTR_PIN, LOW);
-    } // end if
+    }
     return;
-} // end func
+}
 
 //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
@@ -496,22 +494,24 @@ void reactForgottenLogicSwitch()
         {
             time_switch_forgotten = millis();
             time_switch_reminder = millis();
-        } // end if
+        }
         if (num_out_voltage_loops > 1)
         {
             if (millis() >= time_switch_reminder + LOGIC_SWITCH_REMINDER)
             {
                 time_switch_reminder = millis();
                 notifyLogicSwitch();
-            } // end if
+            }
             if (millis() >= time_switch_forgotten + IDLE_SHUTOFF_TIME)
             {
                 digitalWrite(PACK_GATE_CTR_PIN, HIGH); // BMS Suicide
-            }                                          // end if
-        }                                              // end if
-    }                                                  // end if
+            }
+        }
+    }
     return;
-} // end func
+}
+
+//////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 void reactEstopReleased()
 {
@@ -521,6 +521,7 @@ void reactEstopReleased()
         notifyEstopReleased();
     }
 }
+
 //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 void reactLowVoltage(float cell_voltage[CELL_COUNT])
@@ -532,17 +533,17 @@ void reactLowVoltage(float cell_voltage[CELL_COUNT])
         notifyLowVoltage();
         time_of_low_voltage = millis();
         num_low_voltage_reminder = 1;
-    }                                                                                                                     // end if
+    }
     else if ((cell_voltage[0] > PACK_UNDERVOLTAGE) && (cell_voltage[0] <= PACK_LOWVOLTAGE) && (low_voltage_state == true)) // following instances of low voltage
     {
         if (millis() >= (time_of_low_voltage + (num_low_voltage_reminder * LOGIC_SWITCH_REMINDER)))
         {
             notifyLowVoltage();
             num_low_voltage_reminder++;
-        } // end if
-    }     // end else if
+        }
+    }
     return;
-} // end func
+}
 
 //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
@@ -555,7 +556,7 @@ void setEstop(uint8_t data)
         notifyEstop();
                                             // BMS Suicide
                                             // If BMS is not turned off here, the PACK_OUT_CTR_PIN would be low and there would be no way to get it high again without reseting BMS anyway.
-    }                                       // end if
+    }
     else
     {
         digitalWrite(PACK_GATE_CTR_PIN, LOW);
@@ -563,9 +564,9 @@ void setEstop(uint8_t data)
         delay(data * 1000); // Receiving delay in seconds so it needs to be converted to msec.
 
         digitalWrite(PACK_GATE_CTR_PIN, HIGH);
-    } // end else
+    }
     return;
-} // end func
+}
 
 //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
@@ -606,7 +607,7 @@ void notifyEstop() // Buzzer sound: beeeeeeeeeeeeeeeeeeeep beeeeeeeeeep beeeeep 
     digitalWrite(SW_ERR_PIN, LOW);
 
     return;
-} // end func
+}
 
 //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
@@ -626,7 +627,7 @@ void notifyLogicSwitch() // Buzzer sound: beeep beeep
     digitalWrite(SW_ERR_PIN, LOW);
 
     return;
-} // end func
+}
 
 //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
@@ -639,7 +640,7 @@ void notifyEstopReleased() // Buzzer sound: beep
     digitalWrite(SW_ERR_PIN, LOW);
 
     return;
-} // end func
+}
 
 void notifyReboot() // Buzzer sound: beeeeeeeeeep beeep beeep
 {
@@ -713,7 +714,7 @@ void notifyReboot() // Buzzer sound: beeeeeeeeeep beeep beeep
     digitalWrite(SW_ERR_PIN, LOW);
 
     return;
-} // end func
+}
 
 //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
@@ -726,7 +727,7 @@ void notifyOverCurrent() // Buzzer Sound: beeeeeeeeeeeeeeeeeeeeeeeeeeeeeep
     digitalWrite(SW_ERR_PIN, LOW);
 
     return;
-} // end func
+}
 
 //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
@@ -767,7 +768,7 @@ void notifyUnderVoltage() // Buzzer Sound: beeep beeep beeep beeep beeeeeeeeeeee
     digitalWrite(SW_ERR_PIN, LOW);
 
     return;
-} // end func
+}
 
 //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
@@ -794,7 +795,7 @@ void notifyLowVoltage() // Buzzer Sound: beeep beeep beeep
     digitalWrite(SW_ERR_PIN, LOW);
 
     return;
-} // end func
+}
 
 //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 void startScreen()
@@ -1142,8 +1143,8 @@ void telemetry()
 {
     RoveComm.write(RC_BMSBOARD_PACKI_MEAS_DATA_ID, RC_BMSBOARD_PACKI_MEAS_DATA_COUNT, main_current);
     delay(100);
-    RoveComm.write(RC_BMSBOARD_PACKV_MEAS_DATA_ID, RC_BMSBOARD_PACKV_MEAS_DATA_COUNT, pack_out_voltage); // this if statement is created to write information of current, cell volt.,
-    delay(100);                                                                                          // and battery temperature if the update delay is greater or equal to time since last update
+    RoveComm.write(RC_BMSBOARD_PACKV_MEAS_DATA_ID, RC_BMSBOARD_PACKV_MEAS_DATA_COUNT, pack_out_voltage);
+    delay(100);
     RoveComm.write(RC_BMSBOARD_TEMP_MEAS_DATA_ID, RC_BMSBOARD_TEMP_MEAS_DATA_COUNT, batt_temp);
     delay(100);
     RoveComm.write(RC_BMSBOARD_CELLV_MEAS_DATA_ID, RC_BMSBOARD_CELLV_MEAS_DATA_COUNT, cell_voltages);
