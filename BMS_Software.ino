@@ -21,6 +21,7 @@ void setup()
     // start up serial communication
     Serial.begin(9600);
     Telemetry.begin(telemetry, 150000);
+    startScreen();
 
     // initialize the ethernet device and rovecomm instance
     RoveComm.begin(RC_BMSBOARD_FOURTHOCTET, &TCPServer, RC_ROVECOMM_BMSBOARD_MAC);
@@ -945,15 +946,16 @@ void asterisks()
 {
     Serial3.write('|');  // Setting character
     Serial3.write('-');  // Clear display
-    Serial3.write(0x56); // V
-    Serial3.write(0x41); // A
-    Serial3.write(0x4C); // L
-    Serial3.write(0x4B); // K
-    Serial3.write(0x59); // Y
-    ////////////////////////////////////////////////////////////////need a y
+    Serial3.write(0x50); // P
     Serial3.write(0x52); // R
-    Serial3.write(0x49); // I
+    Serial3.write(0x4F); // O
+    Serial3.write(0x4D); // M
     Serial3.write(0x45); // E
+    Serial3.write(0x54); // T
+    Serial3.write(0x48); // H
+    Serial3.write(0x45); // E
+    Serial3.write(0x55); // U
+    Serial3.write(0x53); // S
     Serial3.write(0x20);
     Serial3.write(0x49); // I
     Serial3.write(0x4E); // N
@@ -1042,15 +1044,16 @@ void stars()
 {
     Serial3.write('|');  // Setting character
     Serial3.write('-');  // Clear display
-    Serial3.write(0x56); // V
-    Serial3.write(0x41); // A
-    Serial3.write(0x4C); // L
-    Serial3.write(0x4B); // K
-    Serial3.write(0x59); // Y
-    ////////////////////////////////////////////////////////////////need a y
+    Serial3.write(0x50); // P
     Serial3.write(0x52); // R
-    Serial3.write(0x49); // I
+    Serial3.write(0x4F); // O
+    Serial3.write(0x4D); // M
     Serial3.write(0x45); // E
+    Serial3.write(0x54); // T
+    Serial3.write(0x48); // H
+    Serial3.write(0x45); // E
+    Serial3.write(0x55); // U
+    Serial3.write(0x53); // S
     Serial3.write(0x20);
     Serial3.write(0x49); // I
     Serial3.write(0x4E); // N
