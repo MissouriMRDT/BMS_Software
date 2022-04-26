@@ -59,7 +59,7 @@ const int CELL_MEAS_PINS[] = {C1_V_MEAS_PIN, C2_V_MEAS_PIN, C3_V_MEAS_PIN, C4_V_
                           						 // Noise is 2mV, meaning the smallest current that the device is able to resolve is 0.3A
 // need to be tested for teensy
 #define CURRENT_MAX           	    160000//mA; Current values must be sent over RoveComm as mA
-#define CURRENT_MIN           	    -156800//mA
+#define CURRENT_MIN           	    -5000//mA
 #define OVERCURRENT                 120000 //mA
 #define CURRENT_ADC_MIN     	      0 //values
 #define CURRENT_ADC_MAX     	      4096 //values
@@ -68,8 +68,8 @@ const int CELL_MEAS_PINS[] = {C1_V_MEAS_PIN, C2_V_MEAS_PIN, C3_V_MEAS_PIN, C4_V_
 //cells
 #define CELL_VOLTS_MIN              2400//ADC value  //Lowest cell voltage I expect to be able to measure.
 #define CELL_VOLTS_MAX              4200 //ADC value //Highest possible cell voltage value we could measure.
-#define CELL_V_ADC_MIN              651 //from analogread
-#define CELL_V_ADC_MAX              922  //from analogread
+#define CELL_V_ADC_MIN              400 //from analogread
+#define CELL_V_ADC_MAX              1200  //from analogread
 #define CELL_COUNT	                8// number of modules
 #define CELL_UNDERVOLTAGE           2400 //mV //If any cell voltage reaches this voltage, turn off rover and BMS suicide.
 
@@ -132,7 +132,7 @@ void setOutputStates();
 void getMainCurrent(float &main_current);
 
 
-void getCellVoltage(float cell_voltage[RC_BMSBOARD_CELLV_MEAS_DATA_COUNT]);
+void getCellVoltage(float cell_voltages);
 
 
 void getPackVoltage(float &pack_out_voltage);

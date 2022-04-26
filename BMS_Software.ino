@@ -19,8 +19,8 @@ void setup()
 {
     // start up serial communication
     Serial.begin(9600);
-    Telemetry.begin(telemetry, 150000);
-    startScreen();
+    Telemetry.begin(telemetry, 1500000);
+    //startScreen();
 
     // initialize the ethernet device and rovecomm instance
     RoveComm.begin(RC_BMSBOARD_FOURTHOCTET, &TCPServer, RC_ROVECOMM_BMSBOARD_MAC);
@@ -65,7 +65,7 @@ void loop() // object identifier loop when called id or loop it runs?
         }
     }
 
-    if (num_loop == UPDATE_ON_LOOP) // SW_IND led will blink while the code is looping and LCD will update
+    /*if (num_loop == UPDATE_ON_LOOP) // SW_IND led will blink while the code is looping and LCD will update
     {
         if (sw_ind_state == false)
         {
@@ -77,10 +77,10 @@ void loop() // object identifier loop when called id or loop it runs?
             digitalWrite(SW_IND_PIN, LOW); // Low function will have power of LED off.
             sw_ind_state = false;
         }
-        updateLCD(batt_temp, cell_voltages);
+        //updateLCD(batt_temp, cell_voltages);
         num_loop = 0;
     }
-    num_loop++; // incrementing loop
+    num_loop++; // incrementing loop*/
 
 }
 
@@ -139,6 +139,7 @@ void setOutputPins() // output pin functions
     pinMode(SER_TX_IND, OUTPUT);     // LCD communication pin
     pinMode(SW_IND_PIN, OUTPUT);     // software indicator pin
     pinMode(SW_ERR_PIN, OUTPUT);     // software error pin
+    pinMode(PACK_GATE_CTR_PIN, OUTPUT);
 
     return;
 }
@@ -152,27 +153,28 @@ void setOutputStates()
     digitalWrite(SER_TX_IND, LOW);     // turn off LCD communication
     digitalWrite(SW_IND_PIN, LOW);     // turn off software indicator LED
     digitalWrite(SW_ERR_PIN, LOW);     // turn off software error LED
+    digitalWrite(PACK_GATE_CTR_PIN, HIGH);     // turn off software error LED
 
     return;
 }
 
 //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-void getMainCurrent(float &main_current)
+void getMainCurrent(float &mainCurrent)
 {
     ////Serial.print("adc current:  ");
     ////Serial.println(analogRead(PACK_I_MEAS_PIN));
 
-    main_current = map(analogRead(PACK_I_MEAS_PIN), CURRENT_ADC_MIN, CURRENT_ADC_MAX, CURRENT_MIN, CURRENT_MAX); // fetch pack current
+    mainCurrent = map(analogRead(PACK_I_MEAS_PIN), CURRENT_ADC_MIN, CURRENT_ADC_MAX, CURRENT_MIN, CURRENT_MAX); // fetch pack current
     // display of current functions
     ////Serial.print("current:  ");
     ////Serial.println(main_current);
 
-    if (main_current > OVERCURRENT) // check current > overcurrent, if not return
+    if (mainCurrent > OVERCURRENT) // check current > overcurrent, if not return
     {
         delay(DEBOUNCE_DELAY);                                                                                       // debounce delay is to check twice in a short period of time
-        main_current = map(analogRead(PACK_I_MEAS_PIN), CURRENT_ADC_MIN, CURRENT_ADC_MAX, CURRENT_MIN, CURRENT_MAX); // fetch again to double check value
-        if (main_current > OVERCURRENT)                                                                              // if current > overcurrent, send out a warning
+        mainCurrent = map(analogRead(PACK_I_MEAS_PIN), CURRENT_ADC_MIN, CURRENT_ADC_MAX, CURRENT_MIN, CURRENT_MAX); // fetch again to double check value
+        if (mainCurrent > OVERCURRENT)                                                                              // if current > overcurrent, send out a warning
         {
             // send error flag to roveComm for package over current
             packOverCurrent_state = true;
@@ -191,7 +193,7 @@ void getMainCurrent(float &main_current)
 
 //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-void getCellVoltage(float CELL_MEAS_PINS[])
+void getCellVoltage(float cell_voltages[])
 {
     pinfault_state = false; // cell voltage pin reader if the pinfualt state is false then the code will continue
     cell_undervoltage_state = 0;
@@ -201,7 +203,8 @@ void getCellVoltage(float CELL_MEAS_PINS[])
 
     for (int i = 0; i < CELL_COUNT; i++) // loop for the number of batteri
     {
-        float adc_reading = analogRead(CELL_MEAS_PINS[i]);
+        int adc_reading = analogRead(CELL_MEAS_PINS[i]);
+
         // Serial.print("adc reading : ");
         // Serial.println(adc_reading);
 
@@ -216,7 +219,7 @@ void getCellVoltage(float CELL_MEAS_PINS[])
         cell_voltages[i] = ((map(adc_reading, CELL_V_ADC_MIN, CELL_V_ADC_MAX, CELL_VOLTS_MIN, CELL_VOLTS_MAX))); // map ADC value to Volts
         // Serial.print("cell voltage : ");
         // Serial.println(cell_voltage[i]);
-        if ((cell_voltages[i] > CELL_VOLTS_MIN) && (cell_voltages[i] < CELL_UNDERVOLTAGE)) // if between 2.4V and 2.65V
+        if ((cell_voltages[i] <= CELL_UNDERVOLTAGE)) // if between 2.4V and 2.65V
         {
             delay(DEBOUNCE_DELAY); // double check
 
@@ -245,18 +248,24 @@ void getCellVoltage(float CELL_MEAS_PINS[])
 
 void getPackVoltage(float &pack_out_voltage)
 {
-    int adc_reading = analogRead(PACK_V_MEAS_PIN);
+    /*float adc_reading = analogRead(PACK_V_MEAS_PIN);
+    RoveComm.write(RC_BMSBOARD_PACKV_MEAS_DATA_ID, RC_BMSBOARD_PACKV_MEAS_DATA_COUNT, adc_reading);
     ////Serial.print("adc vout : ");
     ////Serial.println(adc_reading);
-    ////////////////////////////////////HERE////////////////////////////////////////////////
-    pack_out_voltage = ((VOLTAGE_TO_SIGNAL_RATIO * map(adc_reading, PACK_V_ADC_MIN, PACK_V_ADC_MAX, VOLTS_MIN, PACK_VOLTS_MAX)) / 1000); // 1269 is the voltage to analog signal ratio
+    ////////////////////////////////////HERE////////////////////////////////////////////////*/
+    pack_out_voltage = 0;
+    for ( uint8_t i = 0; i < CELL_COUNT; i++)
+    {
+        pack_out_voltage += cell_voltages[i];
+    }
+    /*pack_out_voltage = ((VOLTAGE_TO_SIGNAL_RATIO * map(adc_reading, PACK_V_ADC_MIN, PACK_V_ADC_MAX, VOLTS_MIN, PACK_VOLTS_MAX)) / 1000); // 1269 is the voltage to analog signal ratio
     ////Serial.print("mapped vout : ");
-    ////Serial.println(pack_out_voltage);
+    ////Serial.println(pack_out_voltage);*/
     if (pack_out_voltage < PACK_UNDERVOLTAGE)
     {
-        delay(DEBOUNCE_DELAY);
+        /*delay(DEBOUNCE_DELAY);
         adc_reading = analogRead(PACK_V_MEAS_PIN);
-        pack_out_voltage = ((VOLTAGE_TO_SIGNAL_RATIO * map(adc_reading, PACK_V_ADC_MIN, PACK_V_ADC_MAX, VOLTS_MIN, PACK_VOLTS_MAX)) / 1000); // previously1369
+        pack_out_voltage = ((VOLTAGE_TO_SIGNAL_RATIO * map(adc_reading, PACK_V_ADC_MIN, PACK_V_ADC_MAX, VOLTS_MIN, PACK_VOLTS_MAX)) / 1000);*/ // previously1369
         if (pack_out_voltage < PACK_UNDERVOLTAGE)
         {
             // raise a error flag for RoveComm pack under voltage
@@ -1142,11 +1151,7 @@ void stars()
 void telemetry()
 {
     RoveComm.write(RC_BMSBOARD_PACKI_MEAS_DATA_ID, RC_BMSBOARD_PACKI_MEAS_DATA_COUNT, main_current);
-    delay(100);
-    RoveComm.write(RC_BMSBOARD_PACKV_MEAS_DATA_ID, RC_BMSBOARD_PACKV_MEAS_DATA_COUNT, pack_out_voltage);
-    delay(100);
+    RoveComm.write(RC_BMSBOARD_PACKV_MEAS_DATA_ID, RC_BMSBOARD_PACKV_MEAS_DATA_COUNT, pack_out_voltage/1000.0);
     RoveComm.write(RC_BMSBOARD_TEMP_MEAS_DATA_ID, RC_BMSBOARD_TEMP_MEAS_DATA_COUNT, batt_temp);
-    delay(100);
     RoveComm.write(RC_BMSBOARD_CELLV_MEAS_DATA_ID, RC_BMSBOARD_CELLV_MEAS_DATA_COUNT, cell_voltages);
-    Telemetry.begin(telemetry, 150000);
 }
