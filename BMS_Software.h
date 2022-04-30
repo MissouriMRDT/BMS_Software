@@ -68,7 +68,7 @@ const int CELL_MEAS_PINS[] = {C1_V_MEAS_PIN, C2_V_MEAS_PIN, C3_V_MEAS_PIN, C4_V_
 //cells
 #define CELL_VOLTS_MIN              2400//ADC value  //Lowest cell voltage I expect to be able to measure.
 #define CELL_VOLTS_MAX              4200 //ADC value //Highest possible cell voltage value we could measure.
-#define CELL_V_ADC_MIN              400 //from analogread
+#define CELL_V_ADC_MIN              475 //from analogread
 #define CELL_V_ADC_MAX              1200  //from analogread
 #define CELL_COUNT	                8// number of modules
 #define CELL_UNDERVOLTAGE           2400 //mV //If any cell voltage reaches this voltage, turn off rover and BMS suicide.
@@ -85,10 +85,10 @@ const int CELL_MEAS_PINS[] = {C1_V_MEAS_PIN, C2_V_MEAS_PIN, C3_V_MEAS_PIN, C4_V_
     //Voltage at 20 deg C is 500mV.
     //Scale Factor is 20mV/deg C.
 #define TEMP_MIN          		      0 //mdeg C
-#define TEMP_MAX          		      160000 //mdeg 	//Max temp than sensor can measure to and should correspond to adc value 4096.
+#define TEMP_MAX          		      144000 //mdeg 	//Max temp than sensor can measure to and should correspond to adc value 4096.
 #define TEMP_THRESHOLD      	      38000 //mdeg C  //About 100 degF
 #define TEMP_ADC_MIN      		      0 //bits
-#define TEMP_ADC_MAX      		      4096 //bits
+#define TEMP_ADC_MAX      		      4095 //bits
 #define NUM_TEMP_AVERAGE            10 //batt_temp will be average of this many measurements
 #define MEAS_BATT_TEMP_CONST        1060
 #define BATT_TEMP_CONST             925 

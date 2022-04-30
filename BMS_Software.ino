@@ -148,7 +148,7 @@ void setOutputPins() // output pin functions
 
 void setOutputStates()
 {
-    digitalWrite(BUZZER_CTR_PIN, LOW); // turn off buzzer
+    digitalWrite(BUZZER_CTR_PIN, HIGH); // turn off buzzer
     digitalWrite(FAN_CTR_PIN, LOW);    // turn off fan
     digitalWrite(SER_TX_IND, LOW);     // turn off LCD communication
     digitalWrite(SW_IND_PIN, LOW);     // turn off software indicator LED
@@ -624,14 +624,14 @@ void notifyLogicSwitch() // Buzzer sound: beeep beeep
 {
     digitalWrite(BUZZER_CTR_PIN, HIGH);
     digitalWrite(SW_ERR_PIN, HIGH);
-    delay(100);
+    delay(1000);
     digitalWrite(BUZZER_CTR_PIN, LOW);
     digitalWrite(SW_ERR_PIN, LOW);
-    delay(100);
+    delay(1000);
 
     digitalWrite(BUZZER_CTR_PIN, HIGH);
     digitalWrite(SW_ERR_PIN, HIGH);
-    delay(100);
+    delay(1000);
     digitalWrite(BUZZER_CTR_PIN, LOW);
     digitalWrite(SW_ERR_PIN, LOW);
 
