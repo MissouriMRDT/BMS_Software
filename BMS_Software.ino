@@ -19,7 +19,6 @@ void setup()
 {
     // start up serial communication
     Serial.begin(9600);
-    Telemetry.begin(telemetry, 1500000);
     //startScreen();
 
     // initialize the ethernet device and rovecomm instance
@@ -29,6 +28,7 @@ void setup()
     setInputPins();
     setOutputPins();
     setOutputStates();
+    Telemetry.begin(telemetry, 1500000);
 
     // //Serial.println("Setup Complete.");              <----------- What is going on here? Should this be included or was it considered?
 }
