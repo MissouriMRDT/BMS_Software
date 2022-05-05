@@ -6,14 +6,6 @@
 
 #include "BMS_Software.h" // this is a main header file for the BMS.
 
-// rovecomm and packet instances
-RoveCommEthernet RoveComm;
-rovecomm_packet packet;
-
-// declare the Ethernet Server in the top level sketch with the requisite port ID any time you want to use RoveComm
-EthernetServer TCPServer(RC_ROVECOMM_BMSBOARD_PORT);
-
-
 
 void setup()
 {
@@ -21,8 +13,6 @@ void setup()
     Serial.begin(9600);
     //startScreen();
 
-    // initialize the ethernet device and rovecomm instance
-    RoveComm.begin(RC_BMSBOARD_FOURTHOCTET, &TCPServer, RC_ROVECOMM_BMSBOARD_MAC);
     delay(100);
 
     setInputPins();
@@ -30,12 +20,14 @@ void setup()
     setOutputStates();
     Telemetry.begin(telemetry, 1500000);
 
+    // initialize the ethernet device and rovecomm instance
+    RoveComm.begin(RC_BMSBOARD_FOURTHOCTET, &TCPServer, RC_ROVECOMM_BMSBOARD_MAC);
+    
     // //Serial.println("Setup Complete.");              <----------- What is going on here? Should this be included or was it considered?
 }
 
 void loop() // object identifier loop when called id or loop it runs?
 {
-    rovecomm_packet packet;
 
     // Serial.println();
     getMainCurrent(main_current); // functions to retrieve current, Low, and high cell voltages, and battery temp.
