@@ -141,7 +141,7 @@ void setOutputPins() // output pin functions
 void setOutputStates()
 {
     digitalWrite(BUZZER_CTR_PIN, HIGH); // turn off buzzer
-    digitalWrite(FAN_CTR_PIN, LOW);    // turn off fan
+    digitalWrite(FAN_CTR_PIN, HIGH);    // turn on fan
     digitalWrite(SER_TX_IND, LOW);     // turn off LCD communication
     digitalWrite(SW_IND_PIN, LOW);     // turn off software indicator LED
     digitalWrite(SW_ERR_PIN, LOW);     // turn off software error LED
