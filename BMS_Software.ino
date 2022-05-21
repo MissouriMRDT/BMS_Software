@@ -1,41 +1,28 @@
 // Battery Managment System (BMS) Software System
-
 // The BMS System is created for the Missouri S&T 2022 Competition Rover.
-// created by Sean Duda， Sanfan Liu
-// Included Libraries
+// Created for 2022 by: Grant Brinker and Sean Duda
 
 #include "BMS_Software.h" // this is a main header file for the BMS.
 
-
 void setup()
 {
-    // start up serial communication
     Serial.begin(9600);
-    //startScreen();
-
     delay(100);
-
     setInputPins();
     setOutputPins();
     setOutputStates();
     Telemetry.begin(telemetry, 1500000);
-
-    // initialize the ethernet device and rovecomm instance
     RoveComm.begin(RC_BMSBOARD_FOURTHOCTET, &TCPServer, RC_ROVECOMM_BMSBOARD_MAC);
-    
-    // //Serial.println("Setup Complete.");              <----------- What is going on here? Should this be included or was it considered?
 }
 
-void loop() // object identifier loop when called id or loop it runs?
+void loop()
 {
-
-    // Serial.println();
-    getMainCurrent(main_current); // functions to retrieve current, Low, and high cell voltages, and battery temp.
+    getMainCurrent(main_current); 
     reactOverCurrent();
 
-    getCellVoltage(cell_voltages);  // I am assuming react is a function that will terminate the loop if a problem stated occurs
-    reactUnderVoltage();            // Problems stated include: undervolting batteries, low voltage, Estop pressed, ---
-    reactLowVoltage(cell_voltages); // Forgotten Logic Switch, and Over temperature.
+    getCellVoltage(cell_voltages);  
+    reactUnderVoltage();            
+    reactLowVoltage(cell_voltages); 
 
     getPackVoltage(pack_out_voltage);
     reactEstopReleased();
@@ -47,7 +34,7 @@ void loop() // object identifier loop when called id or loop it runs?
     packet = RoveComm.read();
     if (packet.data_id != 0)
     {
-        switch (packet.data_id) //
+        switch (packet.data_id)
         {
             case RC_BMSBOARD_BMSSTOP_DATA_ID:
             {
@@ -56,24 +43,6 @@ void loop() // object identifier loop when called id or loop it runs?
             }   
         }
     }
-
-    /*if (num_loop == UPDATE_ON_LOOP) // SW_IND led will blink while the code is looping and LCD will update
-    {
-        if (sw_ind_state == false)
-        {
-            digitalWrite(SW_IND_PIN, HIGH); // High function will power LED on
-            sw_ind_state = true;
-        }
-        else
-        {
-            digitalWrite(SW_IND_PIN, LOW); // Low function will have power of LED off.
-            sw_ind_state = false;
-        }
-        //updateLCD(batt_temp, cell_voltages);
-        num_loop = 0;
-    }
-    num_loop++; // incrementing loop*/
-
 }
 
 // Static Variables for Below Functions /////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -131,7 +100,7 @@ void setOutputPins() // output pin functions
     pinMode(SER_TX_IND, OUTPUT);     // LCD communication pin
     pinMode(SW_IND_PIN, OUTPUT);     // software indicator pin
     pinMode(SW_ERR_PIN, OUTPUT);     // software error pin
-    pinMode(PACK_GATE_CTR_PIN, OUTPUT);
+    pinMode(PACK_GATE_CTR_PIN, OUTPUT); // Vout control pin
 
     return;
 }
@@ -154,13 +123,7 @@ void setOutputStates()
 
 void getMainCurrent(float &mainCurrent)
 {
-    ////Serial.print("adc current:  ");
-    ////Serial.println(analogRead(PACK_I_MEAS_PIN));
-
     mainCurrent = map(analogRead(PACK_I_MEAS_PIN), CURRENT_ADC_MIN, CURRENT_ADC_MAX, CURRENT_MIN, CURRENT_MAX); // fetch pack current
-    // display of current functions
-    ////Serial.print("current:  ");
-    ////Serial.println(main_current);
 
     if (mainCurrent > OVERCURRENT) // check current > overcurrent, if not return
     {
@@ -190,15 +153,10 @@ void getCellVoltage(float cell_voltages[])
     pinfault_state = false; // cell voltage pin reader if the pinfualt state is false then the code will continue
     cell_undervoltage_state = 0;
     cell_undervoltage_count = 0;
-    // Serial.println();
-    ////Serial.println("///////////////////Cell values/////////////////////// ");
 
     for (int i = 0; i < CELL_COUNT; i++) // loop for the number of batteri
     {
         int adc_reading = analogRead(CELL_MEAS_PINS[i]);
-
-        // Serial.print("adc reading : ");
-        // Serial.println(adc_reading);
 
         if (adc_reading < CELL_V_ADC_MIN) // handle if reading between 0V and 2.4V: lower than expecting power
         {
@@ -208,9 +166,9 @@ void getCellVoltage(float cell_voltages[])
         {
             adc_reading = CELL_V_ADC_MAX;
         }
+
         cell_voltages[i] = ((map(adc_reading, CELL_V_ADC_MIN, CELL_V_ADC_MAX, CELL_VOLTS_MIN, CELL_VOLTS_MAX))); // map ADC value to Volts
-        // Serial.print("cell voltage : ");
-        // Serial.println(cell_voltage[i]);
+
         if ((cell_voltages[i] <= CELL_UNDERVOLTAGE)) // if between 2.4V and 2.65V
         {
             delay(DEBOUNCE_DELAY); // double check
@@ -225,7 +183,9 @@ void getCellVoltage(float cell_voltages[])
             {
                 adc_reading = CELL_V_ADC_MAX;
             }
+
             cell_voltages[i] = ((map(adc_reading, CELL_V_ADC_MIN, CELL_V_ADC_MAX, CELL_VOLTS_MIN, CELL_VOLTS_MAX)));
+
             if ((cell_voltages[i] <= CELL_UNDERVOLTAGE) && (cell_voltages[i] > CELL_VOLTS_MIN)) // map and then compare to min and max expecting voltage
             {
                 cell_undervoltage_state |= (1 << i);
@@ -240,24 +200,14 @@ void getCellVoltage(float cell_voltages[])
 
 void getPackVoltage(float &pack_out_voltage)
 {
-    /*float adc_reading = analogRead(PACK_V_MEAS_PIN);
-    RoveComm.write(RC_BMSBOARD_PACKV_MEAS_DATA_ID, RC_BMSBOARD_PACKV_MEAS_DATA_COUNT, adc_reading);
-    ////Serial.print("adc vout : ");
-    ////Serial.println(adc_reading);
-    ////////////////////////////////////HERE////////////////////////////////////////////////*/
     pack_out_voltage = 0;
     for ( uint8_t i = 0; i < CELL_COUNT; i++)
     {
         pack_out_voltage += cell_voltages[i];
     }
-    /*pack_out_voltage = ((VOLTAGE_TO_SIGNAL_RATIO * map(adc_reading, PACK_V_ADC_MIN, PACK_V_ADC_MAX, VOLTS_MIN, PACK_VOLTS_MAX)) / 1000); // 1269 is the voltage to analog signal ratio
-    ////Serial.print("mapped vout : ");
-    ////Serial.println(pack_out_voltage);*/
+
     if (pack_out_voltage < PACK_UNDERVOLTAGE)
     {
-        /*delay(DEBOUNCE_DELAY);
-        adc_reading = analogRead(PACK_V_MEAS_PIN);
-        pack_out_voltage = ((VOLTAGE_TO_SIGNAL_RATIO * map(adc_reading, PACK_V_ADC_MIN, PACK_V_ADC_MAX, VOLTS_MIN, PACK_VOLTS_MAX)) / 1000);*/ // previously1369
         if (pack_out_voltage < PACK_UNDERVOLTAGE)
         {
             // raise a error flag for RoveComm pack under voltage
@@ -303,9 +253,6 @@ void getBattTemp(float &batt_temp)
         batt_temp /= NUM_TEMP_AVERAGE; // batt_temp is the average of all the measurments in the meas_batt_temp[] array. Giving the total average battery temperature.
         num_meas_batt_temp = 0;
         batt_temp_avail = true; // Set to true after first batt_temp value is avail. Avoids acting on overtemp before the first average is computed.
-
-        // Serial.print("batt_temp: ");
-        // Serial.println(batt_temp);
     }
 
     if (batt_temp_avail == true)
@@ -325,60 +272,6 @@ void getBattTemp(float &batt_temp)
         }
     }
 
-    return;
-}
-
-//////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-
-void updateLCD(float batt_temp, float cell_voltages[])
-{
-    // Serial.print("**************************************************************************");
-
-    bool LCD_Update = false;
-    float time1 = 0;
-    float packVoltage = 0; // V not mV
-    float packTemp = 0;    // degC
-
-    packVoltage = (static_cast<float>(cell_voltages[0]) / 1000);
-    // Serial.print("temp   ");
-    // Serial.println(batt_temp);
-    packTemp = (static_cast<float>(batt_temp) / 1000);
-    packTemp = roundf(packTemp * 10) / 10; // Rounds temp to closest tenth of a degree
-
-    if (LCD_Update == false)
-    {
-        time1 = millis();
-        LCD_Update = true;
-    }
-
-    // Send the clear command to the display - this returns the cursor to the beginning of the display
-    Serial3.write('|'); // Setting character
-    Serial3.write('-'); // Clear display
-
-    Serial3.print("Pack:");
-    Serial3.print(packVoltage, 1); // display packVoltage from BMS, in V
-    Serial3.print("V");
-    Serial3.print(" Temp:");
-    Serial3.print(packTemp, 1); // display packTemp from BMS, in C
-    Serial3.print("C");
-
-    for (int i = 0; i < CELL_COUNT; i++)
-    {
-        float temp_cell_voltage = 0;
-        temp_cell_voltage = (static_cast<float>(cell_voltages[i + 1]) / 1000);
-        Serial3.print(i + 1); // Printing cell numbers with increased value.
-        Serial3.print(":");
-        Serial3.print(temp_cell_voltage, 1); // cellVoltage from BMS in V?  shows one decimal place
-        if ((i + 1) % 3 == 0)                // modular division of 3
-        {
-            Serial3.print("V");
-        }
-        else
-        {
-            Serial3.print("V ");
-        }
-    }
-    LCD_Update = false;
     return;
 }
 
@@ -797,348 +690,6 @@ void notifyLowVoltage() // Buzzer Sound: beeep beeep beeep
 
     return;
 }
-
-//////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-void startScreen()
-{
-
-    // put your main code here, to run repeatedly:
-    delay(350);
-    // Send the clear command to the display - this returns the cursor to the beginning of the display
-    Serial3.write('|'); // Setting character
-    Serial3.write('-'); // Clear display
-
-    /*Serial3.write(0x20);
-      Serial3.write(0x20);
-      Serial3.write(0x20);
-      Serial3.write(0x20);
-      Serial3.write(0x20);
-      Serial3.write(0x20);*/
-
-    // movingRover();
-    Serial3.write('|'); // Setting character
-    Serial3.write('-'); // Clear display
-    for (int i = 0; i < 4; i++)
-    {
-        asterisks();
-        stars();
-    }
-    delay(10);
-
-    Serial3.write('|'); // Setting character
-    Serial3.write('-'); // Clear display
-}
-
-void movingRover()
-{
-    Serial3.write('|'); // Setting character
-    Serial3.write('-'); // Clear display
-    for (int i = 0; i < 14; i++)
-    {
-        delay(450);
-        // delay(200);
-        // Serial3.write(0x20);
-        // Serial3.write(0x20);
-
-        Serial3.write(0x20);
-        Serial3.write(0x20);
-        Serial3.write(0x20);
-        Serial3.write(0x20);
-        Serial3.write(0x20);
-        Serial3.write(0x20);
-        Serial3.write(0x20);
-        Serial3.write(0x20);
-        Serial3.write(0x20);
-        Serial3.write(0x20);
-        Serial3.write(0x20);
-        Serial3.write(0x20);
-        Serial3.write(0x20);
-        Serial3.write(0x20);
-        Serial3.write(0x20);
-        Serial3.write(0x20);
-        Serial3.write(0x20);
-        Serial3.write(0x20);
-        Serial3.write(0x20);
-        Serial3.write(0x20);
-        Serial3.write(0x20);
-
-        Serial3.write(0xA1);
-
-        Serial3.write(0x20);
-        Serial3.write(0x20);
-        Serial3.write(0x20);
-        Serial3.write(0x20);
-        Serial3.write(0x20);
-        Serial3.write(0x20);
-        Serial3.write(0x20);
-        Serial3.write(0x20);
-        Serial3.write(0x20);
-        Serial3.write(0x20);
-        Serial3.write(0x20);
-        Serial3.write(0x20);
-        Serial3.write(0x20);
-        Serial3.write(0x20);
-        Serial3.write(0x20);
-        Serial3.write(0x20);
-        Serial3.write(0x20);
-
-        Serial3.write(0xDB);
-        Serial3.write(0xBA);
-        Serial3.write(0xDA);
-        Serial3.write(0xCD);
-
-        Serial3.write(0x20);
-        Serial3.write(0x20);
-        Serial3.write(0x20);
-        Serial3.write(0x20);
-        Serial3.write(0x20);
-        Serial3.write(0x20);
-        Serial3.write(0x20);
-        Serial3.write(0x20);
-        Serial3.write(0x20);
-        Serial3.write(0x20);
-        Serial3.write(0x20);
-        Serial3.write(0x20);
-        Serial3.write(0x20);
-        Serial3.write(0x20);
-        Serial3.write(0x20);
-
-        Serial3.write(0x6F);
-        Serial3.write(0x5E);
-        Serial3.write(0x6F);
-        Serial3.write(0x5E);
-        Serial3.write(0x6F);
-
-        Serial3.write(0x20);
-        Serial3.write(0x20);
-        Serial3.write(0x20);
-        Serial3.write(0x20);
-        Serial3.write(0x20);
-        Serial3.write(0x20);
-        Serial3.write(0x20);
-        Serial3.write(0x20);
-        Serial3.write(0x20);
-        Serial3.write(0x20);
-        Serial3.write(0x20);
-        Serial3.write(0x20);
-        Serial3.write(0x20);
-        Serial3.write(0x20);
-        Serial3.write(0x20);
-        Serial3.write(0x20);
-        Serial3.write(0x20);
-        Serial3.write(0x20);
-        /*
-          Serial3.write(0x23);//#
-          Serial3.write(0x52);//R
-          Serial3.write(0x4F);//O
-          Serial3.write(0x56);//V
-          Serial3.write(0x45);//E
-          Serial3.write(0x53);//S
-          Serial3.write(0x4F);//O
-          Serial3.write(0x48);//H
-          Serial3.write(0x41);//A
-          Serial3.write(0x52);//R
-          Serial3.write(0x44);//D*/
-    }
-    Serial3.write('|'); // Setting character
-    Serial3.write('-'); // Clear display
-}
-
-void asterisks()
-{
-    Serial3.write('|');  // Setting character
-    Serial3.write('-');  // Clear display
-    Serial3.write(0x50); // P
-    Serial3.write(0x52); // R
-    Serial3.write(0x4F); // O
-    Serial3.write(0x4D); // M
-    Serial3.write(0x45); // E
-    Serial3.write(0x54); // T
-    Serial3.write(0x48); // H
-    Serial3.write(0x45); // E
-    Serial3.write(0x55); // U
-    Serial3.write(0x53); // S
-    Serial3.write(0x20);
-    Serial3.write(0x49); // I
-    Serial3.write(0x4E); // N
-    Serial3.write(0x49); // I
-    Serial3.write(0x54); // T
-    Serial3.write(0x49); // I
-    Serial3.write(0x41); // A
-    Serial3.write(0x4C); // L
-    Serial3.write(0x49); // I
-    Serial3.write(0x5A); // Z
-    Serial3.write(0x49); // I
-    Serial3.write(0x4E); // N
-    Serial3.write(0x47); // G
-
-    Serial3.write(0x20);
-    Serial3.write(0x2A);
-    Serial3.write(0x20);
-    Serial3.write(0x2B);
-    Serial3.write(0x20);
-    Serial3.write(0x2A);
-    Serial3.write(0x20);
-    Serial3.write(0x2B);
-    Serial3.write(0x20);
-    Serial3.write(0x2A);
-    Serial3.write(0x20);
-    Serial3.write(0x2B);
-    Serial3.write(0x20);
-    Serial3.write(0x2A);
-    Serial3.write(0x20);
-    Serial3.write(0x20);
-
-    Serial3.write(0xA1);
-
-    Serial3.write(0x20);
-    Serial3.write(0x20);
-    Serial3.write(0x2B);
-    Serial3.write(0x2A);
-    Serial3.write(0x20);
-    Serial3.write(0x2B);
-    Serial3.write(0x20);
-    Serial3.write(0x2A);
-    Serial3.write(0x20);
-    Serial3.write(0x2B);
-    Serial3.write(0x20);
-    Serial3.write(0x2A);
-    Serial3.write(0x20);
-    Serial3.write(0x2B);
-    Serial3.write(0x20);
-    Serial3.write(0x2A);
-    Serial3.write(0x20);
-    Serial3.write(0xDB);
-    Serial3.write(0xBA);
-    Serial3.write(0xDA);
-    Serial3.write(0xCD);
-    Serial3.write(0x20);
-    Serial3.write(0x20);
-    Serial3.write(0x20);
-    Serial3.write(0x2A);
-    Serial3.write(0x20);
-    Serial3.write(0x2B);
-    Serial3.write(0x20);
-    Serial3.write(0x2A);
-    Serial3.write(0x20);
-    Serial3.write(0x2B);
-    Serial3.write(0x20);
-    Serial3.write(0x2A);
-    Serial3.write(0x20);
-    Serial3.write(0x20);
-    Serial3.write(0x20);
-    Serial3.write(0x6F);
-    Serial3.write(0x5E);
-    Serial3.write(0x6F);
-    Serial3.write(0x5E);
-    Serial3.write(0x6F);
-    Serial3.write(0x20);
-    Serial3.write(0x2A);
-    // Serial3.write(0x2A);
-
-    delay(500);
-
-    Serial3.write('|'); // Setting character
-    Serial3.write('-'); // Clear display
-}
-
-void stars()
-{
-    Serial3.write('|');  // Setting character
-    Serial3.write('-');  // Clear display
-    Serial3.write(0x50); // P
-    Serial3.write(0x52); // R
-    Serial3.write(0x4F); // O
-    Serial3.write(0x4D); // M
-    Serial3.write(0x45); // E
-    Serial3.write(0x54); // T
-    Serial3.write(0x48); // H
-    Serial3.write(0x45); // E
-    Serial3.write(0x55); // U
-    Serial3.write(0x53); // S
-    Serial3.write(0x20);
-    Serial3.write(0x49); // I
-    Serial3.write(0x4E); // N
-    Serial3.write(0x49); // I
-    Serial3.write(0x54); // T
-    Serial3.write(0x49); // I
-    Serial3.write(0x41); // A
-    Serial3.write(0x4C); // L
-    Serial3.write(0x49); // I
-    Serial3.write(0x5A); // Z
-    Serial3.write(0x49); // I
-    Serial3.write(0x4E); // N
-    Serial3.write(0x47); // G
-
-    Serial3.write(0x20);
-    Serial3.write(0x2B);
-
-    Serial3.write(0x20);
-    Serial3.write(0x2A);
-    Serial3.write(0x20);
-    Serial3.write(0x2B);
-    Serial3.write(0x20);
-    Serial3.write(0x2A);
-    Serial3.write(0x20);
-    Serial3.write(0x2B);
-    Serial3.write(0x20);
-    Serial3.write(0x2A);
-    Serial3.write(0x20);
-    Serial3.write(0x2B);
-    Serial3.write(0x20);
-    Serial3.write(0x20);
-    Serial3.write(0xA1);
-    Serial3.write(0x20);
-    Serial3.write(0x20);
-    Serial3.write(0x2A);
-    Serial3.write(0x2B);
-    Serial3.write(0x20);
-    Serial3.write(0x2A);
-    Serial3.write(0x20);
-    Serial3.write(0x2B);
-    Serial3.write(0x20);
-    Serial3.write(0x2A);
-    Serial3.write(0x20);
-    Serial3.write(0x2B);
-    Serial3.write(0x20);
-    Serial3.write(0x2A);
-    Serial3.write(0x20);
-    Serial3.write(0x2B);
-    Serial3.write(0x20);
-    Serial3.write(0xDB);
-    Serial3.write(0xBA);
-    Serial3.write(0xDA);
-    Serial3.write(0xCD);
-    Serial3.write(0x20);
-    Serial3.write(0x20);
-    Serial3.write(0x20);
-    Serial3.write(0x2B);
-    Serial3.write(0x20);
-    Serial3.write(0x2A);
-    Serial3.write(0x20);
-    Serial3.write(0x2B);
-    Serial3.write(0x20);
-    Serial3.write(0x2A);
-    Serial3.write(0x20);
-    Serial3.write(0x2B);
-    Serial3.write(0x20);
-    Serial3.write(0x20);
-    Serial3.write(0x20);
-    Serial3.write(0x6F);
-    Serial3.write(0x5E);
-    Serial3.write(0x6F);
-    Serial3.write(0x5E);
-    Serial3.write(0x6F);
-    Serial3.write(0x20);
-    Serial3.write(0x2B);
-    // Serial3.write(0x2B);
-
-    delay(500);
-
-    Serial3.write('|'); // Setting character
-    Serial3.write('-'); // Clear display
-}
-
 
 void telemetry()
 {
