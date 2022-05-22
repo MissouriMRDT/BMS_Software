@@ -11,8 +11,8 @@ void setup()
     setInputPins();
     setOutputPins();
     setOutputStates();
-    Telemetry.begin(telemetry, 1500000);
     RoveComm.begin(RC_BMSBOARD_FOURTHOCTET, &TCPServer, RC_ROVECOMM_BMSBOARD_MAC);
+    Telemetry.begin(telemetry, 1500000);
 }
 
 void loop()
