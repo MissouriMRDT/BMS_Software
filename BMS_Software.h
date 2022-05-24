@@ -55,7 +55,7 @@ const int CELL_MEAS_PINS[] = {C1_V_MEAS_PIN, C2_V_MEAS_PIN, C3_V_MEAS_PIN, C4_V_
                           						 // Noise is 2mV, meaning the smallest current that the device is able to resolve is 0.3A
 // need to be tested for teensy
 #define CURRENT_MAX           	    160000//mA; Current values must be sent over RoveComm as mA
-#define CURRENT_MIN           	    -5000//mA
+#define CURRENT_MIN           	    -22000//mA
 #define OVERCURRENT                 120000 //mA
 #define CURRENT_ADC_MIN     	    0 //values
 #define CURRENT_ADC_MAX     	    4096 //values
@@ -73,7 +73,7 @@ const int CELL_MEAS_PINS[] = {C1_V_MEAS_PIN, C2_V_MEAS_PIN, C3_V_MEAS_PIN, C4_V_
 #define VOLTS_MIN                   0 //mV    //Lowest possible pack voltage value we could measure.
 #define PACK_VOLTS_MAX        	    33600 //mV	//Highest possible pack voltage value we could measure.
 #define PACK_UNDERVOLTAGE   	    19200 //mV	//If pack voltage reaches this voltage, turn off rover and BMS suicide.
-#define PACK_LOWVOLTAGE     	    21200 //mV	//If pack voltage reaches this voltage, notify of low voltage.
+#define PACK_LOWVOLTAGE     	    24000 //mV	//If pack voltage reaches this voltage, notify of low voltage.
 #define PACK_V_ADC_MIN      	    0 //bits
 #define PACK_V_ADC_MAX      	    4096 //bits
 // TMP37 Temp Sensor Specs 

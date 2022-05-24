@@ -186,10 +186,15 @@ void getCellVoltage(float cell_voltages[])
 
             cell_voltages[i] = ((map(adc_reading, CELL_V_ADC_MIN, CELL_V_ADC_MAX, CELL_VOLTS_MIN, CELL_VOLTS_MAX)));
 
-            if ((cell_voltages[i] <= CELL_UNDERVOLTAGE) && (cell_voltages[i] > CELL_VOLTS_MIN)) // map and then compare to min and max expecting voltage
+            if ( cell_voltages[i] <= CELL_UNDERVOLTAGE ) // map and then compare to min and max expecting voltage
             {
                 cell_undervoltage_state |= (1 << i);
                 cell_undervoltage_count++;
+            }
+            else 
+            {
+                cell_undervoltage_state &= !(1 << i);
+                cell_undervoltage_count--;
             }
         }
     }
@@ -206,17 +211,9 @@ void getPackVoltage(float &pack_out_voltage)
         pack_out_voltage += cell_voltages[i];
     }
 
-    if (pack_out_voltage < PACK_UNDERVOLTAGE)
+    if ( pack_out_voltage <= PACK_LOWVOLTAGE || pack_out_voltage <= PACK_UNDERVOLTAGE)
     {
-        if (pack_out_voltage < PACK_UNDERVOLTAGE)
-        {
-            // raise a error flag for RoveComm pack under voltage
-            pack_undervoltage_state = true;
-        }
-        else
-        {
-            pack_undervoltage_state = false;
-        }
+        pack_undervoltage_state = true;
     }
     else
     {
@@ -325,7 +322,7 @@ void reactUnderVoltage()
 {
     for (uint8_t i = 0; i < CELL_COUNT; i++)
     {
-        if (cell_undervoltage_state &= (1 << i))
+        if (cell_undervoltage_state & (1 << i))
         {
             error_report |= (1 << i);
         }
@@ -352,6 +349,10 @@ void reactUnderVoltage()
             digitalWrite(PACK_GATE_CTR_PIN, LOW); // BMS Suicide
             notifyUnderVoltage();
         }
+    }
+    else
+    {
+        digitalWrite(PACK_GATE_CTR_PIN, HIGH); 
     }
     return;
 }
@@ -398,7 +399,7 @@ void reactForgottenLogicSwitch()
             }
             if (millis() >= time_switch_forgotten + IDLE_SHUTOFF_TIME)
             {
-                digitalWrite(PACK_GATE_CTR_PIN, HIGH); // BMS Suicide
+                digitalWrite(PACK_GATE_CTR_PIN, LOW); // BMS Suicide
             }
         }
     }
