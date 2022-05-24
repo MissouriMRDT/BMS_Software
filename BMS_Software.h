@@ -64,7 +64,7 @@ const int CELL_MEAS_PINS[] = {C1_V_MEAS_PIN, C2_V_MEAS_PIN, C3_V_MEAS_PIN, C4_V_
 //cells
 #define CELL_VOLTS_MIN              2400//ADC value  //Lowest cell voltage I expect to be able to measure.
 #define CELL_VOLTS_MAX              4200 //ADC value //Highest possible cell voltage value we could measure.
-#define CELL_V_ADC_MIN              600 //from analogread
+#define CELL_V_ADC_MIN              480 //from analogread
 #define CELL_V_ADC_MAX              1088  //from analogread
 #define CELL_COUNT	                8// number of modules
 #define CELL_UNDERVOLTAGE           2400 //mV //If any cell voltage reaches this voltage, turn off rover and BMS suicide.
