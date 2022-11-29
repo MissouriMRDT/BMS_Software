@@ -55,7 +55,7 @@ const int CELL_MEAS_PINS[] = {C1_V_MEAS_PIN, C2_V_MEAS_PIN, C3_V_MEAS_PIN, C4_V_
                           						 // Noise is 2mV, meaning the smallest current that the device is able to resolve is 0.3A
 // need to be tested for teensy
 #define CURRENT_MAX           	    160000//mA; Current values must be sent over RoveComm as mA
-#define CURRENT_MIN           	    -5000//mA
+#define CURRENT_MIN           	    -22000//mA
 #define OVERCURRENT                 120000 //mA
 #define CURRENT_ADC_MIN     	    0 //values
 #define CURRENT_ADC_MAX     	    4096 //values
@@ -64,7 +64,7 @@ const int CELL_MEAS_PINS[] = {C1_V_MEAS_PIN, C2_V_MEAS_PIN, C3_V_MEAS_PIN, C4_V_
 //cells
 #define CELL_VOLTS_MIN              2400//ADC value  //Lowest cell voltage I expect to be able to measure.
 #define CELL_VOLTS_MAX              4200 //ADC value //Highest possible cell voltage value we could measure.
-#define CELL_V_ADC_MIN              600 //from analogread
+#define CELL_V_ADC_MIN              480 //from analogread
 #define CELL_V_ADC_MAX              1088  //from analogread
 #define CELL_COUNT	                8// number of modules
 #define CELL_UNDERVOLTAGE           2400 //mV //If any cell voltage reaches this voltage, turn off rover and BMS suicide.
@@ -73,7 +73,7 @@ const int CELL_MEAS_PINS[] = {C1_V_MEAS_PIN, C2_V_MEAS_PIN, C3_V_MEAS_PIN, C4_V_
 #define VOLTS_MIN                   0 //mV    //Lowest possible pack voltage value we could measure.
 #define PACK_VOLTS_MAX        	    33600 //mV	//Highest possible pack voltage value we could measure.
 #define PACK_UNDERVOLTAGE   	    19200 //mV	//If pack voltage reaches this voltage, turn off rover and BMS suicide.
-#define PACK_LOWVOLTAGE     	    21200 //mV	//If pack voltage reaches this voltage, notify of low voltage.
+#define PACK_LOWVOLTAGE     	    24000 //mV	//If pack voltage reaches this voltage, notify of low voltage.
 #define PACK_V_ADC_MIN      	    0 //bits
 #define PACK_V_ADC_MAX      	    4096 //bits
 // TMP37 Temp Sensor Specs 
