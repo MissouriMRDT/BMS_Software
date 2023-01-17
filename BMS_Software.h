@@ -6,9 +6,9 @@
 #define BMS_Software
 
 #include "RoveComm.h"
- 
+
 // rovecomm and packet instances
-RoveCommEthernet RoveComm; 
+RoveCommEthernet RoveComm;
 rovecomm_packet packet;
 
 // declare the Ethernet Server in the top level sketch with the requisite port ID any time you want to use RoveComm

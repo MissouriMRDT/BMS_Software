@@ -3,6 +3,9 @@
 // Created for 2022 by: Grant Brinker and Sean Duda
 
 #include "BMS_Software.h" // this is a main header file for the BMS.
+#include <SoftwareSerial.h>
+
+SoftwareSerial OpenLCD(7, 8);
 
 void setup()
 {
@@ -13,6 +16,10 @@ void setup()
     setOutputStates();
     RoveComm.begin(RC_BMSBOARD_FOURTHOCTET, &TCPServer, RC_ROVECOMM_BMSBOARD_MAC);
     Telemetry.begin(telemetry, 1500000);
+    OpenLCD.begin(9600);      // Start communication with OpenLCD
+    OpenLCD.write('|');       // Put LCD in setting mode
+    OpenLCD.write(32);        // Send contrast command
+    OpenLCD.write(2);
 }
 
 void loop()
@@ -237,7 +244,7 @@ void getBattTemp(float &batt_temp)
     }
 
     meas_batt_temp[num_meas_batt_temp] = (MEAS_BATT_TEMP_CONST * (map(adc_reading, TEMP_ADC_MIN, TEMP_ADC_MAX, TEMP_MIN, TEMP_MAX)) / 1000); // function of measuring battery temp with
-    num_meas_batt_temp++;                                                                                                    // increasing interval of the function
+    num_meas_batt_temp++;                                                                                                                    // increasing interval of the function
 
     batt_temp = (BATT_TEMP_CONST * (map(analogRead(TEMP_degC_MEAS_PIN), TEMP_ADC_MIN, TEMP_ADC_MAX, TEMP_MIN, TEMP_MAX)) / 1000); // mapping analog signals of battery temp data
 
@@ -461,6 +468,27 @@ void setEstop(uint8_t data)
         digitalWrite(PACK_GATE_CTR_PIN, HIGH);
     }
     return;
+}
+
+//////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+void setLCD()
+{
+    // Clear LCD
+    OpenLCD.write('|');
+    OpenLCD.write('-');
+
+    //Display pack voltage
+    OpenLCD.print("Pack: " + pack_out_voltage + "V ");
+
+    //Display temp
+    OpenLCD.print("Tmp: " + batt_temp + "F");
+
+    // Display cell voltages on LCD
+    for (int i = 0; i < 8; i++);
+    {
+        OpenLCD.print(i + ":" + cell_voltages[i] + "V ");
+    }
 }
 
 //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
