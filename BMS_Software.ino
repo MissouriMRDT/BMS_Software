@@ -5,25 +5,42 @@
 #include "BMS_Software.h" // this is a main header file for the BMS.
 #include <SoftwareSerial.h>
 
-SoftwareSerial OpenLCD(7, 8);
+SoftwareSerial OpenLCD(0, 1); // RX, TX
 
 void setup()
 {
     Serial.begin(9600);
+
+    
     delay(100);
     setInputPins();
     setOutputPins();
     setOutputStates();
-    RoveComm.begin(RC_BMSBOARD_FOURTHOCTET, &TCPServer, RC_ROVECOMM_BMSBOARD_MAC);
+    // START HERE. ROVECOMM STOPPING TEXT FROM SHOWING ON DISPLAY BECAUSE NO ETHERNET PORT
+    // ALSO CHECK VALKERIE CODE, IN DOWNLOADS FOLDER
+    //RoveComm.begin(RC_BMSBOARD_FOURTHOCTET, &TCPServer, RC_ROVECOMM_BMSBOARD_MAC);  // <-- This is why text isn't showing, connect ethernet port
     Telemetry.begin(telemetry, 1500000);
-    OpenLCD.begin(9600);      // Start communication with OpenLCD
+    
+
+    OpenLCD.begin(9600);      // Start communication with Serial2
+    
     OpenLCD.write('|');       // Put LCD in setting mode
     OpenLCD.write(32);        // Send contrast command
-    OpenLCD.write(2);
+    OpenLCD.write(2);         // Set contrast
 }
 
 void loop()
 {
+    //updateLCD();
+
+    OpenLCD.write('|');
+    OpenLCD.write('-');
+    
+    OpenLCD.print("Hello World");
+
+    delay(250);
+
+/*
     getMainCurrent(main_current); 
     reactOverCurrent();
 
@@ -50,6 +67,7 @@ void loop()
             }   
         }
     }
+*/
 }
 
 // Static Variables for Below Functions /////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -472,23 +490,36 @@ void setEstop(uint8_t data)
 
 //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-void setLCD()
+void updateLCD()
 {
-    // Clear LCD
-    OpenLCD.write('|');
-    OpenLCD.write('-');
 
+    
+    // Clear LCD
+    Serial2.write('|'); // Enter settings mode
+    Serial2.write('-'); // Clear display
+
+    Serial2.print("Hello world!");
+    
+    /*
     //Display pack voltage
-    OpenLCD.print("Pack: " + pack_out_voltage + "V ");
+    Serial1.print("Pack: ");
+    Serial1.print(pack_out_voltage);
+    Serial1.print("V ");
 
     //Display temp
-    OpenLCD.print("Tmp: " + batt_temp + "F");
+    Serial1.print("Tmp: ");
+    Serial1.print(batt_temp);
+    Serial1.print("F");
 
     // Display cell voltages on LCD
-    for (int i = 0; i < 8; i++);
+    for (uint8_t i = 0; i < CELL_COUNT; i++)
     {
-        OpenLCD.print(i + ":" + cell_voltages[i] + "V ");
+        Serial1.print(i);
+        Serial1.print(":");
+        Serial1.print(cell_voltages[i]);
+        Serial1.print("V ");
     }
+    */
 }
 
 //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
