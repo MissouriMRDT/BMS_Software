@@ -16,27 +16,27 @@ EthernetServer TCPServer(RC_ROVECOMM_BMSBOARD_PORT);
 
 // Pinmap ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 // Control Pins (output pins)
-#define BUZZER_CTR_PIN			    37
-#define FAN_CTR_PIN				    A15
+#define BUZZER_CTR_PIN			    25
+#define FAN_CTR_PIN				    A8
 #define SW_ERR_PIN				    A14
 #define SW_IND_PIN				    A13
 #define SER_TX_IND				    Serial1
-#define PACK_GATE_CTR_PIN           36
+#define PACK_GATE_CTR_PIN           A17
 
 //Sensor pins (input pins)
 //cell sensors
-#define C1_V_MEAS_PIN				A1
-#define C2_V_MEAS_PIN				A2
-#define C3_V_MEAS_PIN				A3
-#define C4_V_MEAS_PIN				A4
-#define C5_V_MEAS_PIN				A5
-#define C6_V_MEAS_PIN				A6
-#define C7_V_MEAS_PIN				A7
-#define C8_V_MEAS_PIN				A8
+#define C1_V_MEAS_PIN				A0
+#define C2_V_MEAS_PIN				A1
+#define C3_V_MEAS_PIN				A2
+#define C4_V_MEAS_PIN				A3
+#define C5_V_MEAS_PIN				A4
+#define C6_V_MEAS_PIN				A5
+#define C7_V_MEAS_PIN				A6
+#define C8_V_MEAS_PIN				A7
 //other system sensors
-#define PACK_V_MEAS_PIN			    A10
-#define PACK_I_MEAS_PIN			    A17
-#define TEMP_degC_MEAS_PIN		    A12
+#define PACK_V_MEAS_PIN			    A15
+#define PACK_I_MEAS_PIN			    A13
+#define TEMP_degC_MEAS_PIN		    A10
 
 const int CELL_MEAS_PINS[] = {C1_V_MEAS_PIN, C2_V_MEAS_PIN, C3_V_MEAS_PIN, C4_V_MEAS_PIN, C5_V_MEAS_PIN, C6_V_MEAS_PIN, C7_V_MEAS_PIN, C8_V_MEAS_PIN};
 
@@ -54,7 +54,7 @@ const int CELL_MEAS_PINS[] = {C1_V_MEAS_PIN, C2_V_MEAS_PIN, C3_V_MEAS_PIN, C4_V_
 #define SENSOR_BIAS          	    VCC * SENSOR_SCALE //Viout voltage when current is at 0A (aka quiescent output voltage)
                           						 // Noise is 2mV, meaning the smallest current that the device is able to resolve is 0.3A
 // need to be tested for teensy
-#define CURRENT_MAX           	    160000//mA; Current values must be sent over RoveComm as mA
+#define CURRENT_MAX           	    120000//mA; Current values must be sent over RoveComm as mA
 #define CURRENT_MIN           	    -22000//mA
 #define OVERCURRENT                 120000 //mA
 #define CURRENT_ADC_MIN     	    0 //values
