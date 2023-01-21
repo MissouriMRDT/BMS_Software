@@ -16,27 +16,27 @@ EthernetServer TCPServer(RC_ROVECOMM_BMSBOARD_PORT);
 
 // Pinmap ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 // Control Pins (output pins)
-#define BUZZER_CTR_PIN			    37
-#define FAN_CTR_PIN				    A15
-#define SW_ERR_PIN				    A14
-#define SW_IND_PIN				    A13
-#define SER_TX_IND				    Serial1
-#define PACK_GATE_CTR_PIN           36
+#define BUZZER_CTR_PIN			    25
+#define FAN_CTR_PIN				      A12
+#define SW_ERR_PIN				      A14
+#define SW_IND_PIN				      A13
+#define SER_TX_IND				      Serial1
+#define PACK_GATE_CTR_PIN       A17
 
 //Sensor pins (input pins)
 //cell sensors
-#define C1_V_MEAS_PIN				A1
-#define C2_V_MEAS_PIN				A2
-#define C3_V_MEAS_PIN				A3
-#define C4_V_MEAS_PIN				A4
-#define C5_V_MEAS_PIN				A5
-#define C6_V_MEAS_PIN				A6
-#define C7_V_MEAS_PIN				A7
-#define C8_V_MEAS_PIN				A8
+#define C1_V_MEAS_PIN				    A0
+#define C2_V_MEAS_PIN				    A1
+#define C3_V_MEAS_PIN				    A2
+#define C4_V_MEAS_PIN				    A3
+#define C5_V_MEAS_PIN				    A4
+#define C6_V_MEAS_PIN				    A5
+#define C7_V_MEAS_PIN				    A6
+#define C8_V_MEAS_PIN				    A7
 //other system sensors
-#define PACK_V_MEAS_PIN			    A10
-#define PACK_I_MEAS_PIN			    A17
-#define TEMP_degC_MEAS_PIN		    A12
+#define PACK_V_MEAS_PIN			    A15
+#define PACK_I_MEAS_PIN			    A13
+#define TEMP_degC_MEAS_PIN		  A10
 
 const int CELL_MEAS_PINS[] = {C1_V_MEAS_PIN, C2_V_MEAS_PIN, C3_V_MEAS_PIN, C4_V_MEAS_PIN, C5_V_MEAS_PIN, C6_V_MEAS_PIN, C7_V_MEAS_PIN, C8_V_MEAS_PIN};
 
@@ -56,26 +56,28 @@ const int CELL_MEAS_PINS[] = {C1_V_MEAS_PIN, C2_V_MEAS_PIN, C3_V_MEAS_PIN, C4_V_
 // need to be tested for teensy
 #define CURRENT_MAX           	    160000//mA; Current values must be sent over RoveComm as mA
 #define CURRENT_MIN           	    -22000//mA
-#define OVERCURRENT                 120000 //mA
+#define OVERCURRENT                 80000 //mA
 #define CURRENT_ADC_MIN     	    0 //values
 #define CURRENT_ADC_MAX     	    4096 //values
 
 // Voltage Measurments
 //cells
-#define CELL_VOLTS_MIN              2400//ADC value  //Lowest cell voltage I expect to be able to measure.
-#define CELL_VOLTS_MAX              4200 //ADC value //Highest possible cell voltage value we could measure.
-#define CELL_V_ADC_MIN              480 //from analogread
+#define CELL_VOLTS_MIN              2400  //ADC value  //Lowest cell voltage I expect to be able to measure.
+#define CELL_VOLTS_MAX              4200  //ADC value //Highest possible cell voltage value we could measure.
+#define CELL_V_ADC_MIN              480   //from analogread
 #define CELL_V_ADC_MAX              1088  //from analogread
-#define CELL_COUNT	                8// number of modules
-#define CELL_UNDERVOLTAGE           2400 //mV //If any cell voltage reaches this voltage, turn off rover and BMS suicide.
+#define CELL_COUNT	                8     // number of modules
+#define CELL_UNDERVOLTAGE           2400  //mV //If any cell voltage reaches this voltage, turn off rover and BMS suicide.
 
+// We don't have a pack voltage measurement sensor
 // package related
 #define VOLTS_MIN                   0 //mV    //Lowest possible pack voltage value we could measure.
 #define PACK_VOLTS_MAX        	    33600 //mV	//Highest possible pack voltage value we could measure.
-#define PACK_UNDERVOLTAGE   	    19200 //mV	//If pack voltage reaches this voltage, turn off rover and BMS suicide.
-#define PACK_LOWVOLTAGE     	    24000 //mV	//If pack voltage reaches this voltage, notify of low voltage.
-#define PACK_V_ADC_MIN      	    0 //bits
-#define PACK_V_ADC_MAX      	    4096 //bits
+#define PACK_UNDERVOLTAGE   	      19200 //mV	//If pack voltage reaches this voltage, turn off rover and BMS suicide.
+#define PACK_LOWVOLTAGE     	      24000 //mV	//If pack voltage reaches this voltage, notify of low voltage.
+#define PACK_V_ADC_MIN      	      0 //bits
+#define PACK_V_ADC_MAX      	      4096 //bits
+
 // TMP37 Temp Sensor Specs 
 //Find at: https://www.digikey.com/products/en?mpart=TMP37FT9Z&v=505
 //Voltage at 20 deg C is 500mV.
@@ -100,6 +102,7 @@ const int CELL_MEAS_PINS[] = {C1_V_MEAS_PIN, C2_V_MEAS_PIN, C3_V_MEAS_PIN, C4_V_
 
 // timekeeping variables
 IntervalTimer Telemetry;
+int lastTime;
 
 // Setup and Main Loop
 uint8_t error_report = 0;

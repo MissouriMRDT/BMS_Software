@@ -10,50 +10,42 @@ SoftwareSerial OpenLCD(0, 1); // RX, TX
 void setup()
 {
     Serial.begin(9600);
-
     
     delay(100);
     setInputPins();
     setOutputPins();
     setOutputStates();
-    // START HERE. ROVECOMM STOPPING TEXT FROM SHOWING ON DISPLAY BECAUSE NO ETHERNET PORT
-    // ALSO CHECK VALKERIE CODE, IN DOWNLOADS FOLDER
-    //RoveComm.begin(RC_BMSBOARD_FOURTHOCTET, &TCPServer, RC_ROVECOMM_BMSBOARD_MAC);  // <-- This is why text isn't showing, connect ethernet port
+    RoveComm.begin(RC_BMSBOARD_FOURTHOCTET, &TCPServer, RC_ROVECOMM_BMSBOARD_MAC);
     Telemetry.begin(telemetry, 1500000);
-    
 
-    OpenLCD.begin(9600);      // Start communication with Serial2
-    
-    OpenLCD.write('|');       // Put LCD in setting mode
-    OpenLCD.write(32);        // Send contrast command
-    OpenLCD.write(2);         // Set contrast
+    Serial1.begin(9600);      // Start communication with Serial2
+    Serial1.write('|');       // Put LCD in setting mode
+    Serial1.write(32);        // Send contrast command
+    Serial1.write(2);         // Set contrast
 }
 
 void loop()
 {
-    //updateLCD();
-
-    OpenLCD.write('|');
-    OpenLCD.write('-');
-    
-    OpenLCD.print("Hello World");
-
-    delay(250);
-
-/*
-    getMainCurrent(main_current); 
+    getMainCurrent(main_current);
     reactOverCurrent();
-
-    getCellVoltage(cell_voltages);  
-    reactUnderVoltage();            
-    reactLowVoltage(cell_voltages); 
-
+    
+    getCellVoltage(cell_voltages);
+    //reactUnderVoltage();
+    reactLowVoltage(cell_voltages);
+    
     getPackVoltage(pack_out_voltage);
     reactEstopReleased();
     reactForgottenLogicSwitch();
 
     getBattTemp(batt_temp);
     reactOverTemp();
+    
+    if(millis() >= (lastTime+300))
+    {
+        updateLCD();
+        lastTime = millis();
+    }
+    
 
     packet = RoveComm.read();
     if (packet.data_id != 0)
@@ -67,7 +59,6 @@ void loop()
             }   
         }
     }
-*/
 }
 
 // Static Variables for Below Functions /////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -134,8 +125,8 @@ void setOutputPins() // output pin functions
 
 void setOutputStates()
 {
-    digitalWrite(BUZZER_CTR_PIN, HIGH); // turn off buzzer
-    digitalWrite(FAN_CTR_PIN, HIGH);    // turn on fan
+    digitalWrite(BUZZER_CTR_PIN, LOW); // turn off buzzer
+    digitalWrite(FAN_CTR_PIN, LOW);    // turn off fan
     digitalWrite(SER_TX_IND, LOW);     // turn off LCD communication
     digitalWrite(SW_IND_PIN, LOW);     // turn off software indicator LED
     digitalWrite(SW_ERR_PIN, LOW);     // turn off software error LED
@@ -153,8 +144,8 @@ void getMainCurrent(float &mainCurrent)
     if (mainCurrent > OVERCURRENT) // check current > overcurrent, if not return
     {
         delay(DEBOUNCE_DELAY);                                                                                       // debounce delay is to check twice in a short period of time
-        mainCurrent = map(analogRead(PACK_I_MEAS_PIN), CURRENT_ADC_MIN, CURRENT_ADC_MAX, CURRENT_MIN, CURRENT_MAX); // fetch again to double check value
-        if (mainCurrent > OVERCURRENT)                                                                              // if current > overcurrent, send out a warning
+        mainCurrent = map(analogRead(PACK_I_MEAS_PIN), CURRENT_ADC_MIN, CURRENT_ADC_MAX, CURRENT_MIN, CURRENT_MAX);  // fetch again to double check value
+        if (mainCurrent > OVERCURRENT)                                                                               // if current > overcurrent, send out a warning
         {
             // send error flag to roveComm for package over current
             packOverCurrent_state = true;
@@ -492,34 +483,36 @@ void setEstop(uint8_t data)
 
 void updateLCD()
 {
-
-    
     // Clear LCD
-    Serial2.write('|'); // Enter settings mode
-    Serial2.write('-'); // Clear display
-
-    Serial2.print("Hello world!");
+    Serial1.write('|'); // Enter settings mode
+    Serial1.write('-'); // Clear display
     
-    /*
     //Display pack voltage
-    Serial1.print("Pack: ");
-    Serial1.print(pack_out_voltage);
+    Serial1.printf("Pack:%.1f", pack_out_voltage/1000);
     Serial1.print("V ");
 
     //Display temp
-    Serial1.print("Tmp: ");
-    Serial1.print(batt_temp);
+    Serial1.printf("Tmp:%.1f", batt_temp/1000);
     Serial1.print("F");
 
     // Display cell voltages on LCD
     for (uint8_t i = 0; i < CELL_COUNT; i++)
     {
-        Serial1.print(i);
-        Serial1.print(":");
-        Serial1.print(cell_voltages[i]);
-        Serial1.print("V ");
+        if(i!=2 && i!=5)
+        {
+            Serial1.print(i+1);
+            Serial1.printf(":%.1f", cell_voltages[i]/1000);
+            Serial1.print("V ");
+        }
+        else
+        {
+            Serial1.print(i+1);
+            Serial1.printf(":%.1f", cell_voltages[i]/1000);
+            Serial1.print("V");
+        }
     }
-    */
+
+    
 }
 
 //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
