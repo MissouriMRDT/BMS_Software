@@ -18,7 +18,7 @@ void setup()
     RoveComm.begin(RC_BMSBOARD_FOURTHOCTET, &TCPServer, RC_ROVECOMM_BMSBOARD_MAC);
     Telemetry.begin(telemetry, 1500000);
 
-    Serial1.begin(9600);      // Start communication with Serial2
+    Serial1.begin(9600);      // Start communication with Serial1
     Serial1.write('|');       // Put LCD in setting mode
     Serial1.write(32);        // Send contrast command
     Serial1.write(2);         // Set contrast
@@ -26,6 +26,8 @@ void setup()
 
 void loop()
 {
+    
+
     getMainCurrent(main_current);
     reactOverCurrent();
     
@@ -242,6 +244,8 @@ void getPackVoltage(float &pack_out_voltage)
 
 void getBattTemp(float &batt_temp)
 {
+    Serial.println(analogRead(TEMP_degC_MEAS_PIN));
+
     int adc_reading = analogRead(TEMP_degC_MEAS_PIN);
     if (adc_reading > TEMP_ADC_MAX)
     {
@@ -492,7 +496,10 @@ void updateLCD()
     Serial1.print("V ");
 
     //Display temp
-    Serial1.printf("Tmp:%.1f", batt_temp/1000);
+
+    float batt_temp_F = ((batt_temp/1000.0f) * (9.0f/5.0f)) + 32.0f;
+
+    Serial1.printf("Tmp:%.1f", ((batt_temp/1000.0f)* (9.0f/5.0f)) + 32.0f);
     Serial1.print("F");
 
     // Display cell voltages on LCD
