@@ -26,13 +26,11 @@ void setup()
 
 void loop()
 {
-    
-
     getMainCurrent(main_current);
     reactOverCurrent();
     
     getCellVoltage(cell_voltages);
-    //reactUnderVoltage();
+    reactUnderVoltage();
     reactLowVoltage(cell_voltages);
     
     getPackVoltage(pack_out_voltage);
@@ -168,7 +166,7 @@ void getMainCurrent(float &mainCurrent)
 
 void getCellVoltage(float cell_voltages[])
 {
-    pinfault_state = false; // cell voltage pin reader if the pinfualt state is false then the code will continue
+    // pinfault_state = false; // cell voltage pin reader if the pinfualt state is false then the code will continue
     cell_undervoltage_state = 0;
     cell_undervoltage_count = 0;
 

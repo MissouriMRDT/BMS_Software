@@ -130,7 +130,7 @@ void getCellVoltage(float cell_voltages);
 
 void getPackVoltage(float &pack_out_voltage);
 
-void getBattTemp(uint32_t &batt_temp);
+void getBattTemp(float &batt_temp);
 
 void reactOverCurrent();
 
