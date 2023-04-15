@@ -15,7 +15,7 @@ void setup()
     setInputPins();
     setOutputPins();
     setOutputStates();
-    RoveComm.begin(RC_BMSBOARD_FOURTHOCTET, &TCPServer, RC_ROVECOMM_BMSBOARD_MAC);
+    RoveComm.begin(RC_BMSBOARD_FIRSTOCTET, RC_BMSBOARD_SECONDOCTET, RC_BMSBOARD_THIRDOCTET, RC_BMSBOARD_FOURTHOCTET, &TCPServer);
     Telemetry.begin(telemetry, 1500000);
 
     Serial1.begin(9600);      // Start communication with Serial1
