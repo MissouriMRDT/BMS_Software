@@ -18,10 +18,30 @@ void setup()
     RoveComm.begin(RC_BMSBOARD_FIRSTOCTET, RC_BMSBOARD_SECONDOCTET, RC_BMSBOARD_THIRDOCTET, RC_BMSBOARD_FOURTHOCTET, &TCPServer);
     Telemetry.begin(telemetry, 1500000);
 
-    OpenLCD.begin(9600);      // Start communication with Serial1
-    OpenLCD.write('|');       // Put LCD in setting mode
-    OpenLCD.write(32);        // Send contrast command
-    OpenLCD.write(2);         // Set contrast
+    OpenLCD.begin(9600);     // Start communication with LCD over serial
+    //OpenLCD.write('|');       // Put LCD in setting mode
+    //OpenLCD.write(18);        // Set baud rate to 1000000
+    //OpenLCD.end();
+    //OpenLCD.begin(115200);
+    
+    
+    OpenLCD.write('|');
+    OpenLCD.write(24);        // Send contrast command
+    OpenLCD.write(1);         // Set contrast
+
+    OpenLCD.write('|');
+    OpenLCD.write(128 + 0);   // Set white/red backlight amount to 0% (+29 is 100%)
+
+    OpenLCD.write('|');
+    OpenLCD.write(158 + 0);   // Set green backlight amount to 0% (+29 is 100%)
+
+    OpenLCD.write('|');
+    OpenLCD.write(188 + 0);   // Set blue backlight amount to 0% (+29 is 100%)
+
+    OpenLCD.write('|');
+    OpenLCD.write('-');
+    OpenLCD.print("Test");
+    
 }
 
 void loop()
@@ -40,7 +60,7 @@ void loop()
     getBattTemp(batt_temp);
     reactOverTemp();
     
-    if(millis() >= (lastTime+200))
+    if(millis() >= (lastTime+600))
     {
         updateLCD();
         lastTime = millis();
