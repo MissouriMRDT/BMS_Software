@@ -18,10 +18,10 @@ void setup()
     RoveComm.begin(RC_BMSBOARD_FIRSTOCTET, RC_BMSBOARD_SECONDOCTET, RC_BMSBOARD_THIRDOCTET, RC_BMSBOARD_FOURTHOCTET, &TCPServer);
     Telemetry.begin(telemetry, 1500000);
 
-    Serial1.begin(9600);      // Start communication with Serial1
-    Serial1.write('|');       // Put LCD in setting mode
-    Serial1.write(32);        // Send contrast command
-    Serial1.write(2);         // Set contrast
+    OpenLCD.begin(9600);      // Start communication with Serial1
+    OpenLCD.write('|');       // Put LCD in setting mode
+    OpenLCD.write(32);        // Send contrast command
+    OpenLCD.write(2);         // Set contrast
 }
 
 void loop()
@@ -40,7 +40,7 @@ void loop()
     getBattTemp(batt_temp);
     reactOverTemp();
     
-    if(millis() >= (lastTime+300))
+    if(millis() >= (lastTime+200))
     {
         updateLCD();
         lastTime = millis();
@@ -113,7 +113,7 @@ void setOutputPins() // output pin functions
 {
     pinMode(BUZZER_CTR_PIN, OUTPUT); // buzzer control pin
     pinMode(FAN_CTR_PIN, OUTPUT);    // all-fan control  pin
-    pinMode(SER_TX_IND, OUTPUT);     // LCD communication pin
+    //pinMode(SER_TX_IND, OUTPUT);     // LCD communication pin
     pinMode(SW_IND_PIN, OUTPUT);     // software indicator pin
     pinMode(SW_ERR_PIN, OUTPUT);     // software error pin
     pinMode(PACK_GATE_CTR_PIN, OUTPUT); // Vout control pin
@@ -127,7 +127,7 @@ void setOutputStates()
 {
     digitalWrite(BUZZER_CTR_PIN, LOW); // turn off buzzer
     digitalWrite(FAN_CTR_PIN, LOW);    // turn off fan
-    digitalWrite(SER_TX_IND, LOW);     // turn off LCD communication
+    //digitalWrite(SER_TX_IND, LOW);     // turn off LCD communication
     digitalWrite(SW_IND_PIN, LOW);     // turn off software indicator LED
     digitalWrite(SW_ERR_PIN, LOW);     // turn off software error LED
     digitalWrite(PACK_GATE_CTR_PIN, HIGH);     // turn on output voltage
@@ -242,8 +242,6 @@ void getPackVoltage(float &pack_out_voltage)
 
 void getBattTemp(float &batt_temp)
 {
-    Serial.println(analogRead(TEMP_degC_MEAS_PIN));
-
     int adc_reading = analogRead(TEMP_degC_MEAS_PIN);
     if (adc_reading > TEMP_ADC_MAX)
     {
@@ -439,7 +437,6 @@ void reactEstopReleased()
 
 void reactLowVoltage(float cell_voltage[CELL_COUNT])
 {
-    ////Serial.println("reactLowVoltage");
     if ((cell_voltage[0] > PACK_UNDERVOLTAGE) && (cell_voltage[0] <= PACK_LOWVOLTAGE) && (low_voltage_state == false)) // first instance of low voltage
     {
         low_voltage_state = true;
@@ -486,38 +483,37 @@ void setEstop(uint8_t data)
 void updateLCD()
 {
     // Clear LCD
-    Serial1.write('|'); // Enter settings mode
-    Serial1.write('-'); // Clear display
-    
+    OpenLCD.write('|'); // Enter settings mode
+    OpenLCD.write('-'); // Clear display
+
     //Display pack voltage
-    Serial1.printf("Pack:%.1f", pack_out_voltage/1000);
-    Serial1.print("V ");
+    OpenLCD.printf("Pack:%.1f", pack_out_voltage/1000);
+    OpenLCD.print("V ");
 
     //Display temp
-
     float batt_temp_F = ((batt_temp/1000.0f) * (9.0f/5.0f)) + 32.0f;
 
-    Serial1.printf("Tmp:%.1f", ((batt_temp/1000.0f)* (9.0f/5.0f)) + 32.0f);
-    Serial1.print("F");
+    OpenLCD.printf("Tmp:%.1f", ((batt_temp/1000.0f)* (9.0f/5.0f)) + 32.0f);
+    OpenLCD.print("F");
 
     // Display cell voltages on LCD
     for (uint8_t i = 0; i < CELL_COUNT; i++)
     {
         if(i!=2 && i!=5)
         {
-            Serial1.print(i+1);
-            Serial1.printf(":%.1f", cell_voltages[i]/1000);
-            Serial1.print("V ");
+            OpenLCD.print(i+1);
+            OpenLCD.printf(":%.1f", cell_voltages[i]/1000);
+            OpenLCD.print("V ");
         }
         else
         {
-            Serial1.print(i+1);
-            Serial1.printf(":%.1f", cell_voltages[i]/1000);
-            Serial1.print("V");
+            OpenLCD.print(i+1);
+            OpenLCD.printf(":%.1f", cell_voltages[i]/1000);
+            OpenLCD.print("V");
         }
     }
 
-    
+    Serial.println("end of updateLCD()");
 }
 
 //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
