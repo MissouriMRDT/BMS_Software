@@ -24,7 +24,6 @@ void setup()
     //OpenLCD.end();
     //OpenLCD.begin(115200);
     
-    
     OpenLCD.write('|');
     OpenLCD.write(24);        // Send contrast command
     OpenLCD.write(1);         // Set contrast
@@ -37,28 +36,23 @@ void setup()
 
     OpenLCD.write('|');
     OpenLCD.write(188 + 0);   // Set blue backlight amount to 0% (+29 is 100%)
-
-    OpenLCD.write('|');
-    OpenLCD.write('-');
-    OpenLCD.print("Test");
-    
 }
 
 void loop()
 {
     getMainCurrent(main_current);
-    reactOverCurrent();
+    //reactOverCurrent();
     
     getCellVoltage(cell_voltages);
-    reactUnderVoltage();
-    reactLowVoltage(cell_voltages);
+    //reactUnderVoltage();
+    //reactLowVoltage(cell_voltages);
     
     getPackVoltage(pack_out_voltage);
-    reactEstopReleased();
-    reactForgottenLogicSwitch();
+    //reactEstopReleased();
+    //reactForgottenLogicSwitch();
 
     getBattTemp(batt_temp);
-    reactOverTemp();
+    //reactOverTemp();
     
     if(millis() >= (lastTime+600))
     {
@@ -190,7 +184,7 @@ void getCellVoltage(float cell_voltages[])
     cell_undervoltage_state = 0;
     cell_undervoltage_count = 0;
 
-    for (int i = 0; i < CELL_COUNT; i++) // loop for the number of batteri
+    for (int i = 0; i < CELL_COUNT; i++) // loop for the number of batteries
     {
         int adc_reading = analogRead(CELL_MEAS_PINS[i]);
 
@@ -198,12 +192,13 @@ void getCellVoltage(float cell_voltages[])
         {
             adc_reading = CELL_V_ADC_MIN;
         }
-        else if (adc_reading > CELL_V_ADC_MAX) // handle if reading above 3.3V	:above expecting voltage
+        else if (adc_reading > CELL_V_ADC_MAX) // handle if reading above 4.2V	:above expecting voltage
         {
             adc_reading = CELL_V_ADC_MAX;
         }
 
-        cell_voltages[i] = ((map(adc_reading, CELL_V_ADC_MIN, CELL_V_ADC_MAX, CELL_VOLTS_MIN, CELL_VOLTS_MAX))); // map ADC value to Volts
+        cell_voltages[i] = ((float) adc_reading/CELL_V_ADC_MAX) * ((float) CELL_VOLTS_MAX/1000.0);
+        //((map(adc_reading, CELL_V_ADC_MIN, CELL_V_ADC_MAX, CELL_VOLTS_MIN, CELL_VOLTS_MAX))); // map ADC value to Volts
 
         if ((cell_voltages[i] <= CELL_UNDERVOLTAGE)) // if between 2.4V and 2.65V
         {
@@ -532,8 +527,6 @@ void updateLCD()
             OpenLCD.print("V");
         }
     }
-
-    Serial.println("end of updateLCD()");
 }
 
 //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
