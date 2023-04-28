@@ -15,7 +15,7 @@ void setup()
     setInputPins();
     setOutputPins();
     setOutputStates();
-    RoveComm.begin(RC_BMSBOARD_FIRSTOCTET, RC_BMSBOARD_SECONDOCTET, RC_BMSBOARD_THIRDOCTET, RC_BMSBOARD_FOURTHOCTET, &TCPServer);
+    RoveComm.begin(RC_BMSBOARD_FOURTHOCTET, &TCPServer, RC_ROVECOMM_BMSBOARD_MAC);
     Telemetry.begin(telemetry, 1500000);
 
     OpenLCD.begin(9600);     // Start communication with LCD over serial
