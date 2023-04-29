@@ -15,46 +15,32 @@ void setup()
     setInputPins();
     setOutputPins();
     setOutputStates();
-    RoveComm.begin(RC_BMSBOARD_FOURTHOCTET, &TCPServer, RC_ROVECOMM_BMSBOARD_MAC);
+    RoveComm.begin(RC_BMSBOARD_FIRSTOCTET, RC_BMSBOARD_SECONDOCTET, RC_BMSBOARD_THIRDOCTET, RC_BMSBOARD_FOURTHOCTET, &TCPServer);
     Telemetry.begin(telemetry, 1500000);
 
-    OpenLCD.begin(9600);     // Start communication with LCD over serial
-    //OpenLCD.write('|');       // Put LCD in setting mode
-    //OpenLCD.write(18);        // Set baud rate to 1000000
-    //OpenLCD.end();
-    //OpenLCD.begin(115200);
-    
-    OpenLCD.write('|');
-    OpenLCD.write(24);        // Send contrast command
-    OpenLCD.write(1);         // Set contrast
-
-    OpenLCD.write('|');
-    OpenLCD.write(128 + 0);   // Set white/red backlight amount to 0% (+29 is 100%)
-
-    OpenLCD.write('|');
-    OpenLCD.write(158 + 0);   // Set green backlight amount to 0% (+29 is 100%)
-
-    OpenLCD.write('|');
-    OpenLCD.write(188 + 0);   // Set blue backlight amount to 0% (+29 is 100%)
+    Serial1.begin(9600);      // Start communication with Serial1
+    Serial1.write('|');       // Put LCD in setting mode
+    Serial1.write(32);        // Send contrast command
+    Serial1.write(2);         // Set contrast
 }
 
 void loop()
 {
     getMainCurrent(main_current);
-    //reactOverCurrent();
+    reactOverCurrent();
     
     getCellVoltage(cell_voltages);
-    //reactUnderVoltage();
-    //reactLowVoltage(cell_voltages);
+    reactUnderVoltage();
+    reactLowVoltage(cell_voltages);
     
     getPackVoltage(pack_out_voltage);
-    //reactEstopReleased();
-    //reactForgottenLogicSwitch();
+    reactEstopReleased();
+    reactForgottenLogicSwitch();
 
     getBattTemp(batt_temp);
-    //reactOverTemp();
+    reactOverTemp();
     
-    if(millis() >= (lastTime+600))
+    if(millis() >= (lastTime+300))
     {
         updateLCD();
         lastTime = millis();
@@ -127,7 +113,7 @@ void setOutputPins() // output pin functions
 {
     pinMode(BUZZER_CTR_PIN, OUTPUT); // buzzer control pin
     pinMode(FAN_CTR_PIN, OUTPUT);    // all-fan control  pin
-    //pinMode(SER_TX_IND, OUTPUT);     // LCD communication pin
+    pinMode(SER_TX_IND, OUTPUT);     // LCD communication pin
     pinMode(SW_IND_PIN, OUTPUT);     // software indicator pin
     pinMode(SW_ERR_PIN, OUTPUT);     // software error pin
     pinMode(PACK_GATE_CTR_PIN, OUTPUT); // Vout control pin
@@ -141,7 +127,7 @@ void setOutputStates()
 {
     digitalWrite(BUZZER_CTR_PIN, LOW); // turn off buzzer
     digitalWrite(FAN_CTR_PIN, LOW);    // turn off fan
-    //digitalWrite(SER_TX_IND, LOW);     // turn off LCD communication
+    digitalWrite(SER_TX_IND, LOW);     // turn off LCD communication
     digitalWrite(SW_IND_PIN, LOW);     // turn off software indicator LED
     digitalWrite(SW_ERR_PIN, LOW);     // turn off software error LED
     digitalWrite(PACK_GATE_CTR_PIN, HIGH);     // turn on output voltage
@@ -184,7 +170,7 @@ void getCellVoltage(float cell_voltages[])
     cell_undervoltage_state = 0;
     cell_undervoltage_count = 0;
 
-    for (int i = 0; i < CELL_COUNT; i++) // loop for the number of batteries
+    for (int i = 0; i < CELL_COUNT; i++) // loop for the number of batteri
     {
         int adc_reading = analogRead(CELL_MEAS_PINS[i]);
 
@@ -192,13 +178,12 @@ void getCellVoltage(float cell_voltages[])
         {
             adc_reading = CELL_V_ADC_MIN;
         }
-        else if (adc_reading > CELL_V_ADC_MAX) // handle if reading above 4.2V	:above expecting voltage
+        else if (adc_reading > CELL_V_ADC_MAX) // handle if reading above 3.3V	:above expecting voltage
         {
             adc_reading = CELL_V_ADC_MAX;
         }
 
-        cell_voltages[i] = ((float) adc_reading/CELL_V_ADC_MAX) * ((float) CELL_VOLTS_MAX/1000.0);
-        //((map(adc_reading, CELL_V_ADC_MIN, CELL_V_ADC_MAX, CELL_VOLTS_MIN, CELL_VOLTS_MAX))); // map ADC value to Volts
+        cell_voltages[i] = ((map(adc_reading, CELL_V_ADC_MIN, CELL_V_ADC_MAX, CELL_VOLTS_MIN, CELL_VOLTS_MAX))); // map ADC value to Volts
 
         if ((cell_voltages[i] <= CELL_UNDERVOLTAGE)) // if between 2.4V and 2.65V
         {
@@ -257,6 +242,8 @@ void getPackVoltage(float &pack_out_voltage)
 
 void getBattTemp(float &batt_temp)
 {
+    Serial.println(analogRead(TEMP_degC_MEAS_PIN));
+
     int adc_reading = analogRead(TEMP_degC_MEAS_PIN);
     if (adc_reading > TEMP_ADC_MAX)
     {
@@ -452,6 +439,7 @@ void reactEstopReleased()
 
 void reactLowVoltage(float cell_voltage[CELL_COUNT])
 {
+    ////Serial.println("reactLowVoltage");
     if ((cell_voltage[0] > PACK_UNDERVOLTAGE) && (cell_voltage[0] <= PACK_LOWVOLTAGE) && (low_voltage_state == false)) // first instance of low voltage
     {
         low_voltage_state = true;
@@ -498,35 +486,38 @@ void setEstop(uint8_t data)
 void updateLCD()
 {
     // Clear LCD
-    OpenLCD.write('|'); // Enter settings mode
-    OpenLCD.write('-'); // Clear display
-
+    Serial1.write('|'); // Enter settings mode
+    Serial1.write('-'); // Clear display
+    
     //Display pack voltage
-    OpenLCD.printf("Pack:%.1f", pack_out_voltage/1000);
-    OpenLCD.print("V ");
+    Serial1.printf("Pack:%.1f", pack_out_voltage/1000);
+    Serial1.print("V ");
 
     //Display temp
+
     float batt_temp_F = ((batt_temp/1000.0f) * (9.0f/5.0f)) + 32.0f;
 
-    OpenLCD.printf("Tmp:%.1f", ((batt_temp/1000.0f)* (9.0f/5.0f)) + 32.0f);
-    OpenLCD.print("F");
+    Serial1.printf("Tmp:%.1f", ((batt_temp/1000.0f)* (9.0f/5.0f)) + 32.0f);
+    Serial1.print("F");
 
     // Display cell voltages on LCD
     for (uint8_t i = 0; i < CELL_COUNT; i++)
     {
         if(i!=2 && i!=5)
         {
-            OpenLCD.print(i+1);
-            OpenLCD.printf(":%.1f", cell_voltages[i]/1000);
-            OpenLCD.print("V ");
+            Serial1.print(i+1);
+            Serial1.printf(":%.1f", cell_voltages[i]/1000);
+            Serial1.print("V ");
         }
         else
         {
-            OpenLCD.print(i+1);
-            OpenLCD.printf(":%.1f", cell_voltages[i]/1000);
-            OpenLCD.print("V");
+            Serial1.print(i+1);
+            Serial1.printf(":%.1f", cell_voltages[i]/1000);
+            Serial1.print("V");
         }
     }
+
+    
 }
 
 //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////

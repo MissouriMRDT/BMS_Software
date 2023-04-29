@@ -12,7 +12,7 @@ RoveCommEthernet RoveComm;
 rovecomm_packet packet;
 
 // declare the Ethernet Server in the top level sketch with the requisite port ID any time you want to use RoveComm
-EthernetServer TCPServer(RC_ROVECOMM_BMSBOARD_PORT);
+EthernetServer TCPServer(RC_ROVECOMM_ETHERNET_TCP_PORT);
 
 // Pinmap ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 // Control Pins (output pins)
@@ -66,7 +66,7 @@ const int CELL_MEAS_PINS[] = {C1_V_MEAS_PIN, C2_V_MEAS_PIN, C3_V_MEAS_PIN, C4_V_
 #define CELL_VOLTS_MIN              2400  //Lowest cell voltage I expect to be able to measure.
 #define CELL_VOLTS_MAX              4200  //Highest possible cell voltage value we could measure.
 #define CELL_V_ADC_MIN              580   //analogread output when cells are 2.4V
-#define CELL_V_ADC_MAX              1023  //analogread output when cells are 4.2V
+#define CELL_V_ADC_MAX              1001  //analogread output when cells are 4.2V
 #define CELL_COUNT	                8     // number of modules
 #define CELL_UNDERVOLTAGE           2400  //mV //If any cell voltage reaches this voltage, turn off rover and BMS suicide.
 
