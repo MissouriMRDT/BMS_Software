@@ -10,7 +10,7 @@ SoftwareSerial OpenLCD(0, 1); // RX, TX
 void setup()
 {
     Serial.begin(9600);
-    
+
     delay(100);
     setInputPins();
     setOutputPins();
@@ -18,59 +18,61 @@ void setup()
     RoveComm.begin(RC_BMSBOARD_FIRSTOCTET, RC_BMSBOARD_SECONDOCTET, RC_BMSBOARD_THIRDOCTET, RC_BMSBOARD_FOURTHOCTET, &TCPServer);
     Telemetry.begin(telemetry, 1500000);
 
-    OpenLCD.begin(9600);     // Start communication with LCD over serial
-    //OpenLCD.write('|');       // Put LCD in setting mode
-    //OpenLCD.write(18);        // Set baud rate to 1000000
-    //OpenLCD.end();
-    //OpenLCD.begin(115200);
-    
-    OpenLCD.write('|');
-    OpenLCD.write(24);        // Send contrast command
-    OpenLCD.write(1);         // Set contrast
+    OpenLCD.begin(9600); // Start communication with LCD over serial
+    // OpenLCD.write('|');       // Put LCD in setting mode
+    // OpenLCD.write(18);        // Set baud rate to 1000000
+    // OpenLCD.end();
+    // OpenLCD.begin(115200);
 
     OpenLCD.write('|');
-    OpenLCD.write(128 + 0);   // Set white/red backlight amount to 0% (+29 is 100%)
+    OpenLCD.write(24); // Send contrast command
+    OpenLCD.write(1);  // Set contrast
 
     OpenLCD.write('|');
-    OpenLCD.write(158 + 0);   // Set green backlight amount to 0% (+29 is 100%)
+    OpenLCD.write(128 + 0); // Set white/red backlight amount to 0% (+29 is 100%)
 
     OpenLCD.write('|');
-    OpenLCD.write(188 + 0);   // Set blue backlight amount to 0% (+29 is 100%)
+    OpenLCD.write(158 + 0); // Set green backlight amount to 0% (+29 is 100%)
+
+    OpenLCD.write('|');
+    OpenLCD.write(188 + 0); // Set blue backlight amount to 0% (+29 is 100%)
+
+    digitalWrite(FAN_CTR_PIN, HIGH); // Fans on for safety
 }
 
 void loop()
 {
     getMainCurrent(main_current);
-    //reactOverCurrent();
-    
+    // reactOverCurrent();
+
     getCellVoltage(cell_voltages);
-    //reactUnderVoltage();
-    //reactLowVoltage(cell_voltages);
-    
+
+    // reactLowVoltage(cell_voltages);
+
     getPackVoltage(pack_out_voltage);
-    //reactEstopReleased();
-    //reactForgottenLogicSwitch();
+    reactUnderVoltage();
+    // reactEstopReleased();
+    // reactForgottenLogicSwitch();
 
     getBattTemp(batt_temp);
-    //reactOverTemp();
-    
-    if(millis() >= (lastTime+600))
+    // reactOverTemp();
+
+    if (millis() >= (lastTime + 600))
     {
         updateLCD();
         lastTime = millis();
     }
-    
 
     packet = RoveComm.read();
     if (packet.data_id != 0)
     {
         switch (packet.data_id)
         {
-            case RC_BMSBOARD_BMSSTOP_DATA_ID:
-            {
-                setEstop(packet.data[0]);
-                break;
-            }   
+        case RC_BMSBOARD_BMSSTOP_DATA_ID:
+        {
+            setEstop(packet.data[0]);
+            break;
+        }
         }
     }
 }
@@ -127,9 +129,9 @@ void setOutputPins() // output pin functions
 {
     pinMode(BUZZER_CTR_PIN, OUTPUT); // buzzer control pin
     pinMode(FAN_CTR_PIN, OUTPUT);    // all-fan control  pin
-    //pinMode(SER_TX_IND, OUTPUT);     // LCD communication pin
-    pinMode(SW_IND_PIN, OUTPUT);     // software indicator pin
-    pinMode(SW_ERR_PIN, OUTPUT);     // software error pin
+    // pinMode(SER_TX_IND, OUTPUT);     // LCD communication pin
+    pinMode(SW_IND_PIN, OUTPUT);        // software indicator pin
+    pinMode(SW_ERR_PIN, OUTPUT);        // software error pin
     pinMode(PACK_GATE_CTR_PIN, OUTPUT); // Vout control pin
 
     return;
@@ -141,10 +143,11 @@ void setOutputStates()
 {
     digitalWrite(BUZZER_CTR_PIN, LOW); // turn off buzzer
     digitalWrite(FAN_CTR_PIN, LOW);    // turn off fan
-    //digitalWrite(SER_TX_IND, LOW);     // turn off LCD communication
-    digitalWrite(SW_IND_PIN, LOW);     // turn off software indicator LED
-    digitalWrite(SW_ERR_PIN, LOW);     // turn off software error LED
-    digitalWrite(PACK_GATE_CTR_PIN, HIGH);     // turn on output voltage
+    // digitalWrite(SER_TX_IND, LOW);     // turn off LCD communication
+    digitalWrite(SW_IND_PIN, LOW);         // turn off software indicator LED
+    digitalWrite(SW_ERR_PIN, LOW);         // turn off software error LED
+    digitalWrite(PACK_GATE_CTR_PIN, HIGH); // turn on output voltage
+    digitalWrite(LOGIC_SWITCH_INDUCTOR, LOW);
 
     return;
 }
@@ -157,9 +160,9 @@ void getMainCurrent(float &mainCurrent)
 
     if (mainCurrent > OVERCURRENT) // check current > overcurrent, if not return
     {
-        delay(DEBOUNCE_DELAY);                                                                                       // debounce delay is to check twice in a short period of time
-        mainCurrent = map(analogRead(PACK_I_MEAS_PIN), CURRENT_ADC_MIN, CURRENT_ADC_MAX, CURRENT_MIN, CURRENT_MAX);  // fetch again to double check value
-        if (mainCurrent > OVERCURRENT)                                                                               // if current > overcurrent, send out a warning
+        delay(DEBOUNCE_DELAY);                                                                                      // debounce delay is to check twice in a short period of time
+        mainCurrent = map(analogRead(PACK_I_MEAS_PIN), CURRENT_ADC_MIN, CURRENT_ADC_MAX, CURRENT_MIN, CURRENT_MAX); // fetch again to double check value
+        if (mainCurrent > OVERCURRENT)                                                                              // if current > overcurrent, send out a warning
         {
             // send error flag to roveComm for package over current
             packOverCurrent_state = true;
@@ -197,7 +200,7 @@ void getCellVoltage(float cell_voltages[])
             adc_reading = CELL_V_ADC_MAX;
         }
 
-        cell_voltages[i] = ((float) adc_reading/CELL_V_ADC_MAX) * ((float) CELL_VOLTS_MAX/1000.0);
+        cell_voltages[i] = ((float)adc_reading / CELL_V_ADC_MAX) * ((float)CELL_VOLTS_MAX / 1000.0);
         //((map(adc_reading, CELL_V_ADC_MIN, CELL_V_ADC_MAX, CELL_VOLTS_MIN, CELL_VOLTS_MAX))); // map ADC value to Volts
 
         if ((cell_voltages[i] <= CELL_UNDERVOLTAGE)) // if between 2.4V and 2.65V
@@ -217,15 +220,14 @@ void getCellVoltage(float cell_voltages[])
 
             cell_voltages[i] = ((map(adc_reading, CELL_V_ADC_MIN, CELL_V_ADC_MAX, CELL_VOLTS_MIN, CELL_VOLTS_MAX)));
 
-            if ( cell_voltages[i] <= CELL_UNDERVOLTAGE ) // map and then compare to min and max expecting voltage
+            if (cell_voltages[i] <= CELL_UNDERVOLTAGE) // map and then compare to min and max expecting voltage
             {
                 cell_undervoltage_state |= (1 << i);
                 cell_undervoltage_count++;
             }
-            else 
+            else
             {
                 cell_undervoltage_state &= !(1 << i);
-                cell_undervoltage_count--;
             }
         }
     }
@@ -237,12 +239,12 @@ void getCellVoltage(float cell_voltages[])
 void getPackVoltage(float &pack_out_voltage)
 {
     pack_out_voltage = 0;
-    for ( uint8_t i = 0; i < CELL_COUNT; i++)
+    for (uint8_t i = 0; i < CELL_COUNT; i++)
     {
         pack_out_voltage += cell_voltages[i];
     }
 
-    if ( pack_out_voltage <= PACK_LOWVOLTAGE || pack_out_voltage <= PACK_UNDERVOLTAGE)
+    if (pack_out_voltage <= PACK_LOWVOLTAGE || pack_out_voltage <= PACK_UNDERVOLTAGE)
     {
         pack_undervoltage_state = true;
     }
@@ -366,7 +368,8 @@ void reactUnderVoltage()
     if (pack_undervoltage_state)
     {
         RoveComm.write(RC_BMSBOARD_PACKUNDERVOLTAGE_DATA_ID, RC_BMSBOARD_PACKUNDERVOLTAGE_DATA_COUNT, (uint8_t)pack_undervoltage_state);
-        digitalWrite(PACK_GATE_CTR_PIN, LOW); // BMS Suicide
+        digitalWrite(PACK_GATE_CTR_PIN, LOW);
+        digitalWrite(LOGIC_SWITCH_INDUCTOR, HIGH); // BMS Suicide
         notifyUnderVoltage();
     }
 
@@ -374,16 +377,12 @@ void reactUnderVoltage()
     {
         RoveComm.write(RC_BMSBOARD_CELLUNDERVOLTAGE_DATA_ID, RC_BMSBOARD_CELLUNDERVOLTAGE_DATA_COUNT, error_report);
         notifyUnderVoltage();
-
-        if (cell_undervoltage_count > 1)
-        {
-            digitalWrite(PACK_GATE_CTR_PIN, LOW); // BMS Suicide
-            notifyUnderVoltage();
-        }
+        digitalWrite(PACK_GATE_CTR_PIN, LOW);
+        digitalWrite(LOGIC_SWITCH_INDUCTOR, HIGH); // BMS Suicide
     }
     else
     {
-        digitalWrite(PACK_GATE_CTR_PIN, HIGH); 
+        digitalWrite(PACK_GATE_CTR_PIN, HIGH);
     }
     return;
 }
@@ -479,8 +478,8 @@ void setEstop(uint8_t data)
         digitalWrite(PACK_GATE_CTR_PIN, LOW);
 
         notifyEstop();
-                                            // BMS Suicide
-                                            // If BMS is not turned off here, the PACK_OUT_CTR_PIN would be low and there would be no way to get it high again without reseting BMS anyway.
+        // BMS Suicide
+        // If BMS is not turned off here, the PACK_OUT_CTR_PIN would be low and there would be no way to get it high again without reseting BMS anyway.
     }
     else
     {
@@ -501,29 +500,29 @@ void updateLCD()
     OpenLCD.write('|'); // Enter settings mode
     OpenLCD.write('-'); // Clear display
 
-    //Display pack voltage
-    OpenLCD.printf("Pack:%.1f", pack_out_voltage/1000);
+    // Display pack voltage
+    OpenLCD.printf("Pack:%.1f", pack_out_voltage / 1000);
     OpenLCD.print("V ");
 
-    //Display temp
-    float batt_temp_F = ((batt_temp/1000.0f) * (9.0f/5.0f)) + 32.0f;
+    // Display temp
+    float batt_temp_F = ((batt_temp / 1000.0f) * (9.0f / 5.0f)) + 32.0f;
 
-    OpenLCD.printf("Tmp:%.1f", ((batt_temp/1000.0f)* (9.0f/5.0f)) + 32.0f);
+    OpenLCD.printf("Tmp:%.1f", ((batt_temp / 1000.0f) * (9.0f / 5.0f)) + 32.0f);
     OpenLCD.print("F");
 
     // Display cell voltages on LCD
     for (uint8_t i = 0; i < CELL_COUNT; i++)
     {
-        if(i!=2 && i!=5)
+        if (i != 2 && i != 5)
         {
-            OpenLCD.print(i+1);
-            OpenLCD.printf(":%.1f", cell_voltages[i]/1000);
+            OpenLCD.print(i + 1);
+            OpenLCD.printf(":%.1f", cell_voltages[i] / 1000);
             OpenLCD.print("V ");
         }
         else
         {
-            OpenLCD.print(i+1);
-            OpenLCD.printf(":%.1f", cell_voltages[i]/1000);
+            OpenLCD.print(i + 1);
+            OpenLCD.printf(":%.1f", cell_voltages[i] / 1000);
             OpenLCD.print("V");
         }
     }
@@ -761,7 +760,7 @@ void notifyLowVoltage() // Buzzer Sound: beeep beeep beeep
 void telemetry()
 {
     RoveComm.write(RC_BMSBOARD_PACKI_MEAS_DATA_ID, RC_BMSBOARD_PACKI_MEAS_DATA_COUNT, main_current);
-    RoveComm.write(RC_BMSBOARD_PACKV_MEAS_DATA_ID, RC_BMSBOARD_PACKV_MEAS_DATA_COUNT, pack_out_voltage/1000.0);
+    RoveComm.write(RC_BMSBOARD_PACKV_MEAS_DATA_ID, RC_BMSBOARD_PACKV_MEAS_DATA_COUNT, pack_out_voltage / 1000.0);
     RoveComm.write(RC_BMSBOARD_TEMP_MEAS_DATA_ID, RC_BMSBOARD_TEMP_MEAS_DATA_COUNT, batt_temp);
     RoveComm.write(RC_BMSBOARD_CELLV_MEAS_DATA_ID, RC_BMSBOARD_CELLV_MEAS_DATA_COUNT, cell_voltages);
 }
