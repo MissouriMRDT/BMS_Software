@@ -14,17 +14,33 @@ IntervalTimer Telemetry;
 void telemetry();
 
 
-// Servo
-#define SERVO_1_START 90
-#define SERVO_1_MIN 0
-#define SERVO_1_MAX 180
-Servo Servo1;
-void incrementServo(uint8_t& servo_target, int16_t inc, uint8_t max, uint8_t min);
-
-
 // State Variables
-uint8_t servo_1_target = SERVO_1_START;
+
 float temp; // degrees C
 
+#define ROOM_TEMP_C 0 //celcius
+#define ROOM_TEMP_ANALOG 0
+#define OTHER_TEMP_C 0
+#define OTHER_TEMP_ANALOG 0
+
+void roverOff() {
+    beep // also check
+    delay(1000) //check with malikai
+    digitalWrite(LOGIC_SWITCH_INPUT, LOW)
+}
+
+void roverRestart() {
+    digitalWrite(LOGIC_SWITCH_INPUT, HIGH)
+    beep // also check
+    delay(1000) //check with malikai
+    digitalWrite(LOGIC_SWITCH_INPUT, LOW)
+    off beep // turn off buzzer
+}
+
+void roverRestart() {
+    beep 
+    delay(1000)
+    turn off contactor
+}
 
 #endif /* TRAININGSOFTWARE_H */
