@@ -55,6 +55,11 @@ void loop() {
             errorCellUndervoltage();
         }
     }
+
+    //Turn on Fan if temp is above a certain threshold
+    if (temp > FAN_TEMP_THRESHOLD) {
+        digitalWrite(FAN, HIGH);
+    }
 }
 
 //FUNCTIONS//
