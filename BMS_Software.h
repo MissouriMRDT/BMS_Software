@@ -16,7 +16,7 @@ void telemetry();
 float mapAnalog();
 
 #define MAX_TEMP 65
-#define FAN_TEMP_THRESHOLD 0 //???
+#define FAN_TEMP_THRESHOLD 35
 #define CELL_UNDERVOLT_THRESHOLD 2.7
 #define CELL_CRITICAL_THRESHOLD 2.5
 #define MAX_CURRENT 80

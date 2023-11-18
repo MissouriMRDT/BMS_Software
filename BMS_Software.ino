@@ -10,22 +10,11 @@ void setup () {
     RoveComm.begin(RC_BMS_FIRSTOCTET, RC_BMS_SECONDOCTET, RC_BMS_THIRDOCTET, RC_BMS_FOURTHOCTET, &TCPServer); 
     Serial.println("Complete."); 
 
+    //Telemetry
+    Telemetry.begin(telemetry, TELEMETRY_PERIOD);
 }
 
 void loop() {
-    
-    // turn off rover, estop
-    rovecomm_packet packet = RoveComm.read();
-    switch (packet.data_id) {
-        // Increment servo target by provided value
-        case RC_TRAININGSOFTWARE_SERVOINCREMENT_DATA_ID:
-        {
-            int16_t data = *((int16_t*) packet.data);
-            
-            eStop(data);
-            break;
-        }
-    }
 
     current = mapAnalog(CURRENT_SENSE, ZERO_CURRENT, MAX_CURRENT, ZERO_CURRENT_ANALOG, MAX_CURRENT_ANALOG);
     //Check for Overcurrent
@@ -33,7 +22,7 @@ void loop() {
         errorOvercurrent();
     }
 
-    temp - mapAnalog(TEMP, ROOM_TEMP_C, OTHER_TEMP_C, ROOM_TEMP_ANALOG, OTHER_TEMP_ANALOG);
+    temp = mapAnalog(TEMP, ROOM_TEMP_C, OTHER_TEMP_C, ROOM_TEMP_ANALOG, OTHER_TEMP_ANALOG);
     //Check for Overheat
     if (temp >= MAX_TEMP) {
         errorOverHeat();
@@ -60,9 +49,53 @@ void loop() {
     if (temp > FAN_TEMP_THRESHOLD) {
         digitalWrite(FAN, HIGH);
     }
+
+    //Check for incoming RoveComm packets
+    rovecomm_packet packet = RoveComm.read();
+
+    switch (packet.data_id) {
+        //Estop
+        case RC_BMS_ESTOP_DATA_ID:
+        {
+            int16_t data = *((int16_t*) packet.data);
+            eStop();
+            break;
+        }
+
+        //Suicide call 988 :(
+        case RC_BMS_SUICIDE_DATA_ID:
+        {
+            int16_t data = *((int16_t*) packet.data);
+            roverSuicide();
+            break;
+        }
+
+        //Reboot
+        case RC_BMS_REBOOT_DATA_ID:
+        {
+            int16_t data = *((int16_t*) packet.data);
+            roverRestart();
+            break;
+        }
+
+        // No packet received, do nothing
+        default:
+            break;
+    }
 }
 
 //FUNCTIONS//
+
+void telemetry() {
+    RoveComm.write(current); //Current Draw
+    RoveComm.write(); //Pack voltage ???
+    //Individual Cell Voltages
+    for (uint8_t i = 0; i < 8; i++) {
+        cell_voltages[i] = mapAnalog(cell_voltage_pins[i], ZERO_VOLTS, OTHER_VOLTS, ZERO_VOLTS_ANALOG, OTHER_VOLTS_ANALOG);
+        RoveComm.write("Cell "+(i+1)+" voltage:", cell_voltages[i]); //???
+    }
+    RoveComm.write(temp); //Temperature
+}
 
 float mapAnalog(uint8_t pin, float units1, float units2, uint16_t analog1, uint16_t analog2) {
     float m = (units2 - units1) / (analog2 - analog1);
