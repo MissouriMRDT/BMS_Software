@@ -75,31 +75,26 @@ void loop() {
         {
             int16_t data = *((int16_t*) packet.data);
             roverRestart();
-            break;
         }
-
-        // No packet received, do nothing
-        default:
-            break;
     }
 }
 
 //FUNCTIONS//
 
 void telemetry() {
-    RoveComm.write(current); //Current Draw
-    RoveComm.write(); //Pack voltage ???
+    RoveComm.write(RC_BMS_PACKI_MEAS_DATA_ID, RC_BMS_PACKI_MEAS_DATA_COUNT, current); //Current Draw
+    RoveComm.write(RC_BMS_PACKV_MEAS_DATA_ID, RC_BMS_PACKV_MEAS_DATA_COUNT); //Pack voltage
     //Individual Cell Voltages
     for (uint8_t i = 0; i < 8; i++) {
         cell_voltages[i] = mapAnalog(cell_voltage_pins[i], ZERO_VOLTS, OTHER_VOLTS, ZERO_VOLTS_ANALOG, OTHER_VOLTS_ANALOG);
-        RoveComm.write("Cell "+(i+1)+" voltage:", cell_voltages[i]); //???
+        RoveComm.write(RC_BMS_CELLV_MEAS_DATA_ID, RC_BMS_CELLV_MEAS_DATA_COUNT, "Cell "+(i+1)+" voltage: ", cell_voltages[i]); //???
     }
-    RoveComm.write(temp); //Temperature
+    RoveComm.write(RC_BMS_TEMP_MEAS_DATA_ID, RC_BMS_TEMP_MEAS_DATA_COUNT, temp); //Temperature
 }
 
 float mapAnalog(uint8_t pin, float units1, float units2, uint16_t analog1, uint16_t analog2) {
-    float m = (units2 - units1) / (analog2 - analog1);
-    return ((analogRead(pin) - analog1) * m) + units1;
+    float slope = (units2 - units1) / (analog2 - analog1);
+    return ((analogRead(pin) - analog1) * slope) + units1;
 }
 
 void eStop() {
@@ -107,7 +102,7 @@ void eStop() {
     //beep bc bms is on, but everything else off
     while (true) {
         // smoke detector beep pattern
-        beep on
+        // TODO: beep on
         delay(1000); //check with malikai
         beep off
         delay(30000);
