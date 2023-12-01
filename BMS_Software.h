@@ -65,5 +65,3 @@ uint8_t notifyOverheatIndex = 0;
 void errorOverHeat();
 
 #endif /* TRAININGSOFTWARE_H */
-
-//temp cutoff 65 C

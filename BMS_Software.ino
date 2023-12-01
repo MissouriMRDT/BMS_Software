@@ -1,5 +1,6 @@
 #include "PinAssignments.h"
 #include "BMS_SOFTWARE.h"
+#include "LCD.h"
 
 void setup () {
     Serial.begin(115200);
@@ -9,6 +10,9 @@ void setup () {
     Serial.prinln("RoveComm Initializing...");
     RoveComm.begin(RC_BMS_FIRSTOCTET, RC_BMS_SECONDOCTET, RC_BMS_THIRDOCTET, RC_BMS_FOURTHOCTET, &TCPServer); 
     Serial.println("Complete."); 
+
+    //Initialize LCD
+    LCD_init();
 
     //Telemetry
     Telemetry.begin(telemetry, TELEMETRY_PERIOD);
@@ -146,6 +150,7 @@ void errorCellCritical() {
     roverSuicide(); //Call 988
 }
 
+//non blocking beep
 void errorOverHeat() {
     uint32_t current_time = millis();
 

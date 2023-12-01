@@ -27,6 +27,7 @@
 
 // LCD
 #define LCD_TX 20
+#define LCD_RX 21 //Not actually on the board
 
 // Logic Switch
 #define LOGIC_SWITCH_INPUT 22
