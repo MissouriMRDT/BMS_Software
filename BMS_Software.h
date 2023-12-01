@@ -13,6 +13,8 @@ RoveCommEthernet RoveComm;
 IntervalTimer Telemetry;
 void telemetry();
 
+#define LCD_UPDATE_PERIOD 500
+
 float mapAnalog();
 
 #define MAX_TEMP 65
@@ -40,14 +42,18 @@ uint8_t cell_voltage_pins[8] = {CELL_SENSE_1, CELL_SENSE_2, CELL_SENSE_3, CELL_S
 #define OTHER_VOLTS 0
 #define OTHER_VOLTS_ANALOG 0 
 
+float packVoltage = 0;
+
+float calculatePackVoltage();
+
 void eStop();
 
 void roverRestart();
 
 void roverSuicide();
 
-
 uint32_t lastOvercurrentErrorTimeStamp = 0;
+uint32_t lastLCDupdate = 0;
 #define TENTHOUSAND 10000 //BEMIS
 
 void errorOvercurrent();

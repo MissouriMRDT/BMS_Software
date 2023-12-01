@@ -20,23 +20,23 @@ void LCD_init() {
     OpenLCD.write(188 + 0); // Set blue backlight amount to 0% (+29 is 100%)
 }
     
-void LCD_update(/*pass vars*/) {
+void LCD_update(temp, packVoltage, cell_voltages) {
     // Clear LCD
     OpenLCD.write('|'); // Enter settings mode
     OpenLCD.write('-'); // Clear display
 
     // Display pack voltage
-    OpenLCD.printf("Pack:%.1f", pack_out_voltage / 1000);
+    OpenLCD.printf("Pack:%.1f", packVoltage / 1000);
     OpenLCD.print("V ");
 
     // Display temp
-    float batt_temp_F = ((batt_temp / 1000.0f) * (9.0f / 5.0f)) + 32.0f;
+    float batt_temp_F = ((temp / 1000.0f) * (9.0f / 5.0f)) + 32.0f;
 
-    OpenLCD.printf("Tmp:%.1f", ((batt_temp / 1000.0f) * (9.0f / 5.0f)) + 32.0f);
+    OpenLCD.printf("Tmp:%.1f", ((temp / 1000.0f) * (9.0f / 5.0f)) + 32.0f);
     OpenLCD.print("F");
 
     // Display cell voltages on LCD
-    for (uint8_t i = 0; i < CELL_COUNT; i++)
+    for (uint8_t i = 0; i < 8; i++)
     {
         if (i != 2 && i != 5)
         {

@@ -20,6 +20,13 @@ void setup () {
 
 void loop() {
 
+    //Update LCD with new data every 500 milliseconds
+    uint32_t current_time = millis();
+    if (current_time - lastLCDupdate > LCD_UPDATE_PERIOD) {
+        LCD_update(temp, packVoltage, cell_voltages);
+        lastLCDupdate = current_time;
+    }
+
     current = mapAnalog(CURRENT_SENSE, ZERO_CURRENT, MAX_CURRENT, ZERO_CURRENT_ANALOG, MAX_CURRENT_ANALOG);
     //Check for Overcurrent
     if (current>=MAX_CURRENT) {
@@ -48,6 +55,9 @@ void loop() {
             errorCellUndervoltage();
         }
     }
+
+    //Calculate Pack Voltage
+    calculatePackVoltage();
 
     //Turn on Fan if temp is above a certain threshold
     if (temp > FAN_TEMP_THRESHOLD) {
@@ -106,9 +116,9 @@ void eStop() {
     //beep bc bms is on, but everything else off
     while (true) {
         // smoke detector beep pattern
-        // TODO: beep on
+        digitalWrite(BUZZER, HIGH)
         delay(1000); //check with malikai
-        beep off
+        digitalWrite(BUZZER, LOW)
         delay(30000);
 
         // Check if cell goes critical?
@@ -117,14 +127,14 @@ void eStop() {
 
 void roverRestart() {
     digitalWrite(LOGIC_SWITCH_INPUT, LOW);
-    beep // also check
+    digitalWrite(BUZZER, HIGH)
     delay(1000); //check with malikai
     digitalWrite(LOGIC_SWITCH_INPUT, HIGH);
-    off beep // turn off buzzer
+    digitalWrite(BUZZER, LOW)
 }
 
 void roverSuicide() {
-    beep 
+    digitalWrite(BUZZER, HIGH) 
     delay(200);
     digitalWrite(GATE, HIGH);
 }
@@ -165,6 +175,15 @@ void errorOverHeat() {
         notifyOverheatIndex++;
         if (notifyOverheatIndex >= NOTIFYOVERHEAT_LENGTH) {
             notifyOverheatIndex = 0;
+        }
+    }
+
+    //Calculate pack Voltage
+    float calculatePackVoltage() {
+        for (uint8_t i = 0; i < 8; i++) {
+            cell_voltages[i] = mapAnalog(cell_voltage_pins[i], ZERO_VOLTS, OTHER_VOLTS, ZERO_VOLTS_ANALOG, OTHER_VOLTS_ANALOG);
+            packVoltage += cell_voltages[i];
+        return packVoltage;
         }
     }
 }
