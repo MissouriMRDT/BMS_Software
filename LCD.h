@@ -7,6 +7,6 @@
 SoftwareSerial OpenLCD(LCD_RX, LCD_TX);
 
 void LCD_init();
-void LCD_update(temp, packVoltage);
+void LCD_update(float temp, float packVoltage, float cell_voltages[]);
 
 #endif // LCD_H

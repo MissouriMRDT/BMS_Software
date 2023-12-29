@@ -16,6 +16,13 @@ void setup () {
 
     //Telemetry
     Telemetry.begin(telemetry, TELEMETRY_PERIOD);
+
+    //I/O Pins
+    pinMode(BUZZER, OUTPUT);
+    pinMode(CONTRACTOR, OUTPUT);
+    pinMode(ESTOP, OUTPUT);
+    pinMode(ERR_LED, OUTPUT);
+    pinMode(FAN, OUTPUT);
 }
 
 void loop() {
@@ -37,8 +44,6 @@ void loop() {
     //Check for Overheat
     if (temp >= MAX_TEMP) {
         errorOverHeat();
-    } else {
-        digitalWrite(BUZZER, LOW);
     }
 
     //Check for Cell Undervoltage and Cell Critical
@@ -72,7 +77,7 @@ void loop() {
         case RC_BMS_ESTOP_DATA_ID:
         {
             int16_t data = *((int16_t*) packet.data);
-            eStop();
+            roverEStop();
             break;
         }
 
@@ -97,12 +102,8 @@ void loop() {
 
 void telemetry() {
     RoveComm.write(RC_BMS_PACKI_MEAS_DATA_ID, RC_BMS_PACKI_MEAS_DATA_COUNT, current); //Current Draw
-    RoveComm.write(RC_BMS_PACKV_MEAS_DATA_ID, RC_BMS_PACKV_MEAS_DATA_COUNT); //Pack voltage
-    //Individual Cell Voltages
-    for (uint8_t i = 0; i < 8; i++) {
-        cell_voltages[i] = mapAnalog(cell_voltage_pins[i], ZERO_VOLTS, OTHER_VOLTS, ZERO_VOLTS_ANALOG, OTHER_VOLTS_ANALOG);
-        RoveComm.write(RC_BMS_CELLV_MEAS_DATA_ID, RC_BMS_CELLV_MEAS_DATA_COUNT, "Cell "+(i+1)+" voltage: ", cell_voltages[i]); //???
-    }
+    RoveComm.write(RC_BMS_PACKV_MEAS_DATA_ID, RC_BMS_PACKV_MEAS_DATA_COUNT, packVoltage); //Pack voltage
+    RoveComm.write(RC_BMS_CELLV_MEAS_DATA_ID, RC_BMS_CELLV_MEAS_DATA_COUNT, cell_voltages);
     RoveComm.write(RC_BMS_TEMP_MEAS_DATA_ID, RC_BMS_TEMP_MEAS_DATA_COUNT, temp); //Temperature
 }
 
@@ -111,7 +112,7 @@ float mapAnalog(uint8_t pin, float units1, float units2, uint16_t analog1, uint1
     return ((analogRead(pin) - analog1) * slope) + units1;
 }
 
-void eStop() {
+void roverEStop() {
     digitalWrite(LOGIC_SWITCH_INPUT, HIGH);
     //beep bc bms is on, but everything else off
     while (true) {
@@ -140,23 +141,23 @@ void roverSuicide() {
 }
 
 void errorOvercurrent() {
-    RoveComm.write(RC_BMS_OVERCURRENT_DATA_ID, RC_BMS_OVERCURRENT_DATA_COUNT, /*overcurrent variable (temporary)*/);
+    RoveComm.writeReliable(RC_BMS_OVERCURRENT_DATA_ID, RC_BMS_OVERCURRENT_DATA_COUNT, /*overcurrent variable (temporary)*/);
     uint32_t current_time = millis();
-    if ((current_time - lastOvercurrentErrorTimeStamp) >= TENTHOUSAND) {
+    if ((current_time - lastOvercurrentErrorTimestamp) >= TENTHOUSAND) {
         roverRestart();
-        lastOvercurrentErrorTimeStamp = current_time;
+        lastOvercurrentErrorTimestamp = current_time;
     } else {
         roverSuicide(); //Call 988 :(
     }
 }
 
 void errorCellUndervoltage() {
-    RoveComm.write(RC_BMS_CELLUNDERVOLT_DATA_ID, RC_BMS_CELLUNDERVOLT_DATA_COUNT, /*cellundervoltage variable (temporary)*/);
-    eStop();
+    RoveComm.writeReliable(RC_BMS_CELLUNDERVOLT_DATA_ID, RC_BMS_CELLUNDERVOLT_DATA_COUNT, /*cellundervoltage variable (temporary)*/);
+    roverEStop();
 }
 
 void errorCellCritical() {
-    RoveComm.write(RC_BMS_CELLCRITICAL_DATA_ID, RC_BMS_CELLCRITICAL_DATA_COUNT);
+    RoveComm.writeReliable(RC_BMS_CELLCRITICAL_DATA_ID, RC_BMS_CELLCRITICAL_DATA_COUNT);
     roverSuicide(); //Call 988
 }
 
@@ -164,26 +165,26 @@ void errorCellCritical() {
 void errorOverHeat() {
     uint32_t current_time = millis();
 
-    if (current_time - lastOverheatWriteTimeStamp > TELEMETRY_PERIOD) {
-        RoveComm.write(RC_BMS_OVERHEAT_DATA_ID, RC_BMS_OVERHEAT_DATA_COUNT, temp);
-        lastOverheatWriteTimeStamp = current_time;
+    if (current_time - lastOverheatWriteTimestamp > TELEMETRY_PERIOD) {
+        RoveComm.writeReliable(RC_BMS_OVERHEAT_DATA_ID, RC_BMS_OVERHEAT_DATA_COUNT, temp);
+        lastOverheatWriteTimestamp = current_time;
     }
 
-    if (current_time - lastBuzzTimeStamp > notifyOverheat[notifyOverheatIndex]) {
+    if (current_time - lastBuzzTimestamp > notifyOverheat[notifyOverheatIndex]) {
         digitalWrite(BUZZER, (notifyOverheatIndex%2));
-        lastBuzzTimeStamp = current_time;
+        lastBuzzTimestamp = current_time;
         notifyOverheatIndex++;
         if (notifyOverheatIndex >= NOTIFYOVERHEAT_LENGTH) {
             notifyOverheatIndex = 0;
         }
     }
+}
 
-    //Calculate pack Voltage
-    float calculatePackVoltage() {
-        for (uint8_t i = 0; i < 8; i++) {
-            cell_voltages[i] = mapAnalog(cell_voltage_pins[i], ZERO_VOLTS, OTHER_VOLTS, ZERO_VOLTS_ANALOG, OTHER_VOLTS_ANALOG);
-            packVoltage += cell_voltages[i];
-        return packVoltage;
-        }
+//Calculate pack Voltage
+void calculatePackVoltage() {
+    uint32_t packVoltage = 0
+    for (uint8_t i = 0; i < 8; i++) {
+        cell_voltages[i] = mapAnalog(cell_voltage_pins[i], ZERO_VOLTS, OTHER_VOLTS, ZERO_VOLTS_ANALOG, OTHER_VOLTS_ANALOG);
+        packVoltage += cell_voltages[i];
     }
 }

@@ -6,7 +6,7 @@
 #define BUZZER 34
 
 // Gate
-#define GATE 35
+#define ESTOP 35
 
 // Error LED
 #define ERR_LED 33
@@ -29,8 +29,8 @@
 #define LCD_TX 20
 #define LCD_RX 21 //Not actually on the board
 
-// Logic Switch
-#define LOGIC_SWITCH_INPUT 22
+// Contractor
+#define CONTRACTOR 22
 
 // Current Sense
 #define CURRENT_SENSE 24

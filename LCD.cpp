@@ -20,7 +20,7 @@ void LCD_init() {
     OpenLCD.write(188 + 0); // Set blue backlight amount to 0% (+29 is 100%)
 }
     
-void LCD_update(temp, packVoltage, cell_voltages) {
+void LCD_update(float temp, float packVoltage, float cell_voltages[]) {
     // Clear LCD
     OpenLCD.write('|'); // Enter settings mode
     OpenLCD.write('-'); // Clear display
@@ -41,13 +41,13 @@ void LCD_update(temp, packVoltage, cell_voltages) {
         if (i != 2 && i != 5)
         {
             OpenLCD.print(i + 1);
-            OpenLCD.printf(":%.1f", cell_voltages[i] / 1000);
+            OpenLCD.printf(":%.1f", cell_voltages[i]);
             OpenLCD.print("V ");
         }
         else
         {
             OpenLCD.print(i + 1);
-            OpenLCD.printf(":%.1f", cell_voltages[i] / 1000);
+            OpenLCD.printf(":%.1f", cell_voltages[i]);
             OpenLCD.print("V");
         }
     }
