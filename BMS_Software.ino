@@ -4,7 +4,7 @@
 
 void setup () {
     Serial.begin(115200);
-    Serial.println("BMS Setup")
+    Serial.println("BMS Setup");
 
     //RoveComm
     Serial.prinln("RoveComm Initializing...");
@@ -19,7 +19,7 @@ void setup () {
 
     //I/O Pins
     pinMode(BUZZER, OUTPUT);
-    pinMode(CONTRACTOR, OUTPUT);
+    pinMode(CONTACTOR, OUTPUT);
     pinMode(ESTOP, OUTPUT);
     pinMode(ERR_LED, OUTPUT);
     pinMode(FAN, OUTPUT);
@@ -113,13 +113,13 @@ float mapAnalog(uint8_t pin, float units1, float units2, uint16_t analog1, uint1
 }
 
 void roverEStop() {
-    digitalWrite(LOGIC_SWITCH_INPUT, HIGH);
+    digitalWrite(ESTOP, HIGH);
     //beep bc bms is on, but everything else off
     while (true) {
         // smoke detector beep pattern
-        digitalWrite(BUZZER, HIGH)
-        delay(1000); //check with malikai
-        digitalWrite(BUZZER, LOW)
+        digitalWrite(BUZZER, HIGH);
+        delay(1000);
+        digitalWrite(BUZZER, LOW);
         delay(30000);
 
         // Check if cell goes critical?
@@ -127,17 +127,17 @@ void roverEStop() {
 }
 
 void roverRestart() {
-    digitalWrite(LOGIC_SWITCH_INPUT, LOW);
-    digitalWrite(BUZZER, HIGH)
-    delay(1000); //check with malikai
-    digitalWrite(LOGIC_SWITCH_INPUT, HIGH);
-    digitalWrite(BUZZER, LOW)
+    digitalWrite(ESTOP, LOW);
+    digitalWrite(BUZZER, HIGH);
+    delay(RESTART_DELAY);
+    digitalWrite(ESTOP, HIGH);
+    digitalWrite(BUZZER, LOW);
 }
 
 void roverSuicide() {
-    digitalWrite(BUZZER, HIGH) 
+    digitalWrite(BUZZER, HIGH);
     delay(200);
-    digitalWrite(GATE, HIGH);
+    digitalWrite(CONTACTOR, HIGH);
 }
 
 void errorOvercurrent() {
@@ -161,7 +161,6 @@ void errorCellCritical() {
     roverSuicide(); //Call 988
 }
 
-//non blocking beep
 void errorOverHeat() {
     uint32_t current_time = millis();
 
@@ -170,6 +169,7 @@ void errorOverHeat() {
         lastOverheatWriteTimestamp = current_time;
     }
 
+    //non blocking beep
     if (current_time - lastBuzzTimestamp > notifyOverheat[notifyOverheatIndex]) {
         digitalWrite(BUZZER, (notifyOverheatIndex%2));
         lastBuzzTimestamp = current_time;
@@ -180,9 +180,8 @@ void errorOverHeat() {
     }
 }
 
-//Calculate pack Voltage
 void calculatePackVoltage() {
-    uint32_t packVoltage = 0
+    uint32_t packVoltage = 0;
     for (uint8_t i = 0; i < 8; i++) {
         cell_voltages[i] = mapAnalog(cell_voltage_pins[i], ZERO_VOLTS, OTHER_VOLTS, ZERO_VOLTS_ANALOG, OTHER_VOLTS_ANALOG);
         packVoltage += cell_voltages[i];

@@ -48,6 +48,7 @@ void calculatePackVoltage();
 
 void roverEStop();
 
+#define RESTART_DELAY 1000
 void roverRestart();
 
 void roverSuicide();

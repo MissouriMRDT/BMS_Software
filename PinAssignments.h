@@ -29,8 +29,8 @@
 #define LCD_TX 20
 #define LCD_RX 21 //Not actually on the board
 
-// Contractor
-#define CONTRACTOR 22
+// Contactor
+#define CONTACTOR 22
 
 // Current Sense
 #define CURRENT_SENSE 24
