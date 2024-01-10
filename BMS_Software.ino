@@ -8,7 +8,7 @@ void setup () {
 
     //RoveComm
     Serial.prinln("RoveComm Initializing...");
-    RoveComm.begin(RC_BMS_FIRSTOCTET, RC_BMS_SECONDOCTET, RC_BMS_THIRDOCTET, RC_BMS_FOURTHOCTET, &TCPServer); 
+    RoveComm.begin(RC_BMSBOARD_FIRSTOCTET, RC_BMSBOARD_SECONDOCTET, RC_BMSBOARD_THIRDOCTET, RC_BMSBOARD_FOURTHOCTET, &TCPServer); 
     Serial.println("Complete."); 
 
     //Initialize LCD
@@ -74,7 +74,7 @@ void loop() {
 
     switch (packet.data_id) {
         //Estop
-        case RC_BMS_ESTOP_DATA_ID:
+        case RC_BMSBOARD_ESTOP_DATA_ID:
         {
             int16_t data = *((int16_t*) packet.data);
             roverEStop();
@@ -82,7 +82,7 @@ void loop() {
         }
 
         //Suicide call 988 :(
-        case RC_BMS_SUICIDE_DATA_ID:
+        case RC_BMSBOARD_SUICIDE_DATA_ID:
         {
             int16_t data = *((int16_t*) packet.data);
             roverSuicide();
@@ -90,7 +90,7 @@ void loop() {
         }
 
         //Reboot
-        case RC_BMS_REBOOT_DATA_ID:
+        case RC_BMSBOARD_REBOOT_DATA_ID:
         {
             int16_t data = *((int16_t*) packet.data);
             roverRestart();
@@ -101,10 +101,10 @@ void loop() {
 //FUNCTIONS//
 
 void telemetry() {
-    RoveComm.write(RC_BMS_PACKI_MEAS_DATA_ID, RC_BMS_PACKI_MEAS_DATA_COUNT, current); //Current Draw
-    RoveComm.write(RC_BMS_PACKV_MEAS_DATA_ID, RC_BMS_PACKV_MEAS_DATA_COUNT, packVoltage); //Pack voltage
-    RoveComm.write(RC_BMS_CELLV_MEAS_DATA_ID, RC_BMS_CELLV_MEAS_DATA_COUNT, cell_voltages);
-    RoveComm.write(RC_BMS_TEMP_MEAS_DATA_ID, RC_BMS_TEMP_MEAS_DATA_COUNT, temp); //Temperature
+    RoveComm.write(RC_BMSBOARD_PACKCURRENT_DATA_ID, RC_BMSBOARD_PACKCURRENT_DATA_COUNT, current); //Current Draw
+    RoveComm.write(RC_BMSBOARD_PACKVOLTAGE_DATA_ID, RC_BMSBOARD_PACKVOLTAGE_DATA_COUNT, packVoltage); //Pack voltage
+    RoveComm.write(RC_BMSBOARD_CELLVOLTAGE_DATA_ID, RC_BMSBOARD_CELLVOLTAGE_DATA_COUNT, cell_voltages);
+    RoveComm.write(RC_BMSBOARD_PACKTEMP_DATA_ID, RC_BMSBOARD_PACKTEMP_DATA_COUNT, temp); //Temperature
 }
 
 float mapAnalog(uint8_t pin, float units1, float units2, uint16_t analog1, uint16_t analog2) {
@@ -141,7 +141,7 @@ void roverSuicide() {
 }
 
 void errorOvercurrent() {
-    RoveComm.writeReliable(RC_BMS_OVERCURRENT_DATA_ID, RC_BMS_OVERCURRENT_DATA_COUNT, /*overcurrent variable (temporary)*/);
+    RoveComm.writeReliable(RC_BMSBOARD_OVERCURRENT_DATA_ID, RC_BMSBOARD_OVERCURRENT_DATA_COUNT, /*overcurrent variable (temporary)*/);
     uint32_t current_time = millis();
     if ((current_time - lastOvercurrentErrorTimestamp) >= TENTHOUSAND) {
         roverRestart();
@@ -152,12 +152,12 @@ void errorOvercurrent() {
 }
 
 void errorCellUndervoltage() {
-    RoveComm.writeReliable(RC_BMS_CELLUNDERVOLT_DATA_ID, RC_BMS_CELLUNDERVOLT_DATA_COUNT, /*cellundervoltage variable (temporary)*/);
+    RoveComm.writeReliable(RC_BMSBOARD_CELLUNDERVOLTAGE_DATA_ID, RC_BMSBOARD_CELLUNDERVOLTAGE_DATA_COUNT, /*cellundervoltage variable (temporary)*/);
     roverEStop();
 }
 
 void errorCellCritical() {
-    RoveComm.writeReliable(RC_BMS_CELLCRITICAL_DATA_ID, RC_BMS_CELLCRITICAL_DATA_COUNT);
+    RoveComm.writeReliable(RC_BMSBOARD_CELLCRITICAL_DATA_ID, RC_BMSBOARD_CELLCRITICAL_DATA_COUNT);
     roverSuicide(); //Call 988
 }
 
@@ -165,7 +165,7 @@ void errorOverHeat() {
     uint32_t current_time = millis();
 
     if (current_time - lastOverheatWriteTimestamp > TELEMETRY_PERIOD) {
-        RoveComm.writeReliable(RC_BMS_OVERHEAT_DATA_ID, RC_BMS_OVERHEAT_DATA_COUNT, temp);
+        RoveComm.writeReliable(RC_BMSBOARD_PACKOVERHEAT_DATA_ID, RC_BMSBOARD_PACKOVERHEAT_DATA_COUNT, temp);
         lastOverheatWriteTimestamp = current_time;
     }
 
