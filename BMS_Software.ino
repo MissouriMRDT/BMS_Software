@@ -1,21 +1,11 @@
 #include "PinAssignments.h"
 #include "BMS_SOFTWARE.h"
 #include "LCD.h"
+#include <cstdint>
 
 void setup () {
     Serial.begin(115200);
     Serial.println("BMS Setup");
-
-    //RoveComm
-    Serial.prinln("RoveComm Initializing...");
-    RoveComm.begin(RC_BMSBOARD_FIRSTOCTET, RC_BMSBOARD_SECONDOCTET, RC_BMSBOARD_THIRDOCTET, RC_BMSBOARD_FOURTHOCTET, &TCPServer); 
-    Serial.println("Complete."); 
-
-    //Initialize LCD
-    LCD_init();
-
-    //Telemetry
-    Telemetry.begin(telemetry, TELEMETRY_PERIOD);
 
     //I/O Pins
     pinMode(BUZZER, OUTPUT);
@@ -23,10 +13,21 @@ void setup () {
     pinMode(ESTOP, OUTPUT);
     pinMode(ERR_LED, OUTPUT);
     pinMode(FAN, OUTPUT);
+
+    //Initialize LCD
+    LCD_init();
+
+    //RoveComm
+    Serial.println("RoveComm Initializing...");
+    RoveComm.begin(RC_BMSBOARD_FIRSTOCTET, RC_BMSBOARD_SECONDOCTET, RC_BMSBOARD_THIRDOCTET, RC_BMSBOARD_FOURTHOCTET, &TCPServer); 
+    Serial.println("Complete."); 
+
+    //Telemetry
+    Telemetry.begin(telemetry, TELEMETRY_PERIOD);
 }
 
 void loop() {
-
+    /*
     //Update LCD with new data every 500 milliseconds
     uint32_t current_time = millis();
     if (current_time - lastLCDupdate > LCD_UPDATE_PERIOD) {
@@ -45,11 +46,12 @@ void loop() {
     if (temp >= MAX_TEMP) {
         errorOverHeat();
     }
-
+    */
     //Check for Cell Undervoltage and Cell Critical
     for (uint8_t i = 0; i < 8; i++) {
         cell_voltages[i] = mapAnalog(cell_voltage_pins[i], ZERO_VOLTS, OTHER_VOLTS, ZERO_VOLTS_ANALOG, OTHER_VOLTS_ANALOG);
     }
+    /*
     for (uint8_t i = 0; i < 8; i++) {
         if (cell_voltages[i] <= CELL_CRITICAL_THRESHOLD) {
             errorCellCritical();
@@ -60,6 +62,7 @@ void loop() {
             errorCellUndervoltage();
         }
     }
+    */
 
     //Calculate Pack Voltage
     calculatePackVoltage();
@@ -76,7 +79,7 @@ void loop() {
         //Estop
         case RC_BMSBOARD_ESTOP_DATA_ID:
         {
-            int16_t data = *((int16_t*) packet.data);
+            //int16_t data = *((int16_t*) packet.data);
             roverEStop();
             break;
         }
@@ -84,7 +87,7 @@ void loop() {
         //Suicide call 988 :(
         case RC_BMSBOARD_SUICIDE_DATA_ID:
         {
-            int16_t data = *((int16_t*) packet.data);
+            //int16_t data = *((int16_t*) packet.data);
             roverSuicide();
             break;
         }
@@ -92,7 +95,7 @@ void loop() {
         //Reboot
         case RC_BMSBOARD_REBOOT_DATA_ID:
         {
-            int16_t data = *((int16_t*) packet.data);
+            //int16_t data = *((int16_t*) packet.data);
             roverRestart();
         }
     }
@@ -140,8 +143,10 @@ void roverSuicide() {
     digitalWrite(CONTACTOR, HIGH);
 }
 
+uint8_t dummy = 0;
+
 void errorOvercurrent() {
-    RoveComm.writeReliable(RC_BMSBOARD_OVERCURRENT_DATA_ID, RC_BMSBOARD_OVERCURRENT_DATA_COUNT, /*overcurrent variable (temporary)*/);
+    RoveComm.writeReliable(RC_BMSBOARD_OVERCURRENT_DATA_ID, RC_BMSBOARD_OVERCURRENT_DATA_COUNT, dummy);
     uint32_t current_time = millis();
     if ((current_time - lastOvercurrentErrorTimestamp) >= TENTHOUSAND) {
         roverRestart();
@@ -152,12 +157,12 @@ void errorOvercurrent() {
 }
 
 void errorCellUndervoltage() {
-    RoveComm.writeReliable(RC_BMSBOARD_CELLUNDERVOLTAGE_DATA_ID, RC_BMSBOARD_CELLUNDERVOLTAGE_DATA_COUNT, /*cellundervoltage variable (temporary)*/);
+    RoveComm.writeReliable(RC_BMSBOARD_CELLUNDERVOLTAGE_DATA_ID, RC_BMSBOARD_CELLUNDERVOLTAGE_DATA_COUNT, dummy);
     roverEStop();
 }
 
 void errorCellCritical() {
-    RoveComm.writeReliable(RC_BMSBOARD_CELLCRITICAL_DATA_ID, RC_BMSBOARD_CELLCRITICAL_DATA_COUNT);
+    RoveComm.writeReliable(RC_BMSBOARD_CELLCRITICAL_DATA_ID, RC_BMSBOARD_CELLCRITICAL_DATA_COUNT, dummy);
     roverSuicide(); //Call 988
 }
 
@@ -165,7 +170,7 @@ void errorOverHeat() {
     uint32_t current_time = millis();
 
     if (current_time - lastOverheatWriteTimestamp > TELEMETRY_PERIOD) {
-        RoveComm.writeReliable(RC_BMSBOARD_PACKOVERHEAT_DATA_ID, RC_BMSBOARD_PACKOVERHEAT_DATA_COUNT, temp);
+        RoveComm.writeReliable(RC_BMSBOARD_PACKOVERHEAT_DATA_ID, RC_BMSBOARD_PACKOVERHEAT_DATA_COUNT, dummy);
         lastOverheatWriteTimestamp = current_time;
     }
 

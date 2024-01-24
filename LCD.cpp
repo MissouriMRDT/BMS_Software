@@ -1,3 +1,10 @@
+#include "LCD.h"
+
+#include <cstdint>
+#include "PinAssignments.h"
+#include <SoftwareSerial.h>
+
+SoftwareSerial OpenLCD(LCD_RX, LCD_TX);
 
 void LCD_init() {
     OpenLCD.begin(9600); // Start communication with LCD over serial
@@ -32,7 +39,7 @@ void LCD_update(float temp, float packVoltage, float cell_voltages[]) {
     // Display temp
     float batt_temp_F = ((temp / 1000.0f) * (9.0f / 5.0f)) + 32.0f;
 
-    OpenLCD.printf("Tmp:%.1f", ((temp / 1000.0f) * (9.0f / 5.0f)) + 32.0f);
+    OpenLCD.printf("Tmp:%.1f", batt_temp_F);
     OpenLCD.print("F");
 
     // Display cell voltages on LCD
