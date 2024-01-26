@@ -14,6 +14,12 @@ void setup () {
     pinMode(ERR_LED, OUTPUT);
     pinMode(FAN, OUTPUT);
 
+    digitalWrite(BUZZER, LOW);
+    digitalWrite(CONTACTOR, LOW);
+    digitalWrite(ESTOP, HIGH);
+    digitalWrite(ERR_LED, LOW);
+    digitalWrite(FAN, LOW);
+
     //Initialize LCD
     LCD_init();
 
@@ -34,24 +40,31 @@ void loop() {
         LCD_update(temp, packVoltage, cell_voltages);
         lastLCDupdate = current_time;
     }
+    */
 
+    current = analogRead(CURRENT_SENSE);
+    /*
     current = mapAnalog(CURRENT_SENSE, ZERO_CURRENT, MAX_CURRENT, ZERO_CURRENT_ANALOG, MAX_CURRENT_ANALOG);
     //Check for Overcurrent
     if (current>=MAX_CURRENT) {
         errorOvercurrent();
     }
+    */
 
     temp = mapAnalog(TEMP, ROOM_TEMP_C, OTHER_TEMP_C, ROOM_TEMP_ANALOG, OTHER_TEMP_ANALOG);
     //Check for Overheat
     if (temp >= MAX_TEMP) {
         errorOverHeat();
     }
-    */
-    //Check for Cell Undervoltage and Cell Critical
+
+    //Calculate Cell and Pack Voltages
+    packVoltage = 0;
     for (uint8_t i = 0; i < 8; i++) {
         cell_voltages[i] = mapAnalog(cell_voltage_pins[i], ZERO_VOLTS, OTHER_VOLTS, ZERO_VOLTS_ANALOG, OTHER_VOLTS_ANALOG);
+        packVoltage += cell_voltages[i];
     }
-    /*
+
+    //Check for Cell Undervoltage and Cell Critical
     for (uint8_t i = 0; i < 8; i++) {
         if (cell_voltages[i] <= CELL_CRITICAL_THRESHOLD) {
             errorCellCritical();
@@ -62,10 +75,7 @@ void loop() {
             errorCellUndervoltage();
         }
     }
-    */
-
-    //Calculate Pack Voltage
-    calculatePackVoltage();
+  
 
     //Turn on Fan if temp is above a certain threshold
     if (temp > FAN_TEMP_THRESHOLD) {
@@ -116,7 +126,7 @@ float mapAnalog(uint8_t pin, float units1, float units2, uint16_t analog1, uint1
 }
 
 void roverEStop() {
-    digitalWrite(ESTOP, HIGH);
+    digitalWrite(ESTOP, LOW);
     //beep bc bms is on, but everything else off
     while (true) {
         // smoke detector beep pattern
@@ -182,13 +192,5 @@ void errorOverHeat() {
         if (notifyOverheatIndex >= NOTIFYOVERHEAT_LENGTH) {
             notifyOverheatIndex = 0;
         }
-    }
-}
-
-void calculatePackVoltage() {
-    uint32_t packVoltage = 0;
-    for (uint8_t i = 0; i < 8; i++) {
-        cell_voltages[i] = mapAnalog(cell_voltage_pins[i], ZERO_VOLTS, OTHER_VOLTS, ZERO_VOLTS_ANALOG, OTHER_VOLTS_ANALOG);
-        packVoltage += cell_voltages[i];
     }
 }
