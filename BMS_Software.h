@@ -13,15 +13,15 @@ RoveCommEthernet RoveComm;
 IntervalTimer Telemetry;
 void telemetry();
 
-#define LCD_UPDATE_PERIOD 500
-
-float mapAnalog();
-
-#define MAX_TEMP 65
+// Important constants
+#define NUM_CELLS 6
+#define RESTART_DELAY 1000
 #define FAN_TEMP_THRESHOLD 35
+#define MAX_TEMP 65
 #define CELL_UNDERVOLT_THRESHOLD 2.7
 #define CELL_CRITICAL_THRESHOLD 2.5
 #define MAX_CURRENT 80
+#define LCD_UPDATE_PERIOD 500
 
 float temp = 0;
 #define ROOM_TEMP_C 18 //celcius
@@ -45,22 +45,10 @@ uint8_t cell_voltage_pins[8] = {CELL_SENSE_1, CELL_SENSE_2, CELL_SENSE_3, CELL_S
 
 float packVoltage = 0;
 
-void roverEStop();
-
-#define RESTART_DELAY 1000
-void roverRestart();
-
-void roverSuicide();
 
 uint32_t lastOvercurrentErrorTimestamp = 0;
 uint32_t lastLCDupdate = 0;
 #define TENTHOUSAND 10000 //BEMIS
-
-void errorOvercurrent();
-
-void errorCellUndervoltage();
-
-void errorCellCritical();
 
 #define NOTIFYOVERHEAT_LENGTH 6
 uint32_t lastBuzzTimestamp = 0;
@@ -68,6 +56,15 @@ uint32_t lastOverheatWriteTimestamp = 0;
 uint16_t notifyOverheat[NOTIFYOVERHEAT_LENGTH] = {200, 200, 200, 200, 400, 30000};
 uint8_t notifyOverheatIndex = 0;
 
+void roverEStop();
+void roverRestart();
+void roverSuicide();
+
+void errorOvercurrent();
+void errorCellUndervoltage();
+void errorCellCritical();
 void errorOverHeat();
+
+float mapAnalog();
 
 #endif /* TRAININGSOFTWARE_H */

@@ -59,18 +59,18 @@ void loop() {
 
     //Calculate Cell and Pack Voltages
     packVoltage = 0;
-    for (uint8_t i = 0; i < 8; i++) {
+    for (uint8_t i = 0; i < NUM_CELLS; i++) {
         cell_voltages[i] = mapAnalog(cell_voltage_pins[i], ZERO_VOLTS, OTHER_VOLTS, ZERO_VOLTS_ANALOG, OTHER_VOLTS_ANALOG);
         packVoltage += cell_voltages[i];
     }
 
     //Check for Cell Undervoltage and Cell Critical
-    for (uint8_t i = 0; i < 8; i++) {
+    for (uint8_t i = 0; i < NUM_CELLS; i++) {
         if (cell_voltages[i] <= CELL_CRITICAL_THRESHOLD) {
             errorCellCritical();
         }
     }
-    for (uint8_t i = 0; i < 8; i++) {
+    for (uint8_t i = 0; i < NUM_CELLS; i++) {
         if (cell_voltages[i] <= CELL_UNDERVOLT_THRESHOLD) {
             errorCellUndervoltage();
         }
