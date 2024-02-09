@@ -58,9 +58,15 @@ void loop() {
     }
 
     //Calculate Cell and Pack Voltages
-    packVoltage = 0;
     for (uint8_t i = 0; i < NUM_CELLS; i++) {
         cell_voltages[i] = mapAnalog(cell_voltage_pins[i], ZERO_VOLTS, OTHER_VOLTS, ZERO_VOLTS_ANALOG, OTHER_VOLTS_ANALOG);
+    }
+    delay(10);
+    for (uint8_t i = 0; i < NUM_CELLS; i++) {
+        float new_voltage = mapAnalog(cell_voltage_pins[i], ZERO_VOLTS, OTHER_VOLTS, ZERO_VOLTS_ANALOG, OTHER_VOLTS_ANALOG);
+        if (cell_voltages[i] < new_voltage) {
+            cell_voltages[i] = new_voltage;
+        }
         packVoltage += cell_voltages[i];
     }
 
@@ -115,6 +121,10 @@ void loop() {
 
 void telemetry() {
     RoveComm.write(RC_BMSBOARD_PACKCURRENT_DATA_ID, RC_BMSBOARD_PACKCURRENT_DATA_COUNT, current); //Current Draw
+    packVoltage = 0;
+    for (uint8_t i = 0; i < NUM_CELLS; i++) {
+        packVoltage += cell_voltages[i];
+    }
     RoveComm.write(RC_BMSBOARD_PACKVOLTAGE_DATA_ID, RC_BMSBOARD_PACKVOLTAGE_DATA_COUNT, packVoltage); //Pack voltage
     RoveComm.write(RC_BMSBOARD_CELLVOLTAGE_DATA_ID, RC_BMSBOARD_CELLVOLTAGE_DATA_COUNT, cell_voltages);
     RoveComm.write(RC_BMSBOARD_PACKTEMP_DATA_ID, RC_BMSBOARD_PACKTEMP_DATA_COUNT, temp); //Temperature
