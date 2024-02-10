@@ -1,5 +1,5 @@
 #include "PinAssignments.h"
-#include "BMS_SOFTWARE.h"
+#include "BMS_Software.h"
 #include "LCD.h"
 #include <cstdint>
 
@@ -72,13 +72,15 @@ void loop() {
 
     //Check for Cell Undervoltage and Cell Critical
     for (uint8_t i = 0; i < NUM_CELLS; i++) {
-        if (cell_voltages[i] <= CELL_CRITICAL_THRESHOLD && (i != 0)) {
-            errorCellCritical(); // cell 1  shutoff temporarily disabled - MONITOR CLOSELY
+        if (cell_voltages[i] <= CELL_CRITICAL_THRESHOLD) {
+            if (i != 0) // cell 1  shutoff temporarily disabled - MONITOR CLOSELY
+            errorCellCritical();
         }
     }
-    for (uint8_t i = 0; i < NUM_CELLS; i++ && (i != 0)) {
+    for (uint8_t i = 0; i < NUM_CELLS; i++) {
         if (cell_voltages[i] <= CELL_UNDERVOLT_THRESHOLD) {
-            errorCellUndervoltage(); // cell 1  shutoff temporarily disabled - MONITOR CLOSELY
+            if (i != 0) // cell 1  shutoff temporarily disabled - MONITOR CLOSELY
+            errorCellUndervoltage();
         }
     }
   

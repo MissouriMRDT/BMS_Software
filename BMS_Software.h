@@ -1,5 +1,5 @@
-#ifndef BMSSOFTWARE_H
-#define BMSSOFTWARE_H
+#ifndef BMS_SOFTWARE_H
+#define BMS_SOFTWARE_H
 
 #include "PinAssignments.h"
 #include "RoveComm.h"
