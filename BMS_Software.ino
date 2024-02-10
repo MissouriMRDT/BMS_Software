@@ -72,13 +72,13 @@ void loop() {
 
     //Check for Cell Undervoltage and Cell Critical
     for (uint8_t i = 0; i < NUM_CELLS; i++) {
-        if (cell_voltages[i] <= CELL_CRITICAL_THRESHOLD) {
-            errorCellCritical();
+        if (cell_voltages[i] <= CELL_CRITICAL_THRESHOLD && (i != 0)) {
+            errorCellCritical(); // cell 1  shutoff temporarily disabled - MONITOR CLOSELY
         }
     }
-    for (uint8_t i = 0; i < NUM_CELLS; i++) {
+    for (uint8_t i = 0; i < NUM_CELLS; i++ && (i != 0)) {
         if (cell_voltages[i] <= CELL_UNDERVOLT_THRESHOLD) {
-            errorCellUndervoltage();
+            errorCellUndervoltage(); // cell 1  shutoff temporarily disabled - MONITOR CLOSELY
         }
     }
   
