@@ -17,7 +17,8 @@ void telemetry();
 #define NUM_CELLS 6
 #define RESTART_DELAY 1000
 #define FAN_TEMP_THRESHOLD 35
-#define MAX_TEMP 65
+#define MAX_TEMP 65 // Celsius
+#define MAX_CURRENT 80 // Amps
 #define CELL_UNDERVOLT_THRESHOLD 2.7
 #define CELL_CRITICAL_THRESHOLD 2.5
 #define MAX_CURRENT 80
@@ -31,10 +32,9 @@ float temp = 0;
 
 float current = 0;
 #define ZERO_CURRENT 0 //Amps
-#define ZERO_CURRENT_ANALOG 0
-#define MAX_CURRENT_ANALOG 0
-#define OTHER_CURRENT 0
-#define OTHER_CURRENT_ANALOG 0
+#define ZERO_CURRENT_ANALOG 500
+#define OTHER_CURRENT 60
+#define OTHER_CURRENT_ANALOG 670
 
 float cell_voltages[8];
 uint8_t cell_voltage_pins[8] = {CELL_SENSE_1, CELL_SENSE_2, CELL_SENSE_3, CELL_SENSE_4, CELL_SENSE_5, CELL_SENSE_6, CELL_SENSE_7, CELL_SENSE_8};

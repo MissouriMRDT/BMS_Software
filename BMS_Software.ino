@@ -42,10 +42,9 @@ void loop() {
     }
     */
 
-    current = analogRead(CURRENT_SENSE);
-    /*
-    current = mapAnalog(CURRENT_SENSE, ZERO_CURRENT, MAX_CURRENT, ZERO_CURRENT_ANALOG, MAX_CURRENT_ANALOG);
+    current = mapAnalog(CURRENT_SENSE, ZERO_CURRENT, OTHER_CURRENT, ZERO_CURRENT_ANALOG, OTHER_CURRENT_ANALOG);
     //Check for Overcurrent
+    /*
     if (current>=MAX_CURRENT) {
         errorOvercurrent();
     }
