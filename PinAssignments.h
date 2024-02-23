@@ -6,7 +6,7 @@
 #define BUZZER 34
 
 // Gate
-#define ESTOP 35
+#define ESTOP 37
 
 // Error LED
 #define ERR_LED 33
