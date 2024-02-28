@@ -30,17 +30,11 @@ void setup () {
 
     //Telemetry
     Telemetry.begin(telemetry, TELEMETRY_PERIOD);
+    lastLCDUpdate = millis();
 }
 
 void loop() {
-    /*
-    //Update LCD with new data every 500 milliseconds
     uint32_t current_time = millis();
-    if (current_time - lastLCDupdate > LCD_UPDATE_PERIOD) {
-        LCD_update(temp, packVoltage, cell_voltages);
-        lastLCDupdate = current_time;
-    }
-    */
 
     current = mapAnalog(CURRENT_SENSE, ZERO_CURRENT, OTHER_CURRENT, ZERO_CURRENT_ANALOG, OTHER_CURRENT_ANALOG);
     //Check for Overcurrent
@@ -61,13 +55,15 @@ void loop() {
         cell_voltages[i] = mapAnalog(cell_voltage_pins[i], ZERO_VOLTS, OTHER_VOLTS, ZERO_VOLTS_ANALOG, OTHER_VOLTS_ANALOG);
     }
     delay(10);
+    float pv = 0;
     for (uint8_t i = 0; i < NUM_CELLS; i++) {
         float new_voltage = mapAnalog(cell_voltage_pins[i], ZERO_VOLTS, OTHER_VOLTS, ZERO_VOLTS_ANALOG, OTHER_VOLTS_ANALOG);
         if (cell_voltages[i] < new_voltage) {
             cell_voltages[i] = new_voltage;
         }
-        packVoltage += cell_voltages[i];
+        pv += cell_voltages[i];
     }
+    packVoltage = pv; // packVoltage is used in interrupt, should only be changed after total is calculated
 
     //Check for Cell Undervoltage and Cell Critical
     for (uint8_t i = 0; i < NUM_CELLS; i++) {
@@ -82,11 +78,16 @@ void loop() {
             errorCellUndervoltage();
         }
     }
-  
 
     //Turn on Fan if temp is above a certain threshold
     if (temp > FAN_TEMP_THRESHOLD) {
         digitalWrite(FAN, HIGH);
+    }
+  
+    //Update LCD with new data every 500 milliseconds
+    if (current_time - lastLCDUpdate > LCD_UPDATE_PERIOD) {
+        LCD_update(temp, packVoltage, cell_voltages, current);
+        lastLCDUpdate = current_time;
     }
 
     //Check for incoming RoveComm packets
@@ -121,14 +122,10 @@ void loop() {
 //FUNCTIONS//
 
 void telemetry() {
-    RoveComm.write(RC_BMSBOARD_PACKCURRENT_DATA_ID, RC_BMSBOARD_PACKCURRENT_DATA_COUNT, current); //Current Draw
-    packVoltage = 0;
-    for (uint8_t i = 0; i < NUM_CELLS; i++) {
-        packVoltage += cell_voltages[i];
-    }
-    RoveComm.write(RC_BMSBOARD_PACKVOLTAGE_DATA_ID, RC_BMSBOARD_PACKVOLTAGE_DATA_COUNT, packVoltage); //Pack voltage
+    RoveComm.write(RC_BMSBOARD_PACKCURRENT_DATA_ID, RC_BMSBOARD_PACKCURRENT_DATA_COUNT, current);
+    RoveComm.write(RC_BMSBOARD_PACKVOLTAGE_DATA_ID, RC_BMSBOARD_PACKVOLTAGE_DATA_COUNT, packVoltage);
     RoveComm.write(RC_BMSBOARD_CELLVOLTAGE_DATA_ID, RC_BMSBOARD_CELLVOLTAGE_DATA_COUNT, cell_voltages);
-    RoveComm.write(RC_BMSBOARD_PACKTEMP_DATA_ID, RC_BMSBOARD_PACKTEMP_DATA_COUNT, temp); //Temperature
+    RoveComm.write(RC_BMSBOARD_PACKTEMP_DATA_ID, RC_BMSBOARD_PACKTEMP_DATA_COUNT, temp);
 }
 
 float mapAnalog(uint8_t pin, float units1, float units2, uint16_t analog1, uint16_t analog2) {

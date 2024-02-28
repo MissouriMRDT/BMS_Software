@@ -32,7 +32,7 @@ float temp = 0;
 
 float current = 0;
 #define ZERO_CURRENT 0 //Amps
-#define ZERO_CURRENT_ANALOG 500
+#define ZERO_CURRENT_ANALOG 512
 #define OTHER_CURRENT 60
 #define OTHER_CURRENT_ANALOG 670
 
@@ -47,7 +47,7 @@ float packVoltage = 0;
 
 
 uint32_t lastOvercurrentErrorTimestamp = 0;
-uint32_t lastLCDupdate = 0;
+uint32_t lastLCDUpdate;
 #define TENTHOUSAND 10000 //BEMIS
 
 #define NOTIFYOVERHEAT_LENGTH 6
@@ -67,4 +67,4 @@ void errorOverHeat();
 
 float mapAnalog();
 
-#endif /* TRAININGSOFTWARE_H */
+#endif /* BMS_SOFTWARE_H */
